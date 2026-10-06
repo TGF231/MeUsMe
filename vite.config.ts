@@ -17,7 +17,8 @@ export default defineConfig({
         theme_color: '#2f6f5e',
         background_color: '#f4efe6',
         display: 'standalone',
-        start_url: '/',
+        start_url: '.',
+        scope: '.',
         icons: [
           { src: 'icone.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: 'icone.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
@@ -27,4 +28,6 @@ export default defineConfig({
   ],
   // Permite abrir no celular pela rede local durante o desenvolvimento.
   server: { host: true },
+  // No GitHub Pages o app fica em /MeUsMe/; localmente, na raiz.
+  base: process.env.BASE_PATH ?? '/',
 })

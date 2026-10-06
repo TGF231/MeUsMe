@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
+import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
 import { Pontos, SeletorEnergia } from '../components/SeletorEnergia'
-import { escolherPasso } from '../escolher'
+import { escolherPasso, type Escolha } from '../escolher'
 import { hoje, pendentes, useStore } from '../store'
+import { useAgenda } from '../stores/agenda'
+import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import type { Energia, Projeto } from '../types'
+import { hora, inicioDoDia, reais } from '../util'
+import { SituacaoAgora } from './Agenda'
 
 const relogio = (ms: number) => {
   const s = Math.floor(ms / 1000)
@@ -13,14 +18,43 @@ const relogio = (ms: number) => {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
-const inicioDoDia = () => new Date(new Date().setHours(0, 0, 0, 0)).getTime()
+/** Lembretes vencidos e contas do dia: o que não pode passar batido hoje. */
+function PendenciasDeHoje({ agora }: { agora: number }) {
+  const agenda = useAgenda()
+  const fin = useFinancas()
+  const lembretes = agenda.lembretes.filter((l) => !l.concluido && l.quando <= agora)
+  const diaHoje = new Date(agora).getDate()
+  const contas = fin.fixas.filter((f) => f.tipo === 'gasto' && !fixaPagaNoMes(f, fin.transacoes) && diaDeVencimento(f) <= diaHoje)
+  if (lembretes.length === 0 && contas.length === 0) return null
+
+  return (
+    <div className="cartao compacto pendencias">
+      {lembretes.map((l) => (
+        <div key={l.id} className="linha entre">
+          <span>⏰ {l.texto}</span>
+          <button onClick={() => agenda.concluirLembrete(l.id)}>Feito</button>
+        </div>
+      ))}
+      {contas.map((f) => (
+        <div key={f.id} className="linha entre">
+          <span>
+            💸 {f.nome} · {reais(f.valor)}{' '}
+            <span className="motivo">{diaDeVencimento(f) === diaHoje ? 'vence hoje' : `venceu dia ${diaDeVencimento(f)}`}</span>
+          </span>
+          <button onClick={() => fin.pagarFixa(f.id)}>Paguei</button>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export function Agora() {
   const s = useStore()
+  const eventos = useAgenda((a) => a.eventos)
   const checkIn = s.checkins.find((c) => c.dia === hoje())
   const [energia, setEnergia] = useState<Energia>(checkIn?.energia ?? 2)
   const [pulados, setPulados] = useState<Set<string>>(new Set())
-  const [quebrando, setQuebrando] = useState(false)
+  const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando'>('normal')
   const [celebrar, setCelebrar] = useState<{ projeto: Projeto | null; restantes: number } | null>(null)
   const [ideia, setIdeia] = useState('')
   const [agora, setAgora] = useState(() => Date.now())
@@ -30,15 +64,29 @@ export function Agora() {
   const passoAtivo = sessao && s.passos.find((p) => p.id === sessao.passoId)
 
   useEffect(() => {
-    if (!sessao) return
-    const t = setInterval(() => setAgora(Date.now()), 1000)
+    const t = setInterval(() => setAgora(Date.now()), sessao ? 1000 : 30_000)
     return () => clearInterval(t)
   }, [sessao])
 
-  const escolha = useMemo(
-    () => escolherPasso(s.projetos, s.passos, s.focoId, energia, pulados),
-    [s.projetos, s.passos, s.focoId, energia, pulados],
-  )
+  const sugerida = useMemo(() => {
+    // Passos com horário reservado mais tarde esperam a vez deles.
+    const fora = new Set(pulados)
+    for (const e of eventos) if (e.passoId && e.inicio > agora) fora.add(e.passoId)
+    return escolherPasso(s.projetos, s.passos, s.focoId, energia, fora)
+  }, [s.projetos, s.passos, s.focoId, energia, pulados, eventos, agora])
+
+  // Se você reservou este horário para um passo, a decisão já foi tomada: ele vence qualquer cálculo.
+  const reserva = eventos.find((e) => e.passoId && !e.diaInteiro && e.inicio <= agora && e.fim > agora)
+  const passoReservado = reserva && s.passos.find((p) => p.id === reserva.passoId && !p.feitoEm && !pulados.has(p.id))
+  const escolha: Escolha | null = passoReservado
+    ? {
+        passo: passoReservado,
+        projeto: s.projetos.find((p) => p.id === passoReservado.projetoId) ?? null,
+        restantes: pendentes(s.passos, passoReservado.projetoId).length,
+        motivo: `Você reservou ${hora(reserva.inicio)}–${hora(reserva.fim)} para isso.`,
+        acimaDaEnergia: false,
+      }
+    : sugerida
 
   const desde = inicioDoDia()
   const feitosHoje = s.passos.filter((p) => p.feitoEm && p.feitoEm >= desde).length
@@ -55,7 +103,7 @@ export function Agora() {
     const projeto = s.projetos.find((p) => p.id === passo?.projetoId) ?? null
     const restantes = projeto ? pendentes(useStore.getState().passos, projeto.id).length : 0
     setCelebrar({ projeto, restantes })
-    setQuebrando(false)
+    setModo('normal')
   }
 
   const estacionar = (projetoId: string | null) => {
@@ -155,9 +203,11 @@ export function Agora() {
   return (
     <section className="tela">
       <div className="cartao compacto">
+        <SituacaoAgora />
         <label className="rotulo">Sua energia agora</label>
         <SeletorEnergia valor={energia} onChange={setEnergia} />
       </div>
+      <PendenciasDeHoje agora={agora} />
 
       {!escolha ? (
         <div className="cartao vazio">
@@ -188,16 +238,26 @@ export function Agora() {
             <p className="dica">Tudo na fila pede mais energia do que você tem agora. Que tal quebrar este em algo menor?</p>
           )}
 
-          {quebrando ? (
+          {modo === 'quebrando' ? (
             <PassoForm
               pergunta="Qual é o menor pedaço disso que dá para fazer em 2 minutos?"
               rotuloBotao="Fazer este primeiro"
               onSalvar={(t, e) => {
                 s.criarPasso(escolha.passo.projetoId, t, e, escolha.passo.id)
-                setQuebrando(false)
+                setModo('normal')
               }}
-              onCancelar={() => setQuebrando(false)}
+              onCancelar={() => setModo('normal')}
             />
+          ) : modo === 'agendando' ? (
+            <>
+              <p className="rotulo">Reservar um horário para este passo. Quando chegar a hora, ele aparece aqui primeiro.</p>
+              <EventoForm
+                inicial={{ titulo: escolha.passo.texto, passoId: escolha.passo.id }}
+                rotulo="Reservar horário"
+                onPronto={() => setModo('normal')}
+                onCancelar={() => setModo('normal')}
+              />
+            </>
           ) : (
             <>
               <button className="primario grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
@@ -205,7 +265,8 @@ export function Agora() {
               </button>
               <div className="linha">
                 <button onClick={() => concluir(escolha.passo.id)}>Já fiz</button>
-                <button onClick={() => setQuebrando(true)}>Grande demais</button>
+                <button onClick={() => setModo('quebrando')}>Grande demais</button>
+                <button onClick={() => setModo('agendando')}>Agendar</button>
                 <button onClick={() => setPulados(new Set(pulados).add(escolha.passo.id))}>Agora não</button>
               </div>
             </>

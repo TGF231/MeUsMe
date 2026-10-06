@@ -1,13 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Captura, CheckIn, Energia, Ideia, Passo, Projeto, Sessao } from './types'
+import { hoje, novoId as id } from './util'
 
-const id = () => crypto.randomUUID()
-
-export const hoje = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
+export { hoje }
 
 interface Estado {
   capturas: Captura[]

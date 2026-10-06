@@ -1,9 +1,19 @@
 import { useState } from 'react'
+import { EventoForm } from '../components/EventoForm'
+import { LancamentoForm } from '../components/LancamentoForm'
+import { LembreteForm } from '../components/LembreteForm'
 import { PassoForm } from '../components/PassoForm'
 import { useStore } from '../store'
 import type { Captura } from '../types'
+import { lerGasto, reais } from '../util'
 
-type Modo = { tipo: 'passo'; projetoId: string | null } | { tipo: 'projeto' } | null
+type Modo =
+  | { tipo: 'passo'; projetoId: string | null }
+  | { tipo: 'projeto' }
+  | { tipo: 'gasto' }
+  | { tipo: 'lembrete' }
+  | { tipo: 'evento' }
+  | null
 
 function Processar({ captura }: { captura: Captura }) {
   const s = useStore()
@@ -11,6 +21,14 @@ function Processar({ captura }: { captura: Captura }) {
   const [chegada, setChegada] = useState('')
   const [titulo, setTitulo] = useState(captura.texto)
   const ativos = s.projetos.filter((p) => !p.concluidoEm)
+  const gasto = lerGasto(captura.texto)
+  const resolver = () => s.descartarCaptura(captura.id)
+  const cancelar = () => setModo(null)
+
+  if (modo?.tipo === 'gasto')
+    return <LancamentoForm inicial={gasto ?? { descricao: captura.texto }} onPronto={resolver} onCancelar={cancelar} />
+  if (modo?.tipo === 'lembrete') return <LembreteForm inicial={captura.texto} onPronto={resolver} onCancelar={cancelar} />
+  if (modo?.tipo === 'evento') return <EventoForm inicial={{ titulo: captura.texto }} onPronto={resolver} onCancelar={cancelar} />
 
   if (modo?.tipo === 'passo') {
     return (
@@ -59,6 +77,11 @@ function Processar({ captura }: { captura: Captura }) {
 
   return (
     <div className="linha acoes">
+      {gasto && (
+        <button className="primario" onClick={() => setModo({ tipo: 'gasto' })}>
+          Registrar gasto de {reais(gasto.valor)}
+        </button>
+      )}
       <button onClick={() => setModo({ tipo: 'passo', projetoId: null })}>Tarefa solta</button>
       {ativos.length > 0 && (
         <select
@@ -74,6 +97,9 @@ function Processar({ captura }: { captura: Captura }) {
         </select>
       )}
       <button onClick={() => setModo({ tipo: 'projeto' })}>Virar projeto</button>
+      {!gasto && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
+      <button onClick={() => setModo({ tipo: 'evento' })}>Compromisso</button>
+      <button onClick={() => setModo({ tipo: 'lembrete' })}>Lembrete</button>
       <button
         onClick={() => {
           s.estacionarIdeia(captura.texto, null)
