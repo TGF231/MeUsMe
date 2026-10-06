@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MeUsMe</string>
+    <string name="title_activity_main">MeUsMe</string>
+    <string name="package_name">app.meusme</string>
+    <string name="custom_url_scheme">app.meusme</string>
+    <string name="servico_captura">MeUsMe: gastos pelas notificações do banco</string>
+</resources>

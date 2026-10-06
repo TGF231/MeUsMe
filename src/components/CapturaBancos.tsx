@@ -1,0 +1,82 @@
+import { useEffect, useState } from 'react'
+import { BANCOS } from '../nativo/bancos'
+import { Captura, processarCapturas } from '../nativo/captura'
+import { ehAndroid } from '../nativo/plataforma'
+
+interface Candidato {
+  pacote: string
+  nome: string
+  vezes: number
+}
+
+/** Android: liberar a leitura das notificações dos bancos e escolher quais apps contam. */
+export function CapturaBancos() {
+  const [permitido, setPermitido] = useState<boolean | null>(null)
+  const [pacotes, setPacotes] = useState<string[]>([])
+  const [candidatos, setCandidatos] = useState<Candidato[]>([])
+
+  useEffect(() => {
+    if (!ehAndroid()) return
+    const atualizar = async () => {
+      const e = await Captura.estado()
+      setPermitido(e.permitido)
+      setPacotes(e.pacotes)
+      setCandidatos((await Captura.candidatos()).candidatos)
+      if (e.permitido) void processarCapturas()
+    }
+    void atualizar()
+    // Ao voltar da tela de ajustes do Android, relê a permissão.
+    const aoVoltar = () => document.visibilityState === 'visible' && void atualizar()
+    document.addEventListener('visibilitychange', aoVoltar)
+    return () => document.removeEventListener('visibilitychange', aoVoltar)
+  }, [])
+
+  if (!ehAndroid() || permitido === null) return null
+
+  const alternar = async (pacote: string) => {
+    const novos = pacotes.includes(pacote) ? pacotes.filter((p) => p !== pacote) : [...pacotes, pacote]
+    await Captura.definirPacotes({ pacotes: novos })
+    setPacotes(novos)
+  }
+  const outros = candidatos.filter((c) => !BANCOS[c.pacote])
+
+  return (
+    <div className="cartao">
+      <h2 className="titulo">Gastos pelas notificações do banco</h2>
+      <p className="motivo">
+        Quando o banco avisa “Compra de R$ 35,90 aprovada em iFood”, o MeUsMe registra o gasto na hora, mesmo fechado. Quando o Open Finance
+        trouxer o lançamento oficial, ele substitui este automaticamente.
+      </p>
+      {permitido ? (
+        <p className="motivo">Acesso liberado. ✓</p>
+      ) : (
+        <>
+          <button className="primario" onClick={() => void Captura.abrirAjustes()}>
+            Liberar acesso às notificações
+          </button>
+          <details>
+            <summary>A opção aparece bloqueada (“configuração restrita”)?</summary>
+            <p className="motivo">
+              O Android bloqueia isso em apps instalados por arquivo APK. Para liberar: abra as informações do app, toque nos três pontos (⋮) no
+              canto superior e escolha <b>Permitir configurações restritas</b>. Depois volte aqui e toque em “Liberar acesso” de novo.
+            </p>
+            <button onClick={() => void Captura.abrirInfoDoApp()}>Abrir informações do app</button>
+          </details>
+        </>
+      )}
+
+      <label className="rotulo">Apps lidos</label>
+      {[...Object.entries(BANCOS), ...outros.map((c) => [c.pacote, c.nome] as const)].map(([pacote, nome]) => (
+        <label key={pacote} className="check">
+          <input type="checkbox" checked={pacotes.includes(pacote)} onChange={() => void alternar(pacote)} />
+          {nome}
+          {!BANCOS[pacote] && <span className="motivo"> · mandou {candidatos.find((c) => c.pacote === pacote)?.vezes} aviso(s) com R$</span>}
+        </label>
+      ))}
+      <p className="motivo">
+        Só o conteúdo das notificações dos apps marcados é lido. De outros apps que mencionam “R$”, o MeUsMe guarda apenas o nome, para você
+        poder marcar se for um banco.
+      </p>
+    </div>
+  )
+}

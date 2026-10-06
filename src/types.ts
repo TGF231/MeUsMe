@@ -82,6 +82,8 @@ export interface Transacao {
   /** Impressão digital de uma linha importada de extrato, para não duplicar. */
   chaveImport?: string
   fixaId?: string
+  /** Veio da notificação do banco: vale até o Open Finance trazer o lançamento oficial. */
+  provisoria?: boolean
 }
 
 /** Conta que se repete todo mês: aluguel, internet, salário… */

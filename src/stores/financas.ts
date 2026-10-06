@@ -43,6 +43,11 @@ interface Estado {
   lancar: (t: Omit<Transacao, 'id' | 'criadoEm'>) => void
   atualizarTransacao: (id: string, mudancas: Partial<Transacao>) => void
   removerTransacao: (id: string) => void
+  /**
+   * Remove lançamentos provisórios (vindos de notificação) que o banco confirmou:
+   * mesmo valor, até 3 dias de diferença. A categoria escolhida à mão passa para o oficial.
+   */
+  reconciliar: (oficiais: Omit<Transacao, 'id' | 'criadoEm'>[]) => Omit<Transacao, 'id' | 'criadoEm'>[]
   /** Devolve quantas linhas eram novas. */
   importar: (linhas: Omit<Transacao, 'id' | 'criadoEm'>[]) => number
   salvarFixa: (f: Omit<ContaFixa, 'id'> & { id?: string }) => void
@@ -87,6 +92,23 @@ export const useFinancas = create<Estado>()(
       atualizarTransacao: (id, m) =>
         set((s) => ({ transacoes: s.transacoes.map((t) => (t.id === id ? { ...t, ...m, id } : t)) })),
       removerTransacao: (id) => set((s) => ({ transacoes: s.transacoes.filter((t) => t.id !== id) })),
+
+      reconciliar: (oficiais) => {
+        const provisorias = get().transacoes.filter((t) => t.provisoria)
+        if (!provisorias.length) return oficiais
+        const usadas = new Set<string>()
+        const ajustados = oficiais.map((o) => {
+          const dia = new Date(`${o.data}T12:00:00`).getTime()
+          const par = provisorias.find(
+            (p) => !usadas.has(p.id) && p.valor === o.valor && Math.abs(new Date(`${p.data}T12:00:00`).getTime() - dia) <= 3 * 86_400_000,
+          )
+          if (!par) return o
+          usadas.add(par.id)
+          return { ...o, categoriaId: par.categoriaId ?? o.categoriaId }
+        })
+        if (usadas.size) set((s) => ({ transacoes: s.transacoes.filter((t) => !usadas.has(t.id)) }))
+        return ajustados
+      },
 
       importar: (linhas) => {
         const existentes = new Set(get().transacoes.map((t) => t.chaveImport).filter(Boolean))

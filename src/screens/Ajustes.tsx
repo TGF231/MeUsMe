@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import esquemaSql from '../../supabase/esquema.sql?raw'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
-import { notificar, pedirPermissao, permissaoNotificacao } from '../notificacoes'
+import { ehNativo } from '../nativo/plataforma'
+import { abrirAjusteDeHorarioExato, horarioExatoLiberado, lerPermissao, notificar, pedirPermissao, type Permissao } from '../notificacoes'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { sincronizarAgora, useStatusSync } from '../sync/motor'
@@ -21,7 +22,20 @@ const CHAVES_BACKUP = ['meusme', 'meusme-financas', 'meusme-agenda', 'meusme-con
 
 function Notificacoes() {
   const cfg = useConfig()
-  const [permissao, setPermissao] = useState(permissaoNotificacao())
+  const [permissao, setPermissao] = useState<Permissao | null>(null)
+  const [exato, setExato] = useState<boolean | null>(null)
+  const nativo = ehNativo()
+
+  useEffect(() => {
+    const atualizar = () => {
+      void lerPermissao().then(setPermissao)
+      void horarioExatoLiberado().then(setExato)
+    }
+    atualizar()
+    // Volta da tela de ajustes do Android: relê as permissões.
+    document.addEventListener('visibilitychange', atualizar)
+    return () => document.removeEventListener('visibilitychange', atualizar)
+  }, [])
 
   return (
     <div className="cartao">
@@ -30,23 +44,34 @@ function Notificacoes() {
         <p className="motivo">Ativadas neste aparelho. ✓</p>
       ) : permissao === 'denied' ? (
         <p className="dica">
-          O navegador está bloqueando as notificações. Libere nas configurações do site (cadeado ao lado do endereço) e recarregue.
+          {nativo
+            ? 'O Android está bloqueando as notificações do MeUsMe. Libere em Configurações → Apps → MeUsMe → Notificações.'
+            : 'O navegador está bloqueando as notificações. Libere nas configurações do site (cadeado ao lado do endereço) e recarregue.'}
         </p>
       ) : permissao === 'indisponivel' ? (
         <p className="dica">
           Este navegador não oferece notificações aqui. No celular elas exigem o app publicado em https e instalado na tela inicial.
         </p>
-      ) : (
+      ) : permissao === null ? null : (
         <button className="primario" onClick={async () => setPermissao(await pedirPermissao())}>
           Ativar notificações
         </button>
+      )}
+      {exato === false && (
+        <div className="dica">
+          Para os avisos chegarem no minuto certo, libere “Alarmes e lembretes” para o MeUsMe. Sem isso o Android pode atrasar alguns minutos.{' '}
+          <button className="mini-botao" onClick={() => void abrirAjusteDeHorarioExato().then(() => horarioExatoLiberado().then(setExato))}>
+            Liberar
+          </button>
+        </div>
       )}
       <button onClick={() => void notificar('Teste do MeUsMe', 'Se você está vendo isto, os avisos estão funcionando.', 'teste')}>
         Enviar notificação de teste
       </button>
       <p className="dica neutra">
-        Os avisos funcionam enquanto o MeUsMe estiver aberto, mesmo minimizado ou em outra aba. Com o app totalmente fechado, isso só será
-        possível depois de publicar o app com um servidor.
+        {nativo
+          ? 'No app Android, os avisos da próxima semana ficam agendados no sistema e tocam mesmo com o app fechado.'
+          : 'No navegador, os avisos funcionam enquanto o MeUsMe estiver aberto, mesmo minimizado ou em outra aba. Com o app fechado, só no app Android.'}
       </p>
 
       <label className="rotulo">Lembrete do check-in diário</label>
@@ -88,6 +113,20 @@ function Notificacoes() {
 }
 
 function Google() {
+  if (ehNativo())
+    return (
+      <div className="cartao">
+        <h2 className="titulo">Google Agenda</h2>
+        <p className="motivo">
+          O Google não permite login dentro de apps como este. No celular, seus compromissos do Google chegam pela sincronização: conecte o
+          Google no PC (no navegador) e eles aparecem aqui.
+        </p>
+      </div>
+    )
+  return <GoogleNavegador />
+}
+
+function GoogleNavegador() {
   const agenda = useAgenda()
   const [clientId, setClientId] = useState(agenda.googleClientId)
   const [mensagem, setMensagem] = useState('')

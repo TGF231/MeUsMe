@@ -106,7 +106,8 @@ button.discreto {
 .conteudo {
   max-width: 640px;
   margin: 0 auto;
-  padding: 0 16px calc(96px + env(safe-area-inset-bottom));
+  /* No app Android a página vai até a borda: o topo respeita a barra de status. */
+  padding: env(safe-area-inset-top) 16px calc(96px + env(safe-area-inset-bottom));
 }
 
 .topo {
@@ -680,7 +681,7 @@ code {
 
 .avisos {
   position: fixed;
-  top: 12px;
+  top: calc(12px + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   width: min(528px, calc(100% - 32px));
@@ -801,6 +802,7 @@ kbd {
     inset: auto;
     top: 0;
     height: 100dvh;
+    padding-top: max(8px, env(safe-area-inset-top));
     flex-direction: column;
     justify-content: flex-start;
     border-top: none;
@@ -834,7 +836,7 @@ kbd {
   .abas {
     width: 76px;
     gap: 2px;
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+    padding: max(8px, env(safe-area-inset-top)) 6px calc(8px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
   }
 
   .abas button {
@@ -846,7 +848,7 @@ kbd {
 
   .conteudo {
     max-width: 760px;
-    padding: 0 20px 24px;
+    padding: env(safe-area-inset-top) 20px 24px;
   }
 
   .topo h1 {
@@ -864,7 +866,7 @@ kbd {
   .abas {
     width: 232px;
     gap: 4px;
-    padding: 20px 14px;
+    padding: max(20px, env(safe-area-inset-top)) 14px 20px;
   }
 
   .abas button {
@@ -906,7 +908,7 @@ kbd {
 
   .conteudo {
     max-width: 1240px;
-    padding: 0 32px 48px;
+    padding: env(safe-area-inset-top) 32px 48px;
   }
 
   .topo h1 {

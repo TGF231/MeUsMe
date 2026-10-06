@@ -8,6 +8,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Registrado à mão em main.tsx, só fora do app Android.
+      injectRegister: null,
       includeAssets: ['icone.svg'],
       manifest: {
         name: 'MeUsMe',

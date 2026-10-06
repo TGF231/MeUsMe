@@ -1,6 +1,10 @@
+import { App as AppNativo } from '@capacitor/app'
 import { useEffect, useRef, useState } from 'react'
 import { useAgendador } from './agendador'
 import { Icone } from './components/Icone'
+import { Captura, processarCapturas } from './nativo/captura'
+import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
+import { ehAndroid, ehNativo } from './nativo/plataforma'
 import { Agenda } from './screens/Agenda'
 import { Agora } from './screens/Agora'
 import { Ajustes } from './screens/Ajustes'
@@ -94,6 +98,32 @@ export default function App() {
     }
     window.addEventListener('keydown', atalho)
     return () => window.removeEventListener('keydown', atalho)
+  }, [])
+
+  // Android: avisos agendados no sistema, gastos capturados das notificações e botão "voltar".
+  useEffect(() => manterNotificacoesAgendadas(), [])
+  useEffect(() => {
+    if (!ehAndroid()) return
+    void processarCapturas()
+    const ouvintes = [
+      Captura.addListener('captura', () => void processarCapturas()),
+      AppNativo.addListener('resume', () => void processarCapturas()),
+    ]
+    return () => ouvintes.forEach((o) => void o.then((h) => h.remove()))
+  }, [])
+  const estado = useRef({ aba, capturando })
+  useEffect(() => {
+    estado.current = { aba, capturando }
+  })
+  useEffect(() => {
+    if (!ehNativo()) return
+    const ouvinte = AppNativo.addListener('backButton', () => {
+      const { aba, capturando } = estado.current
+      if (capturando) setCapturando(false)
+      else if (aba !== 'agora') setAba('agora')
+      else void AppNativo.minimizeApp()
+    })
+    return () => void ouvinte.then((h) => h.remove())
   }, [])
 
   const nomeDaAba = aba === 'ajustes' ? 'Ajustes' : ABAS.find((a) => a.id === aba)!.nome

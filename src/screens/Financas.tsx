@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CapturaBancos } from '../components/CapturaBancos'
 import { LancamentoForm } from '../components/LancamentoForm'
 import { converterExtrato, detectarColunas, lerCSV, type Colunas } from '../csv'
 import { apagarConfigPluggy, lerConfigPluggy, salvarConfigPluggy, sincronizarPluggy } from '../pluggy'
@@ -204,7 +205,10 @@ function Lancamentos() {
             .map((t) => (
               <div key={t.id} className="transacao">
                 <div className="linha entre">
-                  <span className="desc">{t.descricao}</span>
+                  <span className="desc">
+                    {t.descricao}
+                    {t.provisoria && <span className="selo" title="Veio da notificação do banco; o Open Finance confirma depois">notificação</span>}
+                  </span>
                   <b className={t.valor < 0 ? '' : 'positivo'}>{reais(t.valor)}</b>
                 </div>
                 <div className="linha entre">
@@ -720,6 +724,7 @@ export function Financas() {
       {sub === 'importar' && (
         <>
           <div className="estreito">
+            <CapturaBancos />
             <OpenFinance sync={sync} />
           </div>
           <Importar />

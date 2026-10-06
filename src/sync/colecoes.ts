@@ -2,7 +2,6 @@ import { useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
-import type { Evento } from '../types'
 import { canonico, type Locais } from './planejar'
 
 type Registro = Record<string, unknown>
@@ -31,7 +30,7 @@ const maisNovoPrimeiro = (a: Registro, b: Registro) => (b.criadoEm as number) - 
 /**
  * O que sincroniza entre aparelhos. Fica de fora, de propósito:
  * - credenciais (segredo da Pluggy, token do Google, sessão do Supabase);
- * - estado da conexão com o Google e o cache de eventos do Google (cada aparelho baixa do próprio Google);
+ * - estado da conexão com o Google (cada aparelho conecta o seu, ou recebe os eventos pela sincronização);
  * - compromissos "encerrados" na tela Agora (detalhe de cada sessão de uso).
  */
 const COLECOES: Colecao[] = [
@@ -48,14 +47,9 @@ const COLECOES: Colecao[] = [
   { nome: 'financas.transacoes', loja: useFinancas, campo: 'transacoes', tipo: 'lista', ordenar: maisNovoPrimeiro },
   { nome: 'financas.fixas', loja: useFinancas, campo: 'fixas', tipo: 'lista' },
 
-  {
-    nome: 'agenda.eventos',
-    loja: useAgenda,
-    campo: 'eventos',
-    tipo: 'lista',
-    // Eventos do MeUsMe, e os do Google que reservam horário para um passo (o vínculo só existe aqui).
-    incluir: (e) => (e as unknown as Evento).origem === 'local' || Boolean((e as unknown as Evento).passoId),
-  },
+  // Inclui os eventos do Google (com id estável, o mesmo em todos os aparelhos): é assim que eles chegam
+  // ao app Android, onde o Google não deixa fazer login.
+  { nome: 'agenda.eventos', loja: useAgenda, campo: 'eventos', tipo: 'lista' },
   { nome: 'agenda.lembretes', loja: useAgenda, campo: 'lembretes', tipo: 'lista' },
   { nome: 'agenda.googleClientId', loja: useAgenda, campo: 'googleClientId', tipo: 'valor' },
 

@@ -155,7 +155,9 @@ async function sincronizar(): Promise<ResultadoSync> {
           categoriaId: sugerirCategoria(t.description, atual.transacoes, atual.categorias),
           chaveImport: `pluggy:${t.providerId || t.id}`,
         }))
-      resultado.novas += atual.importar(linhas)
+      // Só os novos de verdade; cada um substitui o provisório que veio da notificação do banco, se houver.
+      const existentes = new Set(atual.transacoes.map((t) => t.chaveImport))
+      resultado.novas += atual.importar(atual.reconciliar(linhas.filter((l) => !existentes.has(l.chaveImport))))
 
       // Acerta o saldo: saldo inicial = saldo do banco − soma dos lançamentos que o app conhece.
       const depois = useFinancas.getState()
