@@ -7,10 +7,10 @@ Uma coisa de cada vez. App pessoal para decidir o próximo passo, chegar ao fim 
 - **Agora**: o app escolhe *um* passo para você, de acordo com sua energia. Horário reservado vence; depois o projeto em foco; depois o projeto mais perto da linha de chegada. Mostra quanto tempo livre há até o próximo compromisso, lembretes vencidos e contas do dia.
 - **Agenda**: compromissos e lembretes (únicos ou repetidos), tempo livre entre eventos, sincronização com o Google Agenda.
 - **Caixa**: tire da cabeça em 1 segundo (botão `+` ou `Ctrl+Espaço`). Depois vira passo, projeto, gasto, compromisso, lembrete ou ideia. Textos como `35 almoço` são reconhecidos como gasto.
-- **Finanças**: "livre para gastar por dia até o fim do mês", contas fixas com aviso de vencimento, limites por categoria, importação de extrato CSV (Nubank, Inter, Wallet…) sem duplicar e com categorização automática.
+- **Finanças**: "livre para gastar por dia até o fim do mês", contas fixas com aviso de vencimento, limites por categoria, Open Finance pelo Meu Pluggy (gratuito para uso pessoal) e importação de extrato CSV (Nubank, Inter, Wallet…), sem duplicar e com categorização automática.
 - **Projetos**: todo projeto nasce com uma *linha de chegada*. Só o próximo passo fica visível.
-- **Diário**: check-in de 30 segundos (humor, energia, uma frase).
-- **Ajustes**: notificações, conexão com o Google, backup.
+- **Histórico**: check-in de 30 segundos (humor, energia, uma frase) e o que você fez em cada dia, com o tempo de cada passo e por projeto.
+- **Ajustes**: sincronização entre aparelhos, notificações, conexão com o Google, backup.
 
 Os dados ficam no próprio aparelho (localStorage) e, se você ativar, são sincronizados entre aparelhos.
 
