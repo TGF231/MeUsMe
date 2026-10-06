@@ -10,6 +10,7 @@ import { Historico } from './screens/Historico'
 import { Projetos } from './screens/Projetos'
 import { useStore } from './store'
 import { useAvisos } from './stores/config'
+import { useSincronizacao } from './sync/motor'
 
 type Aba = 'agora' | 'agenda' | 'caixa' | 'financas' | 'projetos' | 'historico' | 'ajustes'
 
@@ -81,6 +82,7 @@ export default function App() {
   const [capturando, setCapturando] = useState(false)
   const naCaixa = useStore((s) => s.capturas.length)
   useAgendador()
+  useSincronizacao()
 
   // Atalho no PC: Ctrl+Espaço abre a captura de qualquer lugar do app.
   useEffect(() => {

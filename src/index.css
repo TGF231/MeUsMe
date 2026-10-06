@@ -1146,3 +1146,21 @@ span.tempo {
   padding: 6px 12px;
   flex-shrink: 0;
 }
+
+/* ── Sincronização ── */
+
+.mini-botao {
+  min-height: 30px;
+  padding: 2px 10px;
+  font-size: 0.85rem;
+  margin-left: 4px;
+}
+
+.codigo {
+  display: block;
+  padding: 10px;
+  border-radius: 8px;
+  user-select: all;
+  word-break: break-all;
+  font-size: 0.75rem;
+}

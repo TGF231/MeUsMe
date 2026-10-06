@@ -31,6 +31,12 @@ interface Estado {
 /** Eventos do Google ganham id novo a cada sincronização; o googleId + início é estável. */
 export const chaveEvento = (e: Evento) => `${e.googleId ?? e.id}:${e.inicio}`
 
+/**
+ * Evento vindo do Google tem id derivado do id do Google: assim o mesmo evento tem o mesmo id
+ * em todos os aparelhos e a sincronização não fica apagando e recriando cópias.
+ */
+const idDoEvento = (e: Omit<Evento, 'id'>) => (e.googleId ? `google:${e.googleId}` : novoId())
+
 export function proximaOcorrencia(l: Lembrete) {
   const d = new Date(l.quando)
   const agora = Date.now()
@@ -53,7 +59,7 @@ export const useAgenda = create<Estado>()(
       encerrados: {},
 
       criarEvento: (e) => {
-        const id = novoId()
+        const id = idDoEvento(e)
         set((s) => ({ eventos: [...s.eventos, { ...e, id }] }))
         return id
       },
@@ -67,7 +73,7 @@ export const useAgenda = create<Estado>()(
           return {
             eventos: [
               ...fora,
-              ...novos.map((e) => ({ ...e, id: novoId(), passoId: e.passoId ?? vinculos.get(e.googleId) })),
+              ...novos.map((e) => ({ ...e, id: idDoEvento(e), passoId: e.passoId ?? vinculos.get(e.googleId) })),
             ],
           }
         }),

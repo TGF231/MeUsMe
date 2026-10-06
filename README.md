@@ -12,7 +12,19 @@ Uma coisa de cada vez. App pessoal para decidir o próximo passo, chegar ao fim 
 - **Diário**: check-in de 30 segundos (humor, energia, uma frase).
 - **Ajustes**: notificações, conexão com o Google, backup.
 
-Os dados ficam no próprio aparelho (localStorage). Use **Ajustes → Backup** para guardar uma cópia ou levar para outro aparelho.
+Os dados ficam no próprio aparelho (localStorage) e, se você ativar, são sincronizados entre aparelhos.
+
+## Sincronização entre aparelhos
+
+Usa um projeto [Supabase](https://supabase.com) seu (plano gratuito). Cada item (passo, gasto, evento…) sincroniza separadamente, então editar coisas diferentes no PC e no celular ao mesmo tempo não perde nada; funciona offline e envia quando a conexão volta.
+
+1. Crie um projeto no Supabase e rode `supabase/esquema.sql` no SQL Editor (o app tem um botão "Copiar script").
+2. Em **Ajustes → Sincronização**, cole a Project URL e a chave anon/publishable, e crie sua conta.
+3. Nos outros aparelhos, use **Adicionar outro aparelho** para copiar um código e cole em "Usar código".
+
+Não sincronizam, de propósito: o segredo da Pluggy, a conexão com o Google (cada aparelho conecta a sua) e o cache de eventos do Google.
+
+A lógica de mesclagem tem testes: `npm test`.
 
 ## Notificações
 
