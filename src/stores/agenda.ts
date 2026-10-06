@@ -10,6 +10,8 @@ interface Estado {
   googleClientId: string
   googleConectado: boolean
   ultimaSync?: number
+  /** Compromissos que você marcou como encerrados na tela Agora (chave → quando). */
+  encerrados: Record<string, number>
 
   criarEvento: (e: Omit<Evento, 'id'>) => string
   atualizarEvento: (id: string, m: Partial<Evento>) => void
@@ -23,7 +25,11 @@ interface Estado {
   removerLembrete: (id: string) => void
 
   configurarGoogle: (m: Partial<Pick<Estado, 'googleClientId' | 'googleConectado' | 'ultimaSync'>>) => void
+  encerrarEvento: (e: Evento) => void
 }
+
+/** Eventos do Google ganham id novo a cada sincronização; o googleId + início é estável. */
+export const chaveEvento = (e: Evento) => `${e.googleId ?? e.id}:${e.inicio}`
 
 export function proximaOcorrencia(l: Lembrete) {
   const d = new Date(l.quando)
@@ -44,6 +50,7 @@ export const useAgenda = create<Estado>()(
       lembretes: [],
       googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '',
       googleConectado: false,
+      encerrados: {},
 
       criarEvento: (e) => {
         const id = novoId()
@@ -79,6 +86,13 @@ export const useAgenda = create<Estado>()(
       removerLembrete: (id) => set((s) => ({ lembretes: s.lembretes.filter((l) => l.id !== id) })),
 
       configurarGoogle: (m) => set(m),
+      encerrarEvento: (e) =>
+        set((s) => {
+          const agora = Date.now()
+          const encerrados = Object.fromEntries(Object.entries(s.encerrados).filter(([, t]) => agora - t < 3 * 86_400_000))
+          encerrados[chaveEvento(e)] = agora
+          return { encerrados }
+        }),
     }),
     { name: 'meusme-agenda', version: 1 },
   ),

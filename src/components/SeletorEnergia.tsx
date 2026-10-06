@@ -22,6 +22,25 @@ export function SeletorEnergia({ valor, onChange }: { valor: Energia; onChange: 
   )
 }
 
+/** Pontos clicáveis: cada toque troca a energia (baixa → média → alta → baixa). */
+export function PontosEditaveis({ energia, onChange }: { energia: Energia; onChange: (e: Energia) => void }) {
+  return (
+    <button
+      type="button"
+      className="pontos editavel"
+      title={`Energia ${NOMES_ENERGIA[energia].toLowerCase()}. Toque para mudar.`}
+      aria-label={`Energia ${NOMES_ENERGIA[energia].toLowerCase()}. Toque para mudar.`}
+      onClick={(e) => {
+        e.stopPropagation()
+        onChange(((energia % 3) + 1) as Energia)
+      }}
+    >
+      {'●'.repeat(energia)}
+      {'○'.repeat(3 - energia)}
+    </button>
+  )
+}
+
 export function Pontos({ energia }: { energia: Energia }) {
   return (
     <span className="pontos" title={`Energia ${NOMES_ENERGIA[energia].toLowerCase()}`}>

@@ -9,6 +9,7 @@ interface Props {
   inicial?: string
   pergunta?: string
   rotuloBotao?: string
+  energiaInicial?: Energia
   onSalvar: (texto: string, energia: Energia) => void
   onCancelar?: () => void
 }
@@ -17,11 +18,12 @@ export function PassoForm({
   inicial = '',
   pergunta = 'Qual é a próxima ação física e concreta?',
   rotuloBotao = 'Adicionar passo',
+  energiaInicial = 2,
   onSalvar,
   onCancelar,
 }: Props) {
   const [texto, setTexto] = useState(inicial)
-  const [energia, setEnergia] = useState<Energia>(2)
+  const [energia, setEnergia] = useState<Energia>(energiaInicial)
   const vago = VAGOS.test(texto)
 
   return (

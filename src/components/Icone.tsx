@@ -29,10 +29,11 @@ const CAMINHOS = {
       <path d="M5 4h11l-2 4 2 4H5" />
     </>
   ),
-  diario: (
+  historico: (
     <>
-      <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" />
-      <path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19M9 7.5h6" />
+      <path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" />
+      <path d="M3 3.5V8h4.5" />
+      <path d="M12 7.5V12l3 2" />
     </>
   ),
   ajustes: (

@@ -23,6 +23,7 @@ interface Estado {
 
   criarPasso: (projetoId: string | null, texto: string, energia: Energia, antesDe?: string) => void
   concluirPasso: (id: string) => void
+  atualizarPasso: (id: string, mudancas: Partial<Omit<Passo, 'id'>>) => void
   removerPasso: (id: string) => void
 
   estacionarIdeia: (texto: string, projetoId: string | null) => void
@@ -78,6 +79,7 @@ export const useStore = create<Estado>()(
         }),
       concluirPasso: (pid) =>
         set((s) => ({ passos: s.passos.map((p) => (p.id === pid ? { ...p, feitoEm: Date.now() } : p)) })),
+      atualizarPasso: (pid, m) => set((s) => ({ passos: s.passos.map((p) => (p.id === pid ? { ...p, ...m } : p)) })),
       removerPasso: (pid) => set((s) => ({ passos: s.passos.filter((p) => p.id !== pid) })),
 
       estacionarIdeia: (texto, projetoId) =>
@@ -102,5 +104,10 @@ export const useStore = create<Estado>()(
 /** Passos pendentes de um projeto, na ordem em que devem ser feitos. */
 export const pendentes = (passos: Passo[], projetoId: string | null) =>
   passos.filter((p) => p.projetoId === projetoId && !p.feitoEm).sort((a, b) => a.ordem - b.ordem)
+
+/** Tempo gasto num passo: cronômetro (todas as sessões) + o que foi informado à mão. */
+export const minutosDoPasso = (passo: Passo, sessoes: Sessao[], agora = Date.now()) =>
+  sessoes.filter((x) => x.passoId === passo.id).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0) +
+  (passo.minutosManuais ?? 0)
 
 export const checkInDeHoje = () => useStore.getState().checkins.find((c) => c.dia === hoje())

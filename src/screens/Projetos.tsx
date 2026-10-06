@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { PassoForm } from '../components/PassoForm'
-import { Pontos } from '../components/SeletorEnergia'
-import { pendentes, useStore } from '../store'
+import { PontosEditaveis } from '../components/SeletorEnergia'
+import { TempoGasto } from '../components/TempoGasto'
+import { minutosDoPasso, pendentes, useStore } from '../store'
+import { duracao } from '../util'
 
 function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
   const criar = useStore((s) => s.criarProjeto)
@@ -44,6 +46,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
   const feitos = s.passos.filter((p) => p.projetoId === id && p.feitoEm).sort((a, b) => b.feitoEm! - a.feitoEm!)
   const ideias = s.ideias.filter((i) => i.projetoId === id)
   const [proximo, ...depois] = fila
+  const tempoTotal = s.passos.filter((p) => p.projetoId === id).reduce((t, p) => t + minutosDoPasso(p, s.sessoes), 0)
 
   return (
     <section className="tela">
@@ -57,6 +60,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
             <p className="chegada">
               Linha de chegada: <i>{projeto.chegada}</i>
             </p>
+            {tempoTotal >= 1 && <p className="motivo">Tempo investido até agora: {duracao(tempoTotal)}</p>}
             {!projeto.concluidoEm && (
               <div className="linha">
                 <button
@@ -75,7 +79,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
               <p className="rotulo">Próximo passo</p>
               <p className="passo">{proximo.texto}</p>
               <p className="motivo">
-                <Pontos energia={proximo.energia} />
+                <PontosEditaveis energia={proximo.energia} onChange={(e) => s.atualizarPasso(proximo.id, { energia: e })} />
               </p>
             </div>
           ) : (
@@ -89,7 +93,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                   {depois.map((p) => (
                     <div key={p.id} className="linha entre item">
                       <span>
-                        <Pontos energia={p.energia} /> {p.texto}
+                        <PontosEditaveis energia={p.energia} onChange={(e) => s.atualizarPasso(p.id, { energia: e })} /> {p.texto}
                       </span>
                       <button className="discreto" onClick={() => s.removerPasso(p.id)}>
                         Remover
@@ -120,9 +124,10 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
               <h2>Já feito ({feitos.length})</h2>
               <div className="cartao">
                 {feitos.map((p) => (
-                  <p key={p.id} className="feito">
-                    ✓ {p.texto}
-                  </p>
+                  <div key={p.id} className="registro">
+                    <span className="flex feito">✓ {p.texto}</span>
+                    <TempoGasto passo={p} />
+                  </div>
                 ))}
               </div>
             </>

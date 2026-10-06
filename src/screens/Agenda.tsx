@@ -149,11 +149,16 @@ export function RestoDoDia() {
   const agenda = useAgenda()
   const agora = Date.now()
   const fimDoDia = inicioDoDia() + 86_400_000
-  const eventos = agenda.eventos.filter((e) => !e.diaInteiro && e.fim > agora && e.inicio < fimDoDia).sort((a, b) => a.inicio - b.inicio)
+  const eventos = agenda.eventos.filter((e) => e.fim > agora && e.inicio < fimDoDia).sort((a, b) => a.inicio - b.inicio)
   const lembretes = agenda.lembretes.filter((l) => !l.concluido && l.quando > agora && l.quando < fimDoDia)
   const itens = [
-    ...eventos.map((e) => ({ id: e.id, quando: e.inicio, texto: e.titulo, fim: e.fim })),
-    ...lembretes.map((l) => ({ id: l.id, quando: l.quando, texto: `⏰ ${l.texto}`, fim: undefined })),
+    ...eventos.map((e) => ({
+      id: e.id,
+      quando: e.diaInteiro ? 0 : e.inicio,
+      horario: e.diaInteiro ? 'Dia todo' : `${hora(e.inicio)}–${hora(e.fim)}`,
+      texto: e.titulo,
+    })),
+    ...lembretes.map((l) => ({ id: l.id, quando: l.quando, horario: hora(l.quando), texto: `⏰ ${l.texto}` })),
   ].sort((a, b) => a.quando - b.quando)
 
   return (
@@ -162,7 +167,7 @@ export function RestoDoDia() {
       {itens.length === 0 && <p className="motivo">Nada mais marcado para hoje.</p>}
       {itens.slice(0, 8).map((i) => (
         <p key={i.id} className="linha-dia">
-          <span className="horario">{i.fim ? `${hora(i.quando)}–${hora(i.fim)}` : hora(i.quando)}</span> {i.texto}
+          <span className="horario">{i.horario}</span> {i.texto}
         </p>
       ))}
     </div>

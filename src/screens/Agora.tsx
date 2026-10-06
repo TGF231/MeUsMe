@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
-import { Pontos, SeletorEnergia } from '../components/SeletorEnergia'
+import { PontosEditaveis, SeletorEnergia } from '../components/SeletorEnergia'
+import { TempoGasto } from '../components/TempoGasto'
 import { escolherPasso, type Escolha } from '../escolher'
-import { hoje, pendentes, useStore } from '../store'
-import { useAgenda } from '../stores/agenda'
+import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
+import { chaveEvento, useAgenda } from '../stores/agenda'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
-import type { Energia, Projeto } from '../types'
-import { hora, inicioDoDia, reais } from '../util'
+import type { Energia, Evento, Projeto } from '../types'
+import { duracao, hora, inicioDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 
 const relogio = (ms: number) => {
@@ -55,7 +56,11 @@ export function Agora() {
   const [energia, setEnergia] = useState<Energia>(checkIn?.energia ?? 2)
   const [pulados, setPulados] = useState<Set<string>>(new Set())
   const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando'>('normal')
-  const [celebrar, setCelebrar] = useState<{ projeto: Projeto | null; restantes: number } | null>(null)
+  const [celebrar, setCelebrar] = useState<{ passoId: string; projeto: Projeto | null; restantes: number } | null>(null)
+  const encerrados = useAgenda((a) => a.encerrados)
+  const encerrarEvento = useAgenda((a) => a.encerrarEvento)
+  // Compromissos que você pediu para tirar da frente só nesta sessão ("Ver outra coisa").
+  const [adiados, setAdiados] = useState<Set<string>>(new Set())
   const [ideia, setIdeia] = useState('')
   const [agora, setAgora] = useState(() => Date.now())
 
@@ -88,6 +93,14 @@ export function Agora() {
       }
     : sugerida
 
+  // Compromissos da agenda: o que está acontecendo agora, ou começa em até 30 min, vem antes de qualquer tarefa.
+  const relevante = (e: Evento) => !e.diaInteiro && !e.passoId && !encerrados[chaveEvento(e)] && !adiados.has(chaveEvento(e))
+  const eventoAgora = eventos.find((e) => relevante(e) && e.inicio <= agora && e.fim > agora)
+  const eventoChegando = eventos
+    .filter((e) => relevante(e) && e.inicio > agora && e.inicio - agora <= 30 * 60_000)
+    .sort((a, b) => a.inicio - b.inicio)[0]
+  const adiar = (e: Evento) => setAdiados(new Set(adiados).add(chaveEvento(e)))
+
   const desde = inicioDoDia()
   const feitosHoje = s.passos.filter((p) => p.feitoEm && p.feitoEm >= desde).length
   const minutosHoje = Math.round(
@@ -102,7 +115,7 @@ export function Agora() {
     const passo = s.passos.find((p) => p.id === passoId)
     const projeto = s.projetos.find((p) => p.id === passo?.projetoId) ?? null
     const restantes = projeto ? pendentes(useStore.getState().passos, projeto.id).length : 0
-    setCelebrar({ projeto, restantes })
+    setCelebrar({ passoId, projeto, restantes })
     setModo('normal')
   }
 
@@ -119,12 +132,19 @@ export function Agora() {
   )
 
   if (celebrar) {
-    const { projeto, restantes } = celebrar
+    const { passoId, projeto, restantes } = celebrar
+    const passoFeito = s.passos.find((p) => p.id === passoId)
     const feitosNoProjeto = projeto ? s.passos.filter((p) => p.projetoId === projeto.id && p.feitoEm).length : 0
     return (
       <section className="tela centro">
         <div className="cartao celebra">
           <p className="grande">Feito.</p>
+          {passoFeito && (
+            <div className="linha centralizada">
+              <span className="motivo">Tempo neste passo:</span>
+              <TempoGasto passo={passoFeito} perguntar={!s.sessoes.some((x) => x.passoId === passoFeito.id)} />
+            </div>
+          )}
           {projeto && (
             <p>
               {feitosNoProjeto} passo{feitosNoProjeto === 1 ? '' : 's'} já {feitosNoProjeto === 1 ? 'feito' : 'feitos'} em{' '}
@@ -175,6 +195,9 @@ export function Agora() {
           {projeto && <p className="projeto">{projeto.titulo}</p>}
           <p className="passo">{passoAtivo.texto}</p>
           <p className="relogio">{relogio(agora - sessao.inicio)}</p>
+          {minutosDoPasso(passoAtivo, s.sessoes, agora) - (agora - sessao.inicio) / 60_000 >= 1 && (
+            <p className="motivo centralizado">Total neste passo: {duracao(minutosDoPasso(passoAtivo, s.sessoes, agora))}</p>
+          )}
           <div className="linha">
             <button className="primario" onClick={() => concluir(passoAtivo.id)}>
               Feito
@@ -203,7 +226,34 @@ export function Agora() {
   return (
     <section className="tela colunas agora">
       <div className="col">
-        {!escolha ? (
+        {eventoAgora ? (
+          <div className="cartao foco compromisso">
+            <p className="projeto">Compromisso agora{eventoAgora.origem === 'google' && <span className="selo">Google</span>}</p>
+            <p className="passo">{eventoAgora.titulo}</p>
+            <p className="motivo">
+              {hora(eventoAgora.inicio)}–{hora(eventoAgora.fim)} · termina em {duracao((eventoAgora.fim - agora) / 60_000)}
+            </p>
+            <div className="linha">
+              <button className="primario" onClick={() => encerrarEvento(eventoAgora)}>
+                Já terminou
+              </button>
+              <button onClick={() => adiar(eventoAgora)}>Ver outra coisa</button>
+            </div>
+          </div>
+        ) : !passoReservado && eventoChegando ? (
+          <div className="cartao foco compromisso chegando">
+            <p className="projeto">Daqui a {duracao((eventoChegando.inicio - agora) / 60_000)}</p>
+            <p className="passo">{eventoChegando.titulo}</p>
+            <p className="motivo">
+              Às {hora(eventoChegando.inicio)}. Comece a fechar o que está fazendo: trocar de atividade leva mais tempo do que parece.
+            </p>
+            <div className="linha">
+              <button className="primario" onClick={() => adiar(eventoChegando)}>
+                Ok, estou de olho
+              </button>
+            </div>
+          </div>
+        ) : !escolha ? (
           <div className="cartao vazio">
             {pulados.size > 0 ? (
               <>
@@ -221,7 +271,8 @@ export function Agora() {
             {escolha.projeto ? <p className="projeto">{escolha.projeto.titulo}</p> : <p className="projeto">Tarefa solta</p>}
             <p className="passo">{escolha.passo.texto}</p>
             <p className="motivo">
-              <Pontos energia={escolha.passo.energia} /> {escolha.motivo}
+              <PontosEditaveis energia={escolha.passo.energia} onChange={(e) => s.atualizarPasso(escolha.passo.id, { energia: e })} />{' '}
+              {escolha.motivo}
             </p>
             {escolha.projeto && (
               <p className="chegada">
@@ -236,6 +287,7 @@ export function Agora() {
               <PassoForm
                 pergunta="Qual é o menor pedaço disso que dá para fazer em 2 minutos?"
                 rotuloBotao="Fazer este primeiro"
+                energiaInicial={1}
                 onSalvar={(t, e) => {
                   s.criarPasso(escolha.passo.projetoId, t, e, escolha.passo.id)
                   setModo('normal')

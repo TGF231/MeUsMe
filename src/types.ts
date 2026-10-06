@@ -24,6 +24,8 @@ export interface Passo {
   ordem: number
   criadoEm: number
   feitoEm?: number
+  /** Tempo informado depois, quando o passo foi feito sem o cronômetro. */
+  minutosManuais?: number
 }
 
 export interface Ideia {
@@ -54,12 +56,15 @@ export interface Conta {
   id: string
   nome: string
   saldoInicial: number
+  /** Conta espelhada do Open Finance (Meu Pluggy). */
+  pluggyId?: string
 }
 
 export interface Categoria {
   id: string
   nome: string
-  tipo: 'gasto' | 'receita'
+  /** Transferência (entre contas, pagamento de fatura) não conta como gasto nem como entrada. */
+  tipo: 'gasto' | 'receita' | 'transferencia'
   /** Limite mensal, em centavos. */
   orcamento?: number
 }

@@ -44,13 +44,15 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
   color: inherit;
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--borda);
@@ -60,7 +62,8 @@ select {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: 2px solid var(--acento);
   outline-offset: 1px;
 }
@@ -707,7 +710,6 @@ code {
 .abas .nav-capturar,
 .abas .nav-ajustes,
 .so-lateral,
-.resto-do-dia,
 .visao-semana {
   display: none;
 }
@@ -761,6 +763,7 @@ code {
 }
 
 .resto-do-dia {
+  display: flex;
   flex-direction: column;
   gap: 6px;
 }
@@ -950,6 +953,11 @@ kbd {
     gap: 16px;
   }
 
+  /* No histórico, os dias são o conteúdo principal; check-in e resumo ficam na lateral. */
+  .historico .colunas {
+    grid-template-columns: minmax(320px, 1fr) minmax(0, 1.65fr);
+  }
+
   .agora .cartao.foco {
     padding: 40px 36px;
     min-height: 340px;
@@ -958,10 +966,6 @@ kbd {
 
   .agora .passo {
     font-size: 2rem;
-  }
-
-  .resto-do-dia {
-    display: flex;
   }
 
   .visao-dia {
@@ -1020,4 +1024,125 @@ kbd {
     max-width: none;
     width: 100%;
   }
+}
+
+/* ── Histórico, tempo gasto e compromissos na tela Agora ── */
+
+textarea {
+  resize: vertical;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.pontos.editavel {
+  border: 1px dashed transparent;
+  background: transparent;
+  padding: 2px 6px;
+  min-height: 0;
+  border-radius: 6px;
+  color: var(--acento);
+  letter-spacing: 1px;
+}
+
+.pontos.editavel:hover {
+  border-color: var(--acento);
+}
+
+.tempo {
+  flex-shrink: 0;
+  min-height: 30px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  background: var(--acento-leve);
+  border: 1px solid transparent;
+  color: var(--acento);
+}
+
+span.tempo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tempo.vazio {
+  background: transparent;
+  border: 1px dashed var(--borda);
+  color: var(--suave);
+}
+
+.pergunta-tempo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.registro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--borda);
+}
+
+.registro .pergunta-tempo {
+  order: 3;
+}
+
+.registro.andamento,
+.registro.compromisso {
+  color: var(--suave);
+}
+
+.numeros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.numeros b {
+  font-size: 1.3rem;
+  color: var(--acento);
+  font-variant-numeric: tabular-nums;
+}
+
+.frase {
+  margin: 0;
+  font-style: italic;
+  color: var(--suave);
+}
+
+.dia-historico.hoje {
+  border-color: var(--acento);
+}
+
+.centralizada {
+  justify-content: center;
+}
+
+.centralizado {
+  text-align: center;
+}
+
+.cartao.compromisso {
+  border-color: var(--aviso);
+  background: linear-gradient(var(--aviso-fundo), var(--superficie) 70%);
+}
+
+.cartao.compromisso .projeto {
+  color: var(--aviso);
+  display: flex;
+  align-items: center;
+}
+
+.status-bancos {
+  gap: 8px;
+}
+
+.status-bancos button {
+  min-height: 36px;
+  padding: 6px 12px;
+  flex-shrink: 0;
 }

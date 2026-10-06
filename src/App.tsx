@@ -5,13 +5,13 @@ import { Agenda } from './screens/Agenda'
 import { Agora } from './screens/Agora'
 import { Ajustes } from './screens/Ajustes'
 import { Caixa } from './screens/Caixa'
-import { Diario } from './screens/Diario'
 import { Financas } from './screens/Financas'
+import { Historico } from './screens/Historico'
 import { Projetos } from './screens/Projetos'
 import { useStore } from './store'
 import { useAvisos } from './stores/config'
 
-type Aba = 'agora' | 'agenda' | 'caixa' | 'financas' | 'projetos' | 'diario' | 'ajustes'
+type Aba = 'agora' | 'agenda' | 'caixa' | 'financas' | 'projetos' | 'historico' | 'ajustes'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -19,7 +19,7 @@ const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'caixa', nome: 'Caixa' },
   { id: 'financas', nome: 'Finanças' },
   { id: 'projetos', nome: 'Projetos' },
-  { id: 'diario', nome: 'Diário' },
+  { id: 'historico', nome: 'Histórico' },
 ]
 
 function Avisos() {
@@ -143,7 +143,7 @@ export default function App() {
           {aba === 'caixa' && <Caixa />}
           {aba === 'financas' && <Financas />}
           {aba === 'projetos' && <Projetos />}
-          {aba === 'diario' && <Diario />}
+          {aba === 'historico' && <Historico />}
           {aba === 'ajustes' && <Ajustes />}
         </main>
       </div>

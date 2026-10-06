@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LancamentoForm } from '../components/LancamentoForm'
 import { converterExtrato, detectarColunas, lerCSV, type Colunas } from '../csv'
+import { apagarConfigPluggy, lerConfigPluggy, salvarConfigPluggy, sincronizarPluggy } from '../pluggy'
 import {
   diaDeVencimento,
   fixaPagaNoMes,
@@ -11,7 +12,7 @@ import {
   useFinancas,
 } from '../stores/financas'
 import type { ContaFixa } from '../types'
-import { lerValor, mesISO, nomeDoDia, reais } from '../util'
+import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'importar' | 'ajustes'
 
@@ -19,7 +20,7 @@ const SUBS: [Sub, string][] = [
   ['resumo', 'Resumo'],
   ['lancamentos', 'Lançamentos'],
   ['fixas', 'Contas fixas'],
-  ['importar', 'Importar'],
+  ['importar', 'Bancos'],
   ['ajustes', 'Contas e categorias'],
 ]
 
@@ -33,7 +34,7 @@ const mudarMes = (mes: string, delta: number) => {
   return mesISO(new Date(a, m - 1 + delta, 1))
 }
 
-function Resumo() {
+function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
   const f = useFinancas()
   const [lancando, setLancando] = useState(false)
   const [verPagas, setVerPagas] = useState(false)
@@ -64,98 +65,99 @@ function Resumo() {
   return (
     <div className="colunas">
       <div className="col">
-          <div className="cartao foco destaque">
-            <p className="rotulo">Livre para gastar por dia até o fim do mês</p>
-            <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
-            <p className="motivo">
-              Saldo {reais(p.saldo)} · a pagar {reais(p.aPagar)}
-              {p.aReceber > 0 && ` · a receber ${reais(p.aReceber)}`} · {p.diasRestantes} dia{p.diasRestantes > 1 ? 's' : ''}
-            </p>
-            {p.livre < 0 && (
-              <p className="dica">O mês está apertado: faltam {reais(-p.livre)} para cobrir as contas fixas. Melhor saber agora do que no dia.</p>
-            )}
+        <StatusBancos sync={sync} />
+        <div className="cartao foco destaque">
+          <p className="rotulo">Livre para gastar por dia até o fim do mês</p>
+          <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
+          <p className="motivo">
+            Saldo {reais(p.saldo)} · a pagar {reais(p.aPagar)}
+            {p.aReceber > 0 && ` · a receber ${reais(p.aReceber)}`} · {p.diasRestantes} dia{p.diasRestantes > 1 ? 's' : ''}
+          </p>
+          {p.livre < 0 && (
+            <p className="dica">O mês está apertado: faltam {reais(-p.livre)} para cobrir as contas fixas. Melhor saber agora do que no dia.</p>
+          )}
+        </div>
+
+        {lancando ? (
+          <div className="cartao">
+            <LancamentoForm onPronto={() => setLancando(false)} onCancelar={() => setLancando(false)} />
           </div>
+        ) : (
+          <button className="primario grande-botao" onClick={() => setLancando(true)}>
+            Registrar gasto ou entrada
+          </button>
+        )}
 
-          {lancando ? (
+        {f.fixas.length > 0 && (
+          <>
+            <h2>Contas de {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
             <div className="cartao">
-              <LancamentoForm onPronto={() => setLancando(false)} onCancelar={() => setLancando(false)} />
-            </div>
-          ) : (
-            <button className="primario grande-botao" onClick={() => setLancando(true)}>
-              Registrar gasto ou entrada
-            </button>
-          )}
-
-          {f.fixas.length > 0 && (
-            <>
-              <h2>Contas de {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
-              <div className="cartao">
-                {pendentes.length === 0 && <p className="motivo">Tudo pago este mês. ✓</p>}
-                {pendentes.map((x) => (
-                  <div key={x.id} className="linha entre item">
-                    <span>
-                      <b>{x.nome}</b>
-                      <br />
-                      <span className={`motivo ${diaDeVencimento(x) <= diaHoje && x.tipo === 'gasto' ? 'atencao' : ''}`}>
-                        {x.tipo === 'receita' ? 'entra' : 'sai'} {reais(x.valor)} · {situacao(x)}
-                      </span>
+              {pendentes.length === 0 && <p className="motivo">Tudo pago este mês. ✓</p>}
+              {pendentes.map((x) => (
+                <div key={x.id} className="linha entre item">
+                  <span>
+                    <b>{x.nome}</b>
+                    <br />
+                    <span className={`motivo ${diaDeVencimento(x) <= diaHoje && x.tipo === 'gasto' ? 'atencao' : ''}`}>
+                      {x.tipo === 'receita' ? 'entra' : 'sai'} {reais(x.valor)} · {situacao(x)}
                     </span>
-                    <button onClick={() => f.pagarFixa(x.id)}>{x.tipo === 'gasto' ? 'Paguei' : 'Recebi'}</button>
-                  </div>
+                  </span>
+                  <button onClick={() => f.pagarFixa(x.id)}>{x.tipo === 'gasto' ? 'Paguei' : 'Recebi'}</button>
+                </div>
+              ))}
+              {pagas.length > 0 && (
+                <button className="discreto" onClick={() => setVerPagas(!verPagas)}>
+                  {verPagas ? 'Esconder' : `✓ ${pagas.length} já resolvida${pagas.length > 1 ? 's' : ''}`}
+                </button>
+              )}
+              {verPagas &&
+                pagas.map((x) => (
+                  <p key={x.id} className="feito">
+                    ✓ {x.nome} · {reais(x.valor)}
+                  </p>
                 ))}
-                {pagas.length > 0 && (
-                  <button className="discreto" onClick={() => setVerPagas(!verPagas)}>
-                    {verPagas ? 'Esconder' : `✓ ${pagas.length} já resolvida${pagas.length > 1 ? 's' : ''}`}
-                  </button>
-                )}
-                {verPagas &&
-                  pagas.map((x) => (
-                    <p key={x.id} className="feito">
-                      ✓ {x.nome} · {reais(x.valor)}
-                    </p>
-                  ))}
-              </div>
-            </>
-          )}
+            </div>
+          </>
+        )}
       </div>
       <div className="col">
-          <h2>Para onde foi o dinheiro em {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
-          <div className="cartao">
-            <p className="linha entre">
-              <span className="motivo">Entrou {reais(receitas)}</span>
-              <span className="motivo">Saiu {reais(gastos)}</span>
-            </p>
-            {categorias.length === 0 && semCategoria === 0 && <p className="motivo">Nenhum gasto registrado ainda este mês.</p>}
-            {categorias.map((c) => {
-              const estourou = c.orcamento !== undefined && c.gasto > c.orcamento
-              return (
-                <div key={c.id} className="barra-linha">
-                  <div className="linha entre">
-                    <span>{c.nome}</span>
-                    <span className={estourou ? 'atencao' : 'motivo'}>
-                      {reais(c.gasto)}
-                      {c.orcamento ? ` de ${reais(c.orcamento)}` : ''}
-                    </span>
-                  </div>
-                  <div className="barra">
-                    <div className={estourou ? 'cheia atencao-fundo' : 'cheia'} style={{ width: `${(c.gasto / maior) * 100}%` }} />
-                    {c.orcamento ? <div className="limite" style={{ left: `${(c.orcamento / maior) * 100}%` }} /> : null}
-                  </div>
-                </div>
-              )
-            })}
-            {semCategoria > 0 && (
-              <div className="barra-linha">
+        <h2>Para onde foi o dinheiro em {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
+        <div className="cartao">
+          <p className="linha entre">
+            <span className="motivo">Entrou {reais(receitas)}</span>
+            <span className="motivo">Saiu {reais(gastos)}</span>
+          </p>
+          {categorias.length === 0 && semCategoria === 0 && <p className="motivo">Nenhum gasto registrado ainda este mês.</p>}
+          {categorias.map((c) => {
+            const estourou = c.orcamento !== undefined && c.gasto > c.orcamento
+            return (
+              <div key={c.id} className="barra-linha">
                 <div className="linha entre">
-                  <span>Sem categoria</span>
-                  <span className="motivo">{reais(semCategoria)}</span>
+                  <span>{c.nome}</span>
+                  <span className={estourou ? 'atencao' : 'motivo'}>
+                    {reais(c.gasto)}
+                    {c.orcamento ? ` de ${reais(c.orcamento)}` : ''}
+                  </span>
                 </div>
                 <div className="barra">
-                  <div className="cheia neutra" style={{ width: `${(semCategoria / maior) * 100}%` }} />
+                  <div className={estourou ? 'cheia atencao-fundo' : 'cheia'} style={{ width: `${(c.gasto / maior) * 100}%` }} />
+                  {c.orcamento ? <div className="limite" style={{ left: `${(c.orcamento / maior) * 100}%` }} /> : null}
                 </div>
               </div>
-            )}
-          </div>
+            )
+          })}
+          {semCategoria > 0 && (
+            <div className="barra-linha">
+              <div className="linha entre">
+                <span>Sem categoria</span>
+                <span className="motivo">{reais(semCategoria)}</span>
+              </div>
+              <div className="barra">
+                <div className="cheia neutra" style={{ width: `${(semCategoria / maior) * 100}%` }} />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -214,7 +216,7 @@ function Lancamentos() {
                   >
                     <option value="">Sem categoria</option>
                     {f.categorias
-                      .filter((c) => c.tipo === (t.valor < 0 ? 'gasto' : 'receita'))
+                      .filter((c) => c.tipo === (t.valor < 0 ? 'gasto' : 'receita') || c.tipo === 'transferencia')
                       .map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.nome}
@@ -364,6 +366,133 @@ async function lerArquivoTexto(arquivo: File) {
   }
 }
 
+const SEIS_HORAS = 6 * 3_600_000
+
+/** Sincroniza o Open Finance ao abrir Finanças, se já faz mais de 6 horas desde a última vez. */
+function useSyncAutomatico() {
+  const [estado, setEstado] = useState<{ rodando: boolean; mensagem: string }>({ rodando: false, mensagem: '' })
+  const sincronizar = async () => {
+    setEstado({ rodando: true, mensagem: '' })
+    try {
+      const r = await sincronizarPluggy()
+      setEstado({
+        rodando: false,
+        mensagem: [`${r.novas} lançamento${r.novas === 1 ? '' : 's'} novo${r.novas === 1 ? '' : 's'} de ${r.contas} conta${r.contas === 1 ? '' : 's'}.`, ...r.avisos].join(' '),
+      })
+    } catch (e) {
+      setEstado({ rodando: false, mensagem: (e as Error).message })
+    }
+  }
+  useEffect(() => {
+    const cfg = lerConfigPluggy()
+    if (cfg && Date.now() - (cfg.ultimaSync ?? 0) > SEIS_HORAS) void sincronizar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return { ...estado, sincronizar }
+}
+
+function StatusBancos({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
+  const cfg = lerConfigPluggy()
+  if (!cfg) return null
+  return (
+    <div className="linha entre status-bancos">
+      <span className="motivo">
+        {sync.rodando ? 'Sincronizando bancos…' : cfg.ultimaSync ? `Bancos sincronizados às ${hora(cfg.ultimaSync)}` : 'Bancos conectados'}
+        {sync.mensagem && <> · {sync.mensagem}</>}
+      </span>
+      <button onClick={sync.sincronizar} disabled={sync.rodando}>
+        Sincronizar
+      </button>
+    </div>
+  )
+}
+
+function OpenFinance({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
+  const [cfg, setCfg] = useState(lerConfigPluggy)
+  const [editando, setEditando] = useState(!cfg)
+  const [clientId, setClientId] = useState(cfg?.clientId ?? '')
+  const [clientSecret, setClientSecret] = useState(cfg?.clientSecret ?? '')
+  const [itens, setItens] = useState(cfg?.itemIds.join('\n') ?? '')
+
+  if (!editando && cfg)
+    return (
+      <div className="cartao">
+        <h2 className="titulo">Open Finance</h2>
+        <p className="motivo">
+          {cfg.itemIds.length} conex{cfg.itemIds.length === 1 ? 'ão' : 'ões'} do Meu Pluggy. Sincroniza sozinho ao abrir Finanças (a cada 6 horas no máximo).
+        </p>
+        <StatusBancos sync={sync} />
+        <div className="linha">
+          <button onClick={() => setEditando(true)}>Editar conexões</button>
+          <button
+            className="discreto"
+            onClick={() => {
+              if (!confirm('Desconectar o Open Finance? Os lançamentos já importados continuam no app.')) return
+              apagarConfigPluggy()
+              setCfg(null)
+              setEditando(true)
+            }}
+          >
+            Desconectar
+          </button>
+        </div>
+      </div>
+    )
+
+  return (
+    <div className="cartao">
+      <h2 className="titulo">Open Finance (automático)</h2>
+      <p className="motivo">
+        Puxa saldos e lançamentos direto dos seus bancos pelo <b>Meu Pluggy</b>, gratuito para uso pessoal (até 5 conexões do seu CPF).
+      </p>
+      <details>
+        <summary>Como configurar (uma vez só, ~10 minutos)</summary>
+        <ol className="passos-guia">
+          <li>
+            Crie uma conta em <b>pluggy.ai</b>. No Dashboard, crie uma <b>Application</b> e copie o <b>Client ID</b> e o <b>Client Secret</b>.
+          </li>
+          <li>
+            Abra <b>meu.pluggy.ai</b>, entre com a mesma conta e conecte seus bancos pelo Open Finance (a autorização é feita no app do próprio
+            banco).
+          </li>
+          <li>
+            Em cada conexão, abra o menu de três pontos e toque em <b>Copiar Item ID</b>.
+          </li>
+          <li>Cole tudo abaixo.</li>
+        </ol>
+      </details>
+      <label className="rotulo">Client ID</label>
+      <input value={clientId} onChange={(e) => setClientId(e.target.value.trim())} spellCheck={false} autoComplete="off" />
+      <label className="rotulo">Client Secret</label>
+      <input type="password" value={clientSecret} onChange={(e) => setClientSecret(e.target.value.trim())} spellCheck={false} autoComplete="off" />
+      <label className="rotulo">Item IDs (um por linha)</label>
+      <textarea rows={3} value={itens} onChange={(e) => setItens(e.target.value)} spellCheck={false} />
+      <p className="dica neutra">
+        O Client Secret fica salvo só neste aparelho e não vai para o backup. Não configure em computador compartilhado.
+      </p>
+      <div className="linha">
+        <button
+          className="primario"
+          disabled={!clientId || !clientSecret || !itens.trim() || sync.rodando}
+          onClick={async () => {
+            const novo = { clientId, clientSecret, itemIds: itens.split(/[\s,;]+/).filter(Boolean), ultimaSync: cfg?.ultimaSync }
+            salvarConfigPluggy(novo)
+            setCfg(novo)
+            setEditando(false)
+            await sync.sincronizar()
+          }}
+        >
+          {sync.rodando ? 'Sincronizando…' : 'Salvar e sincronizar'}
+        </button>
+        {cfg && (
+          <button onClick={() => setEditando(false)}>Cancelar</button>
+        )}
+      </div>
+      {sync.mensagem && <p className="dica">{sync.mensagem}</p>}
+    </div>
+  )
+}
+
 function Importar() {
   const f = useFinancas()
   const [linhas, setLinhas] = useState<string[][] | null>(null)
@@ -483,91 +612,91 @@ function AjustesFinancas() {
   return (
     <div className="colunas">
       <div className="col">
-          <h2>Contas e carteiras</h2>
-          <p className="vazio-texto">O saldo inicial é quanto havia na conta quando você começou a usar o app.</p>
-          {f.contas.map((c) => (
-            <div key={c.id} className="cartao">
-              <div className="linha">
-                <input className="flex" value={c.nome} onChange={(e) => f.salvarConta({ ...c, nome: e.target.value })} aria-label="Nome da conta" />
-                <button
-                  className="discreto"
-                  onClick={() => {
-                    const qtd = f.transacoes.filter((t) => t.contaId === c.id).length
-                    if (confirm(qtd ? `Apagar "${c.nome}" e os ${qtd} lançamentos dela?` : `Apagar "${c.nome}"?`)) f.removerConta(c.id)
-                  }}
-                >
-                  Apagar
-                </button>
-              </div>
-              <div className="linha entre">
-                <span className="motivo">Saldo inicial</span>
-                <input
-                  className="mini"
-                  inputMode="decimal"
-                  defaultValue={(c.saldoInicial / 100).toFixed(2).replace('.', ',')}
-                  onBlur={(e) => f.salvarConta({ ...c, saldoInicial: lerValor(e.target.value) ?? 0 })}
-                  aria-label="Saldo inicial"
-                />
-              </div>
-              <p className="motivo">Saldo atual: {reais(saldoDaConta(c, f.transacoes))}</p>
+        <h2>Contas e carteiras</h2>
+        <p className="vazio-texto">O saldo inicial é quanto havia na conta quando você começou a usar o app.</p>
+        {f.contas.map((c) => (
+          <div key={c.id} className="cartao">
+            <div className="linha">
+              <input className="flex" value={c.nome} onChange={(e) => f.salvarConta({ ...c, nome: e.target.value })} aria-label="Nome da conta" />
+              <button
+                className="discreto"
+                onClick={() => {
+                  const qtd = f.transacoes.filter((t) => t.contaId === c.id).length
+                  if (confirm(qtd ? `Apagar "${c.nome}" e os ${qtd} lançamentos dela?` : `Apagar "${c.nome}"?`)) f.removerConta(c.id)
+                }}
+              >
+                Apagar
+              </button>
             </div>
-          ))}
-          <form
-            className="linha"
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!novaConta.trim()) return
-              f.salvarConta({ nome: novaConta.trim(), saldoInicial: 0 })
-              setNovaConta('')
-            }}
-          >
-            <input value={novaConta} onChange={(e) => setNovaConta(e.target.value)} placeholder="Nova conta (ex.: Nubank, Cartão)" />
-            <button type="submit">Adicionar</button>
-          </form>
+            <div className="linha entre">
+              <span className="motivo">Saldo inicial</span>
+              <input
+                className="mini"
+                inputMode="decimal"
+                defaultValue={(c.saldoInicial / 100).toFixed(2).replace('.', ',')}
+                onBlur={(e) => f.salvarConta({ ...c, saldoInicial: lerValor(e.target.value) ?? 0 })}
+                aria-label="Saldo inicial"
+              />
+            </div>
+            <p className="motivo">Saldo atual: {reais(saldoDaConta(c, f.transacoes))}</p>
+          </div>
+        ))}
+        <form
+          className="linha"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!novaConta.trim()) return
+            f.salvarConta({ nome: novaConta.trim(), saldoInicial: 0 })
+            setNovaConta('')
+          }}
+        >
+          <input value={novaConta} onChange={(e) => setNovaConta(e.target.value)} placeholder="Nova conta (ex.: Nubank, Cartão)" />
+          <button type="submit">Adicionar</button>
+        </form>
       </div>
       <div className="col">
-          <h2>Categorias e limites mensais</h2>
-          <p className="vazio-texto">O limite é opcional. Quando existe, a barra no Resumo mostra quanto falta.</p>
-          <div className="cartao">
-            {f.categorias.map((c) => (
-              <div key={c.id} className="linha entre item">
-                <span>
-                  {c.nome} <span className="motivo">· {c.tipo === 'gasto' ? 'gasto' : 'receita'}</span>
-                </span>
-                <span className="linha">
-                  {c.tipo === 'gasto' && (
-                    <input
-                      className="mini"
-                      inputMode="decimal"
-                      placeholder="Sem limite"
-                      defaultValue={c.orcamento ? (c.orcamento / 100).toFixed(2).replace('.', ',') : ''}
-                      onBlur={(e) => f.salvarCategoria({ ...c, orcamento: lerValor(e.target.value) ?? undefined })}
-                      aria-label={`Limite de ${c.nome}`}
-                    />
-                  )}
-                  <button className="discreto" onClick={() => f.removerCategoria(c.id)} aria-label={`Apagar ${c.nome}`}>
-                    ×
-                  </button>
-                </span>
-              </div>
-            ))}
-          </div>
-          <form
-            className="linha"
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!novaCategoria.trim()) return
-              f.salvarCategoria({ nome: novaCategoria.trim(), tipo: tipoCategoria })
-              setNovaCategoria('')
-            }}
-          >
-            <input value={novaCategoria} onChange={(e) => setNovaCategoria(e.target.value)} placeholder="Nova categoria" />
-            <select className="mini" value={tipoCategoria} onChange={(e) => setTipoCategoria(e.target.value as 'gasto' | 'receita')}>
-              <option value="gasto">Gasto</option>
-              <option value="receita">Receita</option>
-            </select>
-            <button type="submit">Adicionar</button>
-          </form>
+        <h2>Categorias e limites mensais</h2>
+        <p className="vazio-texto">O limite é opcional. Quando existe, a barra no Resumo mostra quanto falta.</p>
+        <div className="cartao">
+          {f.categorias.map((c) => (
+            <div key={c.id} className="linha entre item">
+              <span>
+                {c.nome} <span className="motivo">· {c.tipo === 'transferencia' ? 'não conta como gasto' : c.tipo}</span>
+              </span>
+              <span className="linha">
+                {c.tipo === 'gasto' && (
+                  <input
+                    className="mini"
+                    inputMode="decimal"
+                    placeholder="Sem limite"
+                    defaultValue={c.orcamento ? (c.orcamento / 100).toFixed(2).replace('.', ',') : ''}
+                    onBlur={(e) => f.salvarCategoria({ ...c, orcamento: lerValor(e.target.value) ?? undefined })}
+                    aria-label={`Limite de ${c.nome}`}
+                  />
+                )}
+                <button className="discreto" onClick={() => f.removerCategoria(c.id)} aria-label={`Apagar ${c.nome}`}>
+                  ×
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+        <form
+          className="linha"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!novaCategoria.trim()) return
+            f.salvarCategoria({ nome: novaCategoria.trim(), tipo: tipoCategoria })
+            setNovaCategoria('')
+          }}
+        >
+          <input value={novaCategoria} onChange={(e) => setNovaCategoria(e.target.value)} placeholder="Nova categoria" />
+          <select className="mini" value={tipoCategoria} onChange={(e) => setTipoCategoria(e.target.value as 'gasto' | 'receita')}>
+            <option value="gasto">Gasto</option>
+            <option value="receita">Receita</option>
+          </select>
+          <button type="submit">Adicionar</button>
+        </form>
       </div>
     </div>
   )
@@ -575,6 +704,7 @@ function AjustesFinancas() {
 
 export function Financas() {
   const [sub, setSub] = useState<Sub>('resumo')
+  const sync = useSyncAutomatico()
   return (
     <section className="tela">
       <div className="sub-abas" role="tablist">
@@ -584,10 +714,17 @@ export function Financas() {
           </button>
         ))}
       </div>
-      {sub === 'resumo' && <Resumo />}
+      {sub === 'resumo' && <Resumo sync={sync} />}
       {sub === 'lancamentos' && <Lancamentos />}
       {sub === 'fixas' && <Fixas />}
-      {sub === 'importar' && <Importar />}
+      {sub === 'importar' && (
+        <>
+          <div className="estreito">
+            <OpenFinance sync={sync} />
+          </div>
+          <Importar />
+        </>
+      )}
       {sub === 'ajustes' && <AjustesFinancas />}
     </section>
   )

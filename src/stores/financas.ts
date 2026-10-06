@@ -25,7 +25,10 @@ const CATEGORIAS_INICIAIS: Categoria[] = [
     ['extra', 'Renda extra'],
     ['outras-receitas', 'Outras receitas'],
   ]),
+  ...categorias('transferencia', [['transferencia', 'Transferência / fatura']]),
 ]
+
+export const TRANSFERENCIA = 'cat-transferencia'
 
 interface Estado {
   contas: Conta[]
@@ -57,9 +60,9 @@ export const useFinancas = create<Estado>()(
 
       salvarConta: (c) =>
         set((s) =>
-          c.id
+          s.contas.some((x) => x.id === c.id)
             ? { contas: s.contas.map((x) => (x.id === c.id ? { ...x, ...c, id: x.id } : x)) }
-            : { contas: [...s.contas, { ...c, id: novoId() }] },
+            : { contas: [...s.contas, { ...c, id: c.id ?? novoId() }] },
         ),
       removerConta: (id) =>
         set((s) => ({
@@ -114,7 +117,17 @@ export const useFinancas = create<Estado>()(
         })
       },
     }),
-    { name: 'meusme-financas', version: 1 },
+    {
+      name: 'meusme-financas',
+      version: 2,
+      // v2: categoria de transferência, para pagamento de fatura não contar como gasto duas vezes.
+      migrate: (salvo, versao) => {
+        const s = salvo as Estado
+        if (versao < 2 && !s.categorias.some((c) => c.id === TRANSFERENCIA))
+          s.categorias = [...s.categorias, CATEGORIAS_INICIAIS.find((c) => c.id === TRANSFERENCIA)!]
+        return s
+      },
+    },
   ),
 )
 
@@ -150,6 +163,7 @@ export function resumoDoMes(transacoes: Transacao[], mes: string) {
   let gastos = 0
   let receitas = 0
   for (const t of doMes) {
+    if (t.categoriaId === TRANSFERENCIA) continue
     if (t.valor < 0) {
       gastos += -t.valor
       porCategoria.set(t.categoriaId, (porCategoria.get(t.categoriaId) ?? 0) - t.valor)
@@ -159,6 +173,8 @@ export function resumoDoMes(transacoes: Transacao[], mes: string) {
 }
 
 const PALAVRAS: [RegExp, string][] = [
+  // Antes de tudo: dinheiro que só muda de lugar.
+  [/pagamento (de |da )?fatura|pagto\.? fatura|fatura paga|pagamento recebido|entre contas|mesma titularidade|aplica[cç][aã]o|resgate|cdb|tesouro direto/i, TRANSFERENCIA],
   [/uber|99 ?(app|pop|taxi)|taxi|combust|posto|shell|ipiranga|estaciona|metr[oô]|onibus|bilhete/i, 'cat-transporte'],
   [/ifood|rappi|restaurante|lanch|padaria|pizza|burger|cafe|bar /i, 'cat-alimentacao'],
   [/mercado|supermerc|atacad|assai|carrefour|hortifruti|feira/i, 'cat-mercado'],
@@ -169,7 +185,7 @@ const PALAVRAS: [RegExp, string][] = [
   [/curso|udemy|alura|livraria|faculdade|escola/i, 'cat-educacao'],
   [/cinema|show|ingresso|steam|playstation|xbox|nintendo/i, 'cat-lazer'],
   [/amazon|mercado ?livre|shopee|magalu|aliexpress|shein|renner|riachuelo/i, 'cat-compras'],
-  [/sal[aá]rio|folha|pagamento recebido/i, 'cat-salario'],
+  [/sal[aá]rio|folha de pagamento/i, 'cat-salario'],
 ]
 
 const normalizar = (s: string) => s.toLowerCase().replace(/\d+/g, '').replace(/\s+/g, ' ').trim()
