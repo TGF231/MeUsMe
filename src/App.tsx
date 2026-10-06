@@ -94,37 +94,16 @@ export default function App() {
     return () => window.removeEventListener('keydown', atalho)
   }, [])
 
+  const nomeDaAba = aba === 'ajustes' ? 'Ajustes' : ABAS.find((a) => a.id === aba)!.nome
+
+  // Celular em pé: abas embaixo. Celular deitado: trilho de ícones à esquerda. PC: barra lateral completa.
   return (
     <div className="app">
-      <header className="topo">
-        <h1>{aba === 'ajustes' ? 'Ajustes' : 'MeUsMe'}</h1>
-        <button
-          className={`discreto icone-botao ${aba === 'ajustes' ? 'ativo' : ''}`}
-          onClick={() => setAba(aba === 'ajustes' ? 'agora' : 'ajustes')}
-          aria-label="Ajustes"
-          title="Ajustes"
-        >
-          <Icone nome="ajustes" />
+      <nav className="abas" aria-label="Seções">
+        <p className="marca">MeUsMe</p>
+        <button className="primario nav-capturar" onClick={() => setCapturando(true)} title="Captura rápida (Ctrl+Espaço)">
+          <span aria-hidden="true">+</span> Capturar <kbd>Ctrl+Espaço</kbd>
         </button>
-      </header>
-
-      <main>
-        {aba === 'agora' && <Agora />}
-        {aba === 'agenda' && <Agenda />}
-        {aba === 'caixa' && <Caixa />}
-        {aba === 'financas' && <Financas />}
-        {aba === 'projetos' && <Projetos />}
-        {aba === 'diario' && <Diario />}
-        {aba === 'ajustes' && <Ajustes />}
-      </main>
-
-      <Avisos />
-
-      <button className="fab" aria-label="Captura rápida (Ctrl+Espaço)" title="Captura rápida (Ctrl+Espaço)" onClick={() => setCapturando(true)}>
-        +
-      </button>
-
-      <nav className="abas">
         {ABAS.map((a) => (
           <button key={a.id} className={aba === a.id ? 'ativo' : ''} onClick={() => setAba(a.id)} aria-current={aba === a.id ? 'page' : undefined}>
             <Icone nome={a.id} />
@@ -132,7 +111,48 @@ export default function App() {
             {a.id === 'caixa' && naCaixa > 0 && <span className="contador">{naCaixa}</span>}
           </button>
         ))}
+        <button
+          className={`nav-ajustes ${aba === 'ajustes' ? 'ativo' : ''}`}
+          onClick={() => setAba('ajustes')}
+          aria-current={aba === 'ajustes' ? 'page' : undefined}
+        >
+          <Icone nome="ajustes" />
+          <span>Ajustes</span>
+        </button>
       </nav>
+
+      <div className="conteudo">
+        <header className="topo">
+          <h1>
+            <span className="so-estreito">{aba === 'ajustes' ? 'Ajustes' : 'MeUsMe'}</span>
+            <span className="so-lateral">{nomeDaAba}</span>
+          </h1>
+          <button
+            className={`discreto icone-botao so-estreito ${aba === 'ajustes' ? 'ativo' : ''}`}
+            onClick={() => setAba(aba === 'ajustes' ? 'agora' : 'ajustes')}
+            aria-label="Ajustes"
+            title="Ajustes"
+          >
+            <Icone nome="ajustes" />
+          </button>
+        </header>
+
+        <main>
+          {aba === 'agora' && <Agora />}
+          {aba === 'agenda' && <Agenda />}
+          {aba === 'caixa' && <Caixa />}
+          {aba === 'financas' && <Financas />}
+          {aba === 'projetos' && <Projetos />}
+          {aba === 'diario' && <Diario />}
+          {aba === 'ajustes' && <Ajustes />}
+        </main>
+      </div>
+
+      <Avisos />
+
+      <button className="fab" aria-label="Captura rápida (Ctrl+Espaço)" title="Captura rápida (Ctrl+Espaço)" onClick={() => setCapturando(true)}>
+        +
+      </button>
 
       {capturando && <CapturaRapida onFechar={() => setCapturando(false)} />}
     </div>

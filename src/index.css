@@ -97,9 +97,12 @@ button.discreto {
 }
 
 .app {
-  max-width: 560px;
-  margin: 0 auto;
   min-height: 100dvh;
+}
+
+.conteudo {
+  max-width: 640px;
+  margin: 0 auto;
   padding: 0 16px calc(96px + env(safe-area-inset-bottom));
 }
 
@@ -695,4 +698,326 @@ code {
   border-radius: var(--raio);
   padding: 12px 8px 12px 14px;
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+}
+
+/* ── Layouts: celular em pé (padrão), celular deitado (trilho) e tela larga (barra lateral) ── */
+
+/* .abas .x vence a regra .abas button, que define display: flex. */
+.marca,
+.abas .nav-capturar,
+.abas .nav-ajustes,
+.so-lateral,
+.resto-do-dia,
+.visao-semana {
+  display: none;
+}
+
+.colunas,
+.colunas > .col,
+.estreito,
+.visao-dia {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.grade-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+
+.grade-ajustes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.topo-agenda > * {
+  flex: 1 1 280px;
+}
+
+/* Agora no celular: energia e pendências vêm antes do passo, mesmo estando na coluna lateral no PC. */
+.agora > .col {
+  display: contents;
+}
+.agora .energia {
+  order: 1;
+}
+.agora .pendencias {
+  order: 2;
+}
+.agora .cartao.foco,
+.agora .cartao.vazio {
+  order: 3;
+}
+.agora .rodape {
+  order: 4;
+}
+.agora .resto-do-dia {
+  order: 5;
+}
+
+.resto-do-dia {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.linha-dia {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.linha-dia .horario {
+  min-width: 96px;
+}
+
+kbd {
+  font: inherit;
+  font-size: 0.7rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0 4px;
+  opacity: 0.75;
+  margin-left: auto;
+}
+
+/* Navegação lateral: vale para o trilho do celular deitado e para a barra do PC. */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 540px) {
+  .app {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .abas {
+    position: sticky;
+    inset: auto;
+    top: 0;
+    height: 100dvh;
+    flex-direction: column;
+    justify-content: flex-start;
+    border-top: none;
+    border-right: 1px solid var(--borda);
+    overflow-y: auto;
+    /* A barra de rolagem do Windows espremeria os ícones; a roda do mouse e o toque continuam funcionando. */
+    scrollbar-width: none;
+  }
+
+  .abas .nav-ajustes {
+    display: flex;
+    margin-top: auto;
+  }
+
+  .conteudo {
+    width: 100%;
+    padding-bottom: 32px;
+  }
+
+  .so-estreito {
+    display: none;
+  }
+
+  .so-lateral {
+    display: inline;
+  }
+}
+
+/* Celular deitado: trilho estreito de ícones, para não gastar altura com a barra de baixo. */
+@media (orientation: landscape) and (max-height: 540px) and (max-width: 899px) {
+  .abas {
+    width: 76px;
+    gap: 2px;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+  }
+
+  .abas button {
+    flex: none;
+    max-width: none;
+    padding: 3px 2px;
+    font-size: 0.65rem;
+  }
+
+  .conteudo {
+    max-width: 760px;
+    padding: 0 20px 24px;
+  }
+
+  .topo h1 {
+    margin: 12px 0 8px;
+  }
+
+  .fab {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: 16px;
+  }
+}
+
+/* Tela larga (PC, notebook, tablet deitado): barra lateral completa. */
+@media (min-width: 900px) {
+  .abas {
+    width: 232px;
+    gap: 4px;
+    padding: 20px 14px;
+  }
+
+  .abas button {
+    flex: none;
+    max-width: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+  }
+
+  .abas .contador {
+    position: static;
+    margin-left: auto;
+  }
+
+  .marca {
+    display: block;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--suave);
+    font-size: 0.9rem;
+    margin: 4px 14px 16px;
+  }
+
+  .abas .nav-capturar {
+    display: flex;
+    background: var(--acento);
+    color: var(--acento-texto);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .fab {
+    display: none;
+  }
+
+  .conteudo {
+    max-width: 1240px;
+    padding: 0 32px 48px;
+  }
+
+  .topo h1 {
+    font-size: 1.5rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--texto);
+    margin: 28px 0 20px;
+  }
+
+  .centro,
+  .estreito {
+    max-width: 720px;
+    width: 100%;
+  }
+
+  .centro {
+    margin: 0 auto;
+  }
+
+  .avisos {
+    left: auto;
+    right: 24px;
+    transform: none;
+    width: 380px;
+  }
+
+  .fundo {
+    padding-top: 20vh;
+  }
+}
+
+/* Espaço para duas colunas lado a lado. */
+@media (min-width: 1100px) {
+  .colunas {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .agora > .col {
+    display: flex;
+    gap: 16px;
+  }
+
+  .agora .cartao.foco {
+    padding: 40px 36px;
+    min-height: 340px;
+    justify-content: center;
+  }
+
+  .agora .passo {
+    font-size: 2rem;
+  }
+
+  .resto-do-dia {
+    display: flex;
+  }
+
+  .visao-dia {
+    display: none;
+  }
+
+  .visao-semana {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .dia-semana {
+    padding: 12px;
+    gap: 6px;
+    min-height: 200px;
+  }
+
+  .dia-semana.hoje {
+    border-color: var(--acento);
+    border-width: 2px;
+  }
+
+  .dia-semana .evento {
+    flex-wrap: wrap;
+    gap: 0 6px;
+    font-size: 0.85rem;
+  }
+
+  .dia-semana .horario {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dia-semana .livre {
+    font-size: 0.75rem;
+  }
+
+  /* Lançamentos viram tabela: descrição | valor | categoria | apagar. */
+  .transacao {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 120px 200px auto;
+    align-items: center;
+    column-gap: 12px;
+  }
+
+  .transacao > .linha {
+    display: contents;
+  }
+
+  .transacao b {
+    text-align: right;
+  }
+
+  .transacao select.mini {
+    max-width: none;
+    width: 100%;
+  }
 }

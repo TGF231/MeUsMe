@@ -50,94 +50,99 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
       <button className="discreto" onClick={onVoltar}>
         ← Projetos
       </button>
-      <div className="cartao">
-        <h2 className="titulo">{projeto.titulo}</h2>
-        <p className="chegada">
-          Linha de chegada: <i>{projeto.chegada}</i>
-        </p>
-        {!projeto.concluidoEm && (
-          <div className="linha">
-            <button
-              className={s.focoId === id ? 'ativo' : ''}
-              onClick={() => s.definirFoco(s.focoId === id ? null : id)}
-            >
-              {s.focoId === id ? '★ Em foco' : '☆ Colocar em foco'}
-            </button>
-            <button onClick={() => s.concluirProjeto(id)}>Concluir projeto</button>
+      <div className="colunas">
+        <div className="col">
+          <div className="cartao">
+            <h2 className="titulo">{projeto.titulo}</h2>
+            <p className="chegada">
+              Linha de chegada: <i>{projeto.chegada}</i>
+            </p>
+            {!projeto.concluidoEm && (
+              <div className="linha">
+                <button
+                  className={s.focoId === id ? 'ativo' : ''}
+                  onClick={() => s.definirFoco(s.focoId === id ? null : id)}
+                >
+                  {s.focoId === id ? '★ Em foco' : '☆ Colocar em foco'}
+                </button>
+                <button onClick={() => s.concluirProjeto(id)}>Concluir projeto</button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {proximo ? (
-        <div className="cartao foco">
-          <p className="rotulo">Próximo passo</p>
-          <p className="passo">{proximo.texto}</p>
-          <p className="motivo">
-            <Pontos energia={proximo.energia} />
-          </p>
+          {proximo ? (
+            <div className="cartao foco">
+              <p className="rotulo">Próximo passo</p>
+              <p className="passo">{proximo.texto}</p>
+              <p className="motivo">
+                <Pontos energia={proximo.energia} />
+              </p>
+            </div>
+          ) : (
+            !projeto.concluidoEm && <p className="vazio-texto">Nenhum passo na fila. Qual é o próximo movimento?</p>
+          )}
+
+          {depois.length > 0 && (
+            <div className="cartao">
+              {verTodos ? (
+                <>
+                  {depois.map((p) => (
+                    <div key={p.id} className="linha entre item">
+                      <span>
+                        <Pontos energia={p.energia} /> {p.texto}
+                      </span>
+                      <button className="discreto" onClick={() => s.removerPasso(p.id)}>
+                        Remover
+                      </button>
+                    </div>
+                  ))}
+                  <button className="discreto" onClick={() => setVerTodos(false)}>
+                    Esconder
+                  </button>
+                </>
+              ) : (
+                <button className="discreto" onClick={() => setVerTodos(true)}>
+                  + {depois.length} passo{depois.length > 1 ? 's' : ''} depois deste (escondidos para você focar só no próximo)
+                </button>
+              )}
+            </div>
+          )}
+
+          {!projeto.concluidoEm && (
+            <div className="cartao">
+              <PassoForm onSalvar={(t, e) => s.criarPasso(id, t, e)} />
+            </div>
+          )}
         </div>
-      ) : (
-        !projeto.concluidoEm && <p className="vazio-texto">Nenhum passo na fila. Qual é o próximo movimento?</p>
-      )}
-
-      {depois.length > 0 && (
-        <div className="cartao">
-          {verTodos ? (
+        <div className="col">
+          {feitos.length > 0 && (
             <>
-              {depois.map((p) => (
-                <div key={p.id} className="linha entre item">
-                  <span>
-                    <Pontos energia={p.energia} /> {p.texto}
-                  </span>
-                  <button className="discreto" onClick={() => s.removerPasso(p.id)}>
-                    Remover
+              <h2>Já feito ({feitos.length})</h2>
+              <div className="cartao">
+                {feitos.map((p) => (
+                  <p key={p.id} className="feito">
+                    ✓ {p.texto}
+                  </p>
+                ))}
+              </div>
+            </>
+          )}
+
+          {ideias.length > 0 && (
+            <>
+              <h2>Ideias estacionadas aqui</h2>
+              {ideias.map((i) => (
+                <div key={i.id} className="cartao linha entre">
+                  <span>{i.texto}</span>
+                  <button className="discreto" onClick={() => s.removerIdeia(i.id)}>
+                    Apagar
                   </button>
                 </div>
               ))}
-              <button className="discreto" onClick={() => setVerTodos(false)}>
-                Esconder
-              </button>
             </>
-          ) : (
-            <button className="discreto" onClick={() => setVerTodos(true)}>
-              + {depois.length} passo{depois.length > 1 ? 's' : ''} depois deste (escondidos para você focar só no próximo)
-            </button>
           )}
         </div>
-      )}
-
-      {!projeto.concluidoEm && (
-        <div className="cartao">
-          <PassoForm onSalvar={(t, e) => s.criarPasso(id, t, e)} />
-        </div>
-      )}
-
-      {feitos.length > 0 && (
-        <>
-          <h2>Já feito ({feitos.length})</h2>
-          <div className="cartao">
-            {feitos.map((p) => (
-              <p key={p.id} className="feito">
-                ✓ {p.texto}
-              </p>
-            ))}
-          </div>
-        </>
-      )}
-
-      {ideias.length > 0 && (
-        <>
-          <h2>Ideias estacionadas aqui</h2>
-          {ideias.map((i) => (
-            <div key={i.id} className="cartao linha entre">
-              <span>{i.texto}</span>
-              <button className="discreto" onClick={() => s.removerIdeia(i.id)}>
-                Apagar
-              </button>
-            </div>
-          ))}
-        </>
-      )}
+      </div>
     </section>
   )
 }
@@ -169,31 +174,35 @@ export function Projetos() {
         </button>
       )}
 
-      {ativos.map((p) => {
-        const feitos = s.passos.filter((x) => x.projetoId === p.id && x.feitoEm).length
-        const proximo = pendentes(s.passos, p.id)[0]
-        return (
-          <button key={p.id} className="cartao clicavel" onClick={() => setAberto(p.id)}>
-            <span className="projeto">
-              {p.id === s.focoId && '★ '}
-              {p.titulo}
-            </span>
-            <span className="passo pequeno">{proximo ? `→ ${proximo.texto}` : 'Sem próximo passo definido'}</span>
-            <span className="motivo">
-              {feitos} passo{feitos === 1 ? '' : 's'} já feito{feitos === 1 ? '' : 's'}
-            </span>
-          </button>
-        )
-      })}
+      <div className="grade-cartoes">
+        {ativos.map((p) => {
+          const feitos = s.passos.filter((x) => x.projetoId === p.id && x.feitoEm).length
+          const proximo = pendentes(s.passos, p.id)[0]
+          return (
+            <button key={p.id} className="cartao clicavel" onClick={() => setAberto(p.id)}>
+              <span className="projeto">
+                {p.id === s.focoId && '★ '}
+                {p.titulo}
+              </span>
+              <span className="passo pequeno">{proximo ? `→ ${proximo.texto}` : 'Sem próximo passo definido'}</span>
+              <span className="motivo">
+                {feitos} passo{feitos === 1 ? '' : 's'} já feito{feitos === 1 ? '' : 's'}
+              </span>
+            </button>
+          )
+        })}
+      </div>
 
       {concluidos.length > 0 && (
         <>
           <h2>Concluídos ({concluidos.length})</h2>
-          {concluidos.map((p) => (
-            <button key={p.id} className="cartao clicavel feito" onClick={() => setAberto(p.id)}>
-              ✓ {p.titulo}
-            </button>
-          ))}
+          <div className="grade-cartoes">
+            {concluidos.map((p) => (
+              <button key={p.id} className="cartao clicavel feito" onClick={() => setAberto(p.id)}>
+                ✓ {p.titulo}
+              </button>
+            ))}
+          </div>
         </>
       )}
     </section>

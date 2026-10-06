@@ -193,7 +193,7 @@ function Backup() {
 
 export function Ajustes() {
   return (
-    <section className="tela">
+    <section className="tela grade-ajustes">
       <Notificacoes />
       <Google />
       <Backup />

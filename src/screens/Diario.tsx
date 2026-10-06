@@ -19,27 +19,32 @@ export function Diario() {
 
   return (
     <section className="tela">
-      <div className="cartao">
-        <h2 className="titulo">Check-in de hoje</h2>
-        <CheckInForm />
+      <div className="colunas">
+        <div className="col">
+          <div className="cartao">
+            <h2 className="titulo">Check-in de hoje</h2>
+            <CheckInForm />
+          </div>
+        </div>
+        <div className="col">
+          {anteriores.length > 0 && (
+            <>
+              <h2>Dias anteriores</h2>
+              {anteriores.map((c) => (
+                <div key={c.dia} className="cartao">
+                  <p className="linha entre">
+                    <b>{formatarDia(c.dia)}</b>
+                    <span className="motivo">
+                      {HUMORES[c.humor]} · <Pontos energia={c.energia} /> · {feitosNoDia(c.dia)} feitos
+                    </span>
+                  </p>
+                  {c.frase && <p>{c.frase}</p>}
+                </div>
+              ))}
+            </>
+          )}
+        </div>
       </div>
-
-      {anteriores.length > 0 && (
-        <>
-          <h2>Dias anteriores</h2>
-          {anteriores.map((c) => (
-            <div key={c.dia} className="cartao">
-              <p className="linha entre">
-                <b>{formatarDia(c.dia)}</b>
-                <span className="motivo">
-                  {HUMORES[c.humor]} · <Pontos energia={c.energia} /> · {feitosNoDia(c.dia)} feitos
-                </span>
-              </p>
-              {c.frase && <p>{c.frase}</p>}
-            </div>
-          ))}
-        </>
-      )}
     </section>
   )
 }

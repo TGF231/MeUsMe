@@ -62,99 +62,102 @@ function Resumo() {
   }
 
   return (
-    <>
-      <div className="cartao foco destaque">
-        <p className="rotulo">Livre para gastar por dia até o fim do mês</p>
-        <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
-        <p className="motivo">
-          Saldo {reais(p.saldo)} · a pagar {reais(p.aPagar)}
-          {p.aReceber > 0 && ` · a receber ${reais(p.aReceber)}`} · {p.diasRestantes} dia{p.diasRestantes > 1 ? 's' : ''}
-        </p>
-        {p.livre < 0 && (
-          <p className="dica">O mês está apertado: faltam {reais(-p.livre)} para cobrir as contas fixas. Melhor saber agora do que no dia.</p>
-        )}
-      </div>
-
-      {lancando ? (
-        <div className="cartao">
-          <LancamentoForm onPronto={() => setLancando(false)} onCancelar={() => setLancando(false)} />
-        </div>
-      ) : (
-        <button className="primario grande-botao" onClick={() => setLancando(true)}>
-          Registrar gasto ou entrada
-        </button>
-      )}
-
-      {f.fixas.length > 0 && (
-        <>
-          <h2>Contas de {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
-          <div className="cartao">
-            {pendentes.length === 0 && <p className="motivo">Tudo pago este mês. ✓</p>}
-            {pendentes.map((x) => (
-              <div key={x.id} className="linha entre item">
-                <span>
-                  <b>{x.nome}</b>
-                  <br />
-                  <span className={`motivo ${diaDeVencimento(x) <= diaHoje && x.tipo === 'gasto' ? 'atencao' : ''}`}>
-                    {x.tipo === 'receita' ? 'entra' : 'sai'} {reais(x.valor)} · {situacao(x)}
-                  </span>
-                </span>
-                <button onClick={() => f.pagarFixa(x.id)}>{x.tipo === 'gasto' ? 'Paguei' : 'Recebi'}</button>
-              </div>
-            ))}
-            {pagas.length > 0 && (
-              <button className="discreto" onClick={() => setVerPagas(!verPagas)}>
-                {verPagas ? 'Esconder' : `✓ ${pagas.length} já resolvida${pagas.length > 1 ? 's' : ''}`}
-              </button>
+    <div className="colunas">
+      <div className="col">
+          <div className="cartao foco destaque">
+            <p className="rotulo">Livre para gastar por dia até o fim do mês</p>
+            <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
+            <p className="motivo">
+              Saldo {reais(p.saldo)} · a pagar {reais(p.aPagar)}
+              {p.aReceber > 0 && ` · a receber ${reais(p.aReceber)}`} · {p.diasRestantes} dia{p.diasRestantes > 1 ? 's' : ''}
+            </p>
+            {p.livre < 0 && (
+              <p className="dica">O mês está apertado: faltam {reais(-p.livre)} para cobrir as contas fixas. Melhor saber agora do que no dia.</p>
             )}
-            {verPagas &&
-              pagas.map((x) => (
-                <p key={x.id} className="feito">
-                  ✓ {x.nome} · {reais(x.valor)}
-                </p>
-              ))}
           </div>
-        </>
-      )}
 
-      <h2>Para onde foi o dinheiro em {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
-      <div className="cartao">
-        <p className="linha entre">
-          <span className="motivo">Entrou {reais(receitas)}</span>
-          <span className="motivo">Saiu {reais(gastos)}</span>
-        </p>
-        {categorias.length === 0 && semCategoria === 0 && <p className="motivo">Nenhum gasto registrado ainda este mês.</p>}
-        {categorias.map((c) => {
-          const estourou = c.orcamento !== undefined && c.gasto > c.orcamento
-          return (
-            <div key={c.id} className="barra-linha">
-              <div className="linha entre">
-                <span>{c.nome}</span>
-                <span className={estourou ? 'atencao' : 'motivo'}>
-                  {reais(c.gasto)}
-                  {c.orcamento ? ` de ${reais(c.orcamento)}` : ''}
-                </span>
+          {lancando ? (
+            <div className="cartao">
+              <LancamentoForm onPronto={() => setLancando(false)} onCancelar={() => setLancando(false)} />
+            </div>
+          ) : (
+            <button className="primario grande-botao" onClick={() => setLancando(true)}>
+              Registrar gasto ou entrada
+            </button>
+          )}
+
+          {f.fixas.length > 0 && (
+            <>
+              <h2>Contas de {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
+              <div className="cartao">
+                {pendentes.length === 0 && <p className="motivo">Tudo pago este mês. ✓</p>}
+                {pendentes.map((x) => (
+                  <div key={x.id} className="linha entre item">
+                    <span>
+                      <b>{x.nome}</b>
+                      <br />
+                      <span className={`motivo ${diaDeVencimento(x) <= diaHoje && x.tipo === 'gasto' ? 'atencao' : ''}`}>
+                        {x.tipo === 'receita' ? 'entra' : 'sai'} {reais(x.valor)} · {situacao(x)}
+                      </span>
+                    </span>
+                    <button onClick={() => f.pagarFixa(x.id)}>{x.tipo === 'gasto' ? 'Paguei' : 'Recebi'}</button>
+                  </div>
+                ))}
+                {pagas.length > 0 && (
+                  <button className="discreto" onClick={() => setVerPagas(!verPagas)}>
+                    {verPagas ? 'Esconder' : `✓ ${pagas.length} já resolvida${pagas.length > 1 ? 's' : ''}`}
+                  </button>
+                )}
+                {verPagas &&
+                  pagas.map((x) => (
+                    <p key={x.id} className="feito">
+                      ✓ {x.nome} · {reais(x.valor)}
+                    </p>
+                  ))}
               </div>
-              <div className="barra">
-                <div className={estourou ? 'cheia atencao-fundo' : 'cheia'} style={{ width: `${(c.gasto / maior) * 100}%` }} />
-                {c.orcamento ? <div className="limite" style={{ left: `${(c.orcamento / maior) * 100}%` }} /> : null}
-              </div>
-            </div>
-          )
-        })}
-        {semCategoria > 0 && (
-          <div className="barra-linha">
-            <div className="linha entre">
-              <span>Sem categoria</span>
-              <span className="motivo">{reais(semCategoria)}</span>
-            </div>
-            <div className="barra">
-              <div className="cheia neutra" style={{ width: `${(semCategoria / maior) * 100}%` }} />
-            </div>
-          </div>
-        )}
+            </>
+          )}
       </div>
-    </>
+      <div className="col">
+          <h2>Para onde foi o dinheiro em {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
+          <div className="cartao">
+            <p className="linha entre">
+              <span className="motivo">Entrou {reais(receitas)}</span>
+              <span className="motivo">Saiu {reais(gastos)}</span>
+            </p>
+            {categorias.length === 0 && semCategoria === 0 && <p className="motivo">Nenhum gasto registrado ainda este mês.</p>}
+            {categorias.map((c) => {
+              const estourou = c.orcamento !== undefined && c.gasto > c.orcamento
+              return (
+                <div key={c.id} className="barra-linha">
+                  <div className="linha entre">
+                    <span>{c.nome}</span>
+                    <span className={estourou ? 'atencao' : 'motivo'}>
+                      {reais(c.gasto)}
+                      {c.orcamento ? ` de ${reais(c.orcamento)}` : ''}
+                    </span>
+                  </div>
+                  <div className="barra">
+                    <div className={estourou ? 'cheia atencao-fundo' : 'cheia'} style={{ width: `${(c.gasto / maior) * 100}%` }} />
+                    {c.orcamento ? <div className="limite" style={{ left: `${(c.orcamento / maior) * 100}%` }} /> : null}
+                  </div>
+                </div>
+              )
+            })}
+            {semCategoria > 0 && (
+              <div className="barra-linha">
+                <div className="linha entre">
+                  <span>Sem categoria</span>
+                  <span className="motivo">{reais(semCategoria)}</span>
+                </div>
+                <div className="barra">
+                  <div className="cheia neutra" style={{ width: `${(semCategoria / maior) * 100}%` }} />
+                </div>
+              </div>
+            )}
+          </div>
+      </div>
+    </div>
   )
 }
 
@@ -310,7 +313,7 @@ function Fixas() {
   const total = (tipo: 'gasto' | 'receita') => f.fixas.filter((x) => x.tipo === tipo).reduce((s, x) => s + x.valor, 0)
 
   return (
-    <>
+    <div className="estreito">
       <p className="vazio-texto">
         Contas que se repetem todo mês. O app avisa na véspera e no dia, e desconta do "livre por dia" até você marcar como paga.
       </p>
@@ -347,7 +350,7 @@ function Fixas() {
           </p>
         </div>
       )}
-    </>
+    </div>
   )
 }
 
@@ -373,7 +376,7 @@ function Importar() {
   const convertido = linhas && colunas ? converterExtrato(linhas.slice(1), colunas, inverter, contaId) : null
 
   return (
-    <>
+    <div className="estreito">
       <p className="vazio-texto">
         Exporte o extrato do banco em CSV (Nubank, Inter, Wallet e a maioria dos bancos têm essa opção) e traga aqui. Reimportar o mesmo
         arquivo não duplica nada.
@@ -467,7 +470,7 @@ function Importar() {
       )}
       {linhas && !colunas && <p className="dica">Não reconheci as colunas automaticamente. Escolha acima qual é a data, o valor e a descrição.</p>}
       {resultado && <p className="dica neutra">{resultado} Confira em Lançamentos os que ficaram sem categoria.</p>}
-    </>
+    </div>
   )
 }
 
@@ -478,92 +481,95 @@ function AjustesFinancas() {
   const [tipoCategoria, setTipoCategoria] = useState<'gasto' | 'receita'>('gasto')
 
   return (
-    <>
-      <h2>Contas e carteiras</h2>
-      <p className="vazio-texto">O saldo inicial é quanto havia na conta quando você começou a usar o app.</p>
-      {f.contas.map((c) => (
-        <div key={c.id} className="cartao">
-          <div className="linha">
-            <input className="flex" value={c.nome} onChange={(e) => f.salvarConta({ ...c, nome: e.target.value })} aria-label="Nome da conta" />
-            <button
-              className="discreto"
-              onClick={() => {
-                const qtd = f.transacoes.filter((t) => t.contaId === c.id).length
-                if (confirm(qtd ? `Apagar "${c.nome}" e os ${qtd} lançamentos dela?` : `Apagar "${c.nome}"?`)) f.removerConta(c.id)
-              }}
-            >
-              Apagar
-            </button>
-          </div>
-          <div className="linha entre">
-            <span className="motivo">Saldo inicial</span>
-            <input
-              className="mini"
-              inputMode="decimal"
-              defaultValue={(c.saldoInicial / 100).toFixed(2).replace('.', ',')}
-              onBlur={(e) => f.salvarConta({ ...c, saldoInicial: lerValor(e.target.value) ?? 0 })}
-              aria-label="Saldo inicial"
-            />
-          </div>
-          <p className="motivo">Saldo atual: {reais(saldoDaConta(c, f.transacoes))}</p>
-        </div>
-      ))}
-      <form
-        className="linha"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!novaConta.trim()) return
-          f.salvarConta({ nome: novaConta.trim(), saldoInicial: 0 })
-          setNovaConta('')
-        }}
-      >
-        <input value={novaConta} onChange={(e) => setNovaConta(e.target.value)} placeholder="Nova conta (ex.: Nubank, Cartão)" />
-        <button type="submit">Adicionar</button>
-      </form>
-
-      <h2>Categorias e limites mensais</h2>
-      <p className="vazio-texto">O limite é opcional. Quando existe, a barra no Resumo mostra quanto falta.</p>
-      <div className="cartao">
-        {f.categorias.map((c) => (
-          <div key={c.id} className="linha entre item">
-            <span>
-              {c.nome} <span className="motivo">· {c.tipo === 'gasto' ? 'gasto' : 'receita'}</span>
-            </span>
-            <span className="linha">
-              {c.tipo === 'gasto' && (
+    <div className="colunas">
+      <div className="col">
+          <h2>Contas e carteiras</h2>
+          <p className="vazio-texto">O saldo inicial é quanto havia na conta quando você começou a usar o app.</p>
+          {f.contas.map((c) => (
+            <div key={c.id} className="cartao">
+              <div className="linha">
+                <input className="flex" value={c.nome} onChange={(e) => f.salvarConta({ ...c, nome: e.target.value })} aria-label="Nome da conta" />
+                <button
+                  className="discreto"
+                  onClick={() => {
+                    const qtd = f.transacoes.filter((t) => t.contaId === c.id).length
+                    if (confirm(qtd ? `Apagar "${c.nome}" e os ${qtd} lançamentos dela?` : `Apagar "${c.nome}"?`)) f.removerConta(c.id)
+                  }}
+                >
+                  Apagar
+                </button>
+              </div>
+              <div className="linha entre">
+                <span className="motivo">Saldo inicial</span>
                 <input
                   className="mini"
                   inputMode="decimal"
-                  placeholder="Sem limite"
-                  defaultValue={c.orcamento ? (c.orcamento / 100).toFixed(2).replace('.', ',') : ''}
-                  onBlur={(e) => f.salvarCategoria({ ...c, orcamento: lerValor(e.target.value) ?? undefined })}
-                  aria-label={`Limite de ${c.nome}`}
+                  defaultValue={(c.saldoInicial / 100).toFixed(2).replace('.', ',')}
+                  onBlur={(e) => f.salvarConta({ ...c, saldoInicial: lerValor(e.target.value) ?? 0 })}
+                  aria-label="Saldo inicial"
                 />
-              )}
-              <button className="discreto" onClick={() => f.removerCategoria(c.id)} aria-label={`Apagar ${c.nome}`}>
-                ×
-              </button>
-            </span>
-          </div>
-        ))}
+              </div>
+              <p className="motivo">Saldo atual: {reais(saldoDaConta(c, f.transacoes))}</p>
+            </div>
+          ))}
+          <form
+            className="linha"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (!novaConta.trim()) return
+              f.salvarConta({ nome: novaConta.trim(), saldoInicial: 0 })
+              setNovaConta('')
+            }}
+          >
+            <input value={novaConta} onChange={(e) => setNovaConta(e.target.value)} placeholder="Nova conta (ex.: Nubank, Cartão)" />
+            <button type="submit">Adicionar</button>
+          </form>
       </div>
-      <form
-        className="linha"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!novaCategoria.trim()) return
-          f.salvarCategoria({ nome: novaCategoria.trim(), tipo: tipoCategoria })
-          setNovaCategoria('')
-        }}
-      >
-        <input value={novaCategoria} onChange={(e) => setNovaCategoria(e.target.value)} placeholder="Nova categoria" />
-        <select className="mini" value={tipoCategoria} onChange={(e) => setTipoCategoria(e.target.value as 'gasto' | 'receita')}>
-          <option value="gasto">Gasto</option>
-          <option value="receita">Receita</option>
-        </select>
-        <button type="submit">Adicionar</button>
-      </form>
-    </>
+      <div className="col">
+          <h2>Categorias e limites mensais</h2>
+          <p className="vazio-texto">O limite é opcional. Quando existe, a barra no Resumo mostra quanto falta.</p>
+          <div className="cartao">
+            {f.categorias.map((c) => (
+              <div key={c.id} className="linha entre item">
+                <span>
+                  {c.nome} <span className="motivo">· {c.tipo === 'gasto' ? 'gasto' : 'receita'}</span>
+                </span>
+                <span className="linha">
+                  {c.tipo === 'gasto' && (
+                    <input
+                      className="mini"
+                      inputMode="decimal"
+                      placeholder="Sem limite"
+                      defaultValue={c.orcamento ? (c.orcamento / 100).toFixed(2).replace('.', ',') : ''}
+                      onBlur={(e) => f.salvarCategoria({ ...c, orcamento: lerValor(e.target.value) ?? undefined })}
+                      aria-label={`Limite de ${c.nome}`}
+                    />
+                  )}
+                  <button className="discreto" onClick={() => f.removerCategoria(c.id)} aria-label={`Apagar ${c.nome}`}>
+                    ×
+                  </button>
+                </span>
+              </div>
+            ))}
+          </div>
+          <form
+            className="linha"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (!novaCategoria.trim()) return
+              f.salvarCategoria({ nome: novaCategoria.trim(), tipo: tipoCategoria })
+              setNovaCategoria('')
+            }}
+          >
+            <input value={novaCategoria} onChange={(e) => setNovaCategoria(e.target.value)} placeholder="Nova categoria" />
+            <select className="mini" value={tipoCategoria} onChange={(e) => setTipoCategoria(e.target.value as 'gasto' | 'receita')}>
+              <option value="gasto">Gasto</option>
+              <option value="receita">Receita</option>
+            </select>
+            <button type="submit">Adicionar</button>
+          </form>
+      </div>
+    </div>
   )
 }
 

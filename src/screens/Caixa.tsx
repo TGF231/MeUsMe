@@ -122,62 +122,67 @@ export function Caixa() {
 
   return (
     <section className="tela">
-      <form
-        className="cartao compacto"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!texto.trim()) return
-          s.capturar(texto.trim())
-          setTexto('')
-        }}
-      >
-        <label className="rotulo">Tire da cabeça. Organizar fica para depois.</label>
-        <div className="linha">
-          <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Qualquer coisa…" />
-          <button type="submit" className="primario">
-            Guardar
-          </button>
+      <div className="colunas">
+        <div className="col">
+          <form
+            className="cartao compacto"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (!texto.trim()) return
+              s.capturar(texto.trim())
+              setTexto('')
+            }}
+          >
+            <label className="rotulo">Tire da cabeça. Organizar fica para depois.</label>
+            <div className="linha">
+              <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Qualquer coisa…" />
+              <button type="submit" className="primario">
+                Guardar
+              </button>
+            </div>
+          </form>
+
+          {s.capturas.length === 0 ? (
+            <p className="vazio-texto">Caixa vazia. Sua cabeça agradece.</p>
+          ) : (
+            <>
+              <h2>Para processar ({s.capturas.length})</h2>
+              {s.capturas.map((c) => (
+                <div key={c.id} className="cartao">
+                  <p className="passo pequeno">{c.texto}</p>
+                  <Processar captura={c} />
+                </div>
+              ))}
+            </>
+          )}
         </div>
-      </form>
-
-      {s.capturas.length === 0 ? (
-        <p className="vazio-texto">Caixa vazia. Sua cabeça agradece.</p>
-      ) : (
-        <>
-          <h2>Para processar ({s.capturas.length})</h2>
-          {s.capturas.map((c) => (
-            <div key={c.id} className="cartao">
-              <p className="passo pequeno">{c.texto}</p>
-              <Processar captura={c} />
-            </div>
-          ))}
-        </>
-      )}
-
-      {soltas.length > 0 && (
-        <>
-          <h2>Ideias estacionadas</h2>
-          <p className="vazio-texto">Guardadas sem pressão. Nenhuma delas é obrigação.</p>
-          {soltas.map((i) => (
-            <div key={i.id} className="cartao linha entre">
-              <span>{i.texto}</span>
-              <span className="linha">
-                <button
-                  onClick={() => {
-                    s.capturar(i.texto)
-                    s.removerIdeia(i.id)
-                  }}
-                >
-                  Agir nela
-                </button>
-                <button className="discreto" onClick={() => s.removerIdeia(i.id)}>
-                  Apagar
-                </button>
-              </span>
-            </div>
-          ))}
-        </>
-      )}
+        <div className="col">
+          {soltas.length > 0 && (
+            <>
+              <h2>Ideias estacionadas</h2>
+              <p className="vazio-texto">Guardadas sem pressão. Nenhuma delas é obrigação.</p>
+              {soltas.map((i) => (
+                <div key={i.id} className="cartao linha entre">
+                  <span>{i.texto}</span>
+                  <span className="linha">
+                    <button
+                      onClick={() => {
+                        s.capturar(i.texto)
+                        s.removerIdeia(i.id)
+                      }}
+                    >
+                      Agir nela
+                    </button>
+                    <button className="discreto" onClick={() => s.removerIdeia(i.id)}>
+                      Apagar
+                    </button>
+                  </span>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
     </section>
   )
 }
