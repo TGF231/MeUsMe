@@ -46,6 +46,22 @@ npm run build && npx cap sync android && cd android && ./gradlew.bat assembleDeb
 
 O arquivo sai em `android/app/build/outputs/apk/debug/app-debug.apk`. No celular, ao liberar "Acesso a notificações", o Android pode mostrar "configuração restrita" para apps instalados por APK: em Configurações → Apps → MeUsMe → ⋮ → **Permitir configurações restritas**.
 
+## App Windows
+
+O mesmo código, empacotado com [Tauri](https://tauri.app) (pasta `src-tauri/`). Além do que a web faz:
+
+- **Captura de qualquer programa**: `Win + Ctrl + Alt + Espaço` abre uma janelinha por cima de tudo; escreva, Enter, ela some. Se o Windows recusar esse atalho, o reserva é `Ctrl + Alt + Espaço` (Ajustes mostra qual ficou valendo).
+- **Tempo por programa**, medido sozinho a cada 5 segundos (só o nome do programa, nunca o título da janela; tempo parado não conta). Aparece no Histórico.
+- **Bandeja do sistema**: fechar a janela não encerra o app; ele segue medindo o tempo e mandando avisos. Opção de iniciar junto com o Windows.
+
+Para gerar o instalador (precisa de Rust e do Visual Studio Build Tools com C++):
+
+```bash
+npx tauri build
+```
+
+O instalador sai em `src-tauri/target/release/bundle/nsis/`. Para desenvolver com recarga automática: `npx tauri dev`.
+
 ## Google Agenda
 
 1. Em [console.cloud.google.com](https://console.cloud.google.com), crie um projeto e ative a **Google Calendar API**.

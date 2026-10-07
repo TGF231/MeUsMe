@@ -4,3 +4,6 @@ import { Capacitor } from '@capacitor/core'
 export const ehNativo = () => Capacitor.isNativePlatform()
 
 export const ehAndroid = () => Capacitor.getPlatform() === 'android'
+
+/** Rodando dentro do app Windows (Tauri). */
+export const ehDesktop = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window

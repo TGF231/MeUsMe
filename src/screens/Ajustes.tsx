@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import esquemaSql from '../../supabase/esquema.sql?raw'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
-import { ehNativo } from '../nativo/plataforma'
+import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows } from '../nativo/desktop'
+import { ehDesktop, ehNativo } from '../nativo/plataforma'
 import { abrirAjusteDeHorarioExato, horarioExatoLiberado, lerPermissao, notificar, pedirPermissao, type Permissao } from '../notificacoes'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
@@ -390,6 +391,46 @@ function Sincronizacao() {
   )
 }
 
+function Windows() {
+  const [atalho, setAtalho] = useState('')
+  const [autostart, setAutostart] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!ehDesktop()) return
+    void atalhoAtual().then(setAtalho)
+    void iniciaComWindows().then(setAutostart)
+  }, [])
+
+  if (!ehDesktop()) return null
+  return (
+    <div className="cartao">
+      <h2 className="titulo">Windows</h2>
+      <p className="motivo">
+        Captura rápida de qualquer programa: <kbd className="tecla">{atalho ? atalhoLegivel(atalho) : '…'}</kbd>
+      </p>
+      {atalho && !atalho.startsWith('super') && (
+        <p className="dica">O Windows não liberou Win + Ctrl + Alt + Espaço; o atalho acima é o reserva.</p>
+      )}
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={autostart ?? false}
+          disabled={autostart === null}
+          onChange={async (e) => {
+            await definirIniciaComWindows(e.target.checked)
+            setAutostart(await iniciaComWindows())
+          }}
+        />
+        Iniciar junto com o Windows (fica na bandeja, perto do relógio)
+      </label>
+      <p className="motivo">
+        Fechar a janela não encerra o MeUsMe: ele continua na bandeja medindo o tempo por programa e mandando avisos. Para sair de verdade, use o
+        ícone da bandeja → Sair.
+      </p>
+    </div>
+  )
+}
+
 function Backup() {
   const [mensagem, setMensagem] = useState('')
   return (
@@ -440,6 +481,7 @@ export function Ajustes() {
   return (
     <section className="tela grade-ajustes">
       <Sincronizacao />
+      <Windows />
       <Notificacoes />
       <Google />
       <Backup />

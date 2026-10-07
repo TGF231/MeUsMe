@@ -1,6 +1,7 @@
 import { CheckInForm, HUMORES } from '../components/CheckInForm'
 import { Pontos } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
+import { UsoDoComputador } from '../components/UsoDoComputador'
 import { minutosDoPasso, useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { dataISO, duracao, hora, hoje, nomeDoDia } from '../util'
@@ -46,6 +47,8 @@ export function Historico() {
             <h2 className="titulo">Check-in de hoje</h2>
             <CheckInForm />
           </div>
+
+          <UsoDoComputador />
 
           <div className="cartao">
             <p className="rotulo">Últimos 7 dias</p>

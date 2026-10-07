@@ -1,0 +1,54 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "MeUsMe",
+  "version": "0.1.0",
+  "identifier": "app.meusme",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "MeUsMe",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 380,
+        "minHeight": 500,
+        "center": true,
+        "visible": false
+      },
+      {
+        "label": "captura",
+        "title": "MeUsMe: captura rápida",
+        "url": "index.html#captura",
+        "width": 560,
+        "height": 150,
+        "resizable": false,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "center": true,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "shortDescription": "Uma coisa de cada vez.",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "windows": {
+      "nsis": {
+        "languages": ["PortugueseBR"],
+        "installMode": "currentUser"
+      }
+    }
+  }
+}

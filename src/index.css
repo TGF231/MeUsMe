@@ -1166,3 +1166,47 @@ span.tempo {
   word-break: break-all;
   font-size: 0.75rem;
 }
+
+/* ── App Windows ── */
+
+kbd.tecla {
+  margin-left: 4px;
+  font-size: 0.85rem;
+  padding: 2px 8px;
+  opacity: 1;
+  background: var(--fundo);
+}
+
+.mini-segmentado button {
+  min-height: 30px;
+  padding: 2px 12px;
+  font-size: 0.8rem;
+  flex: none;
+}
+
+/* Janela da captura rápida: só o campo, ocupando a janela inteira. */
+.modo-captura,
+.modo-captura body {
+  background: var(--superficie);
+  overflow: hidden;
+}
+
+.janela-captura {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border: 2px solid var(--acento);
+  box-sizing: border-box;
+}
+
+.janela-captura input {
+  font-size: 1.2rem;
+  border: none;
+  background: transparent;
+  min-height: 56px;
+}
+
+.janela-captura input:focus {
+  outline: none;
+}

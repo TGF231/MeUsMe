@@ -1,16 +1,18 @@
 import { LocalNotifications } from '@capacitor/local-notifications'
-import { ehNativo } from './nativo/plataforma'
+import * as NotificacaoDesktop from '@tauri-apps/plugin-notification'
+import { ehDesktop, ehNativo } from './nativo/plataforma'
 import { useAvisos } from './stores/config'
 
 export type Permissao = NotificationPermission | 'indisponivel'
 
-export const notificacoesSuportadas = () => ehNativo() || (typeof window !== 'undefined' && 'Notification' in window)
+export const notificacoesSuportadas = () => ehNativo() || ehDesktop() || (typeof window !== 'undefined' && 'Notification' in window)
 
 const doNativo = (p: string): Permissao => (p === 'granted' ? 'granted' : p === 'denied' ? 'denied' : 'default')
 
 /** Situação atual da permissão (no Android, a do sistema; no navegador, a do site). */
 export async function lerPermissao(): Promise<Permissao> {
   if (ehNativo()) return doNativo((await LocalNotifications.checkPermissions()).display)
+  if (ehDesktop()) return (await NotificacaoDesktop.isPermissionGranted()) ? 'granted' : 'default'
   return notificacoesSuportadas() ? Notification.permission : 'indisponivel'
 }
 
@@ -20,6 +22,7 @@ export async function pedirPermissao(): Promise<Permissao> {
     if (r === 'granted') void import('./nativo/lembretesNativos').then((m) => m.reagendarNotificacoes())
     return r
   }
+  if (ehDesktop()) return NotificacaoDesktop.requestPermission()
   if (!notificacoesSuportadas()) return 'indisponivel'
   return Notification.requestPermission()
 }
@@ -46,6 +49,13 @@ export async function notificar(titulo: string, corpo: string, tag?: string) {
   if (ehNativo()) {
     if (olhando) return useAvisos.getState().mostrar(titulo, corpo)
     await LocalNotifications.schedule({ notifications: [{ id: Date.now() % 2_000_000_000, title: titulo, body: corpo, extra: { chave: tag } }] })
+    return
+  }
+  if (ehDesktop()) {
+    // App Windows: a janela pode estar escondida na bandeja; o aviso vai para a central de notificações.
+    if (olhando) return useAvisos.getState().mostrar(titulo, corpo)
+    if (await NotificacaoDesktop.isPermissionGranted()) NotificacaoDesktop.sendNotification({ title: titulo, body: corpo })
+    else useAvisos.getState().mostrar(titulo, corpo)
     return
   }
   const permissao = notificacoesSuportadas() ? Notification.permission : 'indisponivel'
