@@ -70,6 +70,11 @@ O instalador sai em `src-tauri/target/release/bundle/nsis/`. Para desenvolver co
 3. Crie uma credencial **ID do cliente OAuth** do tipo **Aplicativo da Web**, com `http://localhost:5173` (e o endereço publicado, quando houver) em **Origens JavaScript autorizadas**.
 4. Cole o Client ID em **Ajustes → Google Agenda** no app, ou crie um arquivo `.env.local` com `VITE_GOOGLE_CLIENT_ID=...`.
 
+## Entender e evoluir o código
+
+- [docs/GUIA-DE-ESTUDO.md](docs/GUIA-DE-ESTUDO.md): como o app funciona por dentro e trilhas de estudo de cada linguagem e ferramenta, com exercícios no próprio código.
+- [docs/ROADMAP.md](docs/ROADMAP.md): fases até a publicação, o que ainda não foi testado de verdade e as dívidas técnicas.
+
 ## Publicar
 
 O passo a passo para colocar nas lojas (servidor, chaves de assinatura, versões, exigências do Google Play, Microsoft Store e Apple) está em [PRODUCAO.md](PRODUCAO.md).
