@@ -10,6 +10,10 @@ interface Estado {
   avisoFocoMin: number
   /** Chaves de avisos já disparados → quando, para não repetir. */
   disparados: Record<string, number>
+  /** Claro, escuro ou o que o sistema estiver usando. Vale só para este aparelho. */
+  tema: 'auto' | 'claro' | 'escuro'
+  /** Id de um acento pronto (src/tema/cores.ts) ou uma cor livre "#RRGGBB". Sincroniza entre aparelhos. */
+  acento: string
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -25,6 +29,8 @@ export const useConfig = create<Estado>()(
       minutosAntesEvento: 10,
       avisoFocoMin: 25,
       disparados: {},
+      tema: 'auto',
+      acento: 'assinatura',
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>

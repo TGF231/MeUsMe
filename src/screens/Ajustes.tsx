@@ -6,6 +6,8 @@ import { ehDesktop, ehNativo } from '../nativo/plataforma'
 import { abrirAjusteDeHorarioExato, horarioExatoLiberado, lerPermissao, notificar, pedirPermissao, type Permissao } from '../notificacoes'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
+import { ACENTOS_PRONTOS, pareceSemantica, resolverAcento } from '../tema/cores'
+import { temaEfetivo } from '../tema/aplicar'
 import { sincronizarAgora, useStatusSync } from '../sync/motor'
 import {
   apagarConfigSync,
@@ -391,6 +393,76 @@ function Sincronizacao() {
   )
 }
 
+function Aparencia() {
+  const cfg = useConfig()
+  const livre = !ACENTOS_PRONTOS.some((a) => a.id === cfg.acento)
+  const modo = temaEfetivo()
+  const amostra = (id: string) => resolverAcento(id)[modo].acento
+  const conflito = pareceSemantica(resolverAcento(cfg.acento))
+
+  return (
+    <div className="cartao">
+      <h2 className="titulo">Aparência</h2>
+      <label className="rotulo">Tema</label>
+      <div className="segmentado">
+        {(
+          [
+            ['auto', 'Automático'],
+            ['claro', 'Claro'],
+            ['escuro', 'Escuro'],
+          ] as const
+        ).map(([id, nome]) => (
+          <button key={id} className={cfg.tema === id ? 'ativo' : ''} onClick={() => cfg.ajustar({ tema: id })}>
+            {nome}
+          </button>
+        ))}
+      </div>
+      <p className="motivo">Automático segue o tema do sistema. Vale só para este aparelho.</p>
+
+      <label className="rotulo">Cor de destaque</label>
+      <div className="amostras" role="radiogroup" aria-label="Cor de destaque">
+        {ACENTOS_PRONTOS.map((a) => (
+          <button
+            key={a.id}
+            role="radio"
+            aria-checked={cfg.acento === a.id}
+            className={`amostra ${cfg.acento === a.id ? 'ativo' : ''}`}
+            onClick={() => cfg.ajustar({ acento: a.id })}
+          >
+            <span className="bolinha" style={{ background: amostra(a.id) }} />
+            {a.nome}
+          </button>
+        ))}
+        <label className={`amostra ${livre ? 'ativo' : ''}`}>
+          <span className="bolinha" style={{ background: livre ? amostra(cfg.acento) : 'conic-gradient(var(--erro), var(--aviso), var(--ok), var(--info), var(--erro))' }} />
+          Outra cor
+          <input
+            type="color"
+            value={livre ? cfg.acento : resolverAcento(cfg.acento).claro.acento.toLowerCase()}
+            onChange={(e) => cfg.ajustar({ acento: e.target.value.toUpperCase() })}
+            aria-label="Escolher outra cor de destaque"
+          />
+        </label>
+      </div>
+      {conflito && (
+        <p className="dica">
+          Essa cor fica parecida com a de {conflito === 'erro' ? 'erro' : conflito === 'aviso' ? 'aviso' : '“tudo certo”'}. Com as duas iguais, os
+          alertas passam despercebidos. Prefira um tom mais escuro ou outra cor.
+        </p>
+      )}
+      <div className="linha previa">
+        <button className="primario">Botão principal</button>
+        <button className="ativo">Selecionado</button>
+        <span className="selo">etiqueta</span>
+      </div>
+      <p className="motivo">
+        A Assinatura é a mesma dos seus programas PySide6. Em outra cor, o app ajusta sozinho a versão do tema escuro e o texto por cima para
+        continuarem legíveis. A cor de destaque acompanha você em todos os aparelhos.
+      </p>
+    </div>
+  )
+}
+
 function Windows() {
   const [atalho, setAtalho] = useState('')
   const [autostart, setAutostart] = useState<boolean | null>(null)
@@ -480,6 +552,7 @@ function Backup() {
 export function Ajustes() {
   return (
     <section className="tela grade-ajustes">
+      <Aparencia />
       <Sincronizacao />
       <Windows />
       <Notificacoes />

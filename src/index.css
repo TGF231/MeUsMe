@@ -1,35 +1,100 @@
+/*
+ * Paleta da assinatura visual dos apps PySide6 (skill minha-ui, tema.py), traduzida para o app.
+ * Nenhuma cor literal fora deste bloco. Só o acento muda (Ajustes → Aparência): src/tema/aplicar.ts
+ * escreve as variáveis --acento-*-claro/escuro; o resto da paleta é fixo de propósito, para as
+ * duas versões continuarem parecendo o mesmo programa.
+ */
 :root {
-  --fundo: #f4efe6;
-  --superficie: #fffdf8;
-  --texto: #23201b;
-  --suave: #6f675c;
-  --borda: #e3dbcd;
-  --acento: #2f6f5e;
-  --acento-texto: #ffffff;
-  --acento-leve: #dcebe5;
-  --aviso: #8a5a12;
-  --aviso-fundo: #fbefd9;
-  --raio: 14px;
+  /* Acento da assinatura: vermelho-escuro no claro, tijolo no escuro. */
+  --acento-claro: #7d0e0e;
+  --acento-hover-claro: #5c0a0a;
+  --acento-leve-claro: #f6e7e6;
+  --acento-texto-claro: #ffffff;
+  --acento-escuro: #c4302a;
+  --acento-hover-escuro: #dc4a42;
+  --acento-leve-escuro: #2e1616;
+  --acento-texto-escuro: #ffffff;
 
-  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  /* Tema claro (padrão). */
+  --fundo: #f4f6f8;
+  --superficie: #ffffff;
+  --superficie-2: #e9edf1;
+  --rebaixado: #fbfcfd;
+  --texto: #16202a;
+  --suave: #4a5a6a;
+  --apagado: #74848f;
+  --borda: #d2dae2;
+  --borda-2: #bac5d0;
+  /* Cores de estado, separadas do acento: "atenção" nunca se confunde com "isto é clicável". */
+  --ok: #15803d;
+  --aviso: #a16207;
+  --erro: #d92d20;
+  --info: #1565c0;
+  --sombra: rgb(22 32 42 / 0.18);
+  --veu: rgb(15 22 32 / 0.45);
+  --acento: var(--acento-claro);
+  --acento-hover: var(--acento-hover-claro);
+  --acento-leve: var(--acento-leve-claro);
+  --acento-texto: var(--acento-texto-claro);
+  --aviso-fundo: color-mix(in srgb, var(--aviso) 12%, var(--superficie));
+
+  --raio: 8px;
+  --raio-controle: 4px;
+  --fonte-mono: 'Cascadia Mono', Consolas, monospace;
+
+  font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif;
   color: var(--texto);
   background: var(--fundo);
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
+/* Tema escuro: automático (segue o sistema) ou escolhido em Ajustes. Os dois blocos são iguais. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --fundo: #171a19;
-    --superficie: #212624;
-    --texto: #ece8e0;
-    --suave: #a29b90;
-    --borda: #343b38;
-    --acento: #6cc2a6;
-    --acento-texto: #10201b;
-    --acento-leve: #22382f;
-    --aviso: #f0c27a;
-    --aviso-fundo: #3a2f1c;
+  :root:not([data-tema='claro']) {
+    --fundo: #0f1620;
+    --superficie: #18212c;
+    --superficie-2: #212c39;
+    --rebaixado: #131c25;
+    --texto: #e3e9ef;
+    --suave: #94a4b5;
+    --apagado: #6e7f91;
+    --borda: #2b3745;
+    --borda-2: #3a4857;
+    --ok: #4ade80;
+    --aviso: #fbbf24;
+    --erro: #ff8a8a;
+    --info: #60a5fa;
+    --sombra: rgb(0 0 0 / 0.45);
+    --veu: rgb(0 0 0 / 0.55);
+    --acento: var(--acento-escuro);
+    --acento-hover: var(--acento-hover-escuro);
+    --acento-leve: var(--acento-leve-escuro);
+    --acento-texto: var(--acento-texto-escuro);
+    color-scheme: dark;
   }
+}
+
+:root[data-tema='escuro'] {
+  --fundo: #0f1620;
+  --superficie: #18212c;
+  --superficie-2: #212c39;
+  --rebaixado: #131c25;
+  --texto: #e3e9ef;
+  --suave: #94a4b5;
+  --apagado: #6e7f91;
+  --borda: #2b3745;
+  --borda-2: #3a4857;
+  --ok: #4ade80;
+  --aviso: #fbbf24;
+  --erro: #ff8a8a;
+  --info: #60a5fa;
+  --sombra: rgb(0 0 0 / 0.45);
+  --veu: rgb(0 0 0 / 0.55);
+  --acento: var(--acento-escuro);
+  --acento-hover: var(--acento-hover-escuro);
+  --acento-leve: var(--acento-leve-escuro);
+  --acento-texto: var(--acento-texto-escuro);
+  color-scheme: dark;
 }
 
 * {
@@ -55,9 +120,9 @@ select,
 textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid var(--borda);
-  border-radius: 10px;
-  background: var(--fundo);
+  border: 1px solid var(--borda-2);
+  border-radius: var(--raio-controle);
+  background: var(--rebaixado);
   min-height: 44px;
 }
 
@@ -72,9 +137,13 @@ button {
   cursor: pointer;
   padding: 10px 16px;
   min-height: 44px;
-  border-radius: 10px;
-  border: 1px solid var(--borda);
+  border-radius: var(--raio-controle);
+  border: 1px solid var(--borda-2);
   background: var(--superficie);
+}
+
+button:hover {
+  background: var(--superficie-2);
 }
 
 button.primario {
@@ -82,6 +151,11 @@ button.primario {
   color: var(--acento-texto);
   border-color: var(--acento);
   font-weight: 600;
+}
+
+button.primario:hover {
+  background: var(--acento-hover);
+  border-color: var(--acento-hover);
 }
 
 button.ativo {
@@ -195,7 +269,7 @@ h2.titulo {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--acento);
+  color: var(--suave);
   margin: 0;
 }
 
@@ -253,7 +327,7 @@ h2.titulo {
   background: var(--aviso-fundo);
   color: var(--aviso);
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: var(--raio-controle);
   font-size: 0.9rem;
   margin: 0;
 }
@@ -331,7 +405,7 @@ h2.titulo {
   justify-content: center;
   gap: 4px;
   padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-  background: var(--superficie);
+  background: var(--superficie-2);
   border-top: 1px solid var(--borda);
 }
 
@@ -352,9 +426,14 @@ h2.titulo {
 }
 
 .abas button.ativo {
-  color: var(--acento);
+  color: var(--texto);
   background: var(--acento-leve);
   font-weight: 600;
+}
+
+/* Seleção na assinatura: texto normal sobre o acento suave; o acento fica no ícone. */
+.abas button.ativo svg {
+  color: var(--acento);
 }
 
 .contador {
@@ -382,13 +461,13 @@ h2.titulo {
   background: var(--acento);
   color: var(--acento-texto);
   border: none;
-  box-shadow: 0 4px 14px rgb(0 0 0 / 0.2);
+  box-shadow: 0 4px 14px var(--sombra);
 }
 
 .fundo {
   position: fixed;
   inset: 0;
-  background: rgb(0 0 0 / 0.4);
+  background: var(--veu);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -447,7 +526,7 @@ input[type='file'] {
   padding: 6px 12px;
   min-height: 36px;
   font-size: 0.85rem;
-  border-radius: 999px;
+  border-radius: var(--raio-controle);
 }
 
 select.mini,
@@ -479,7 +558,7 @@ input.mini {
 .sub-abas button,
 .dias button {
   flex-shrink: 0;
-  border-radius: 999px;
+  border-radius: var(--raio-controle);
   padding: 6px 14px;
   min-height: 38px;
   font-size: 0.9rem;
@@ -492,7 +571,7 @@ input.mini {
 }
 
 .situacao.ocupado {
-  color: var(--acento);
+  color: var(--texto);
 }
 
 .pendencias {
@@ -532,7 +611,7 @@ input.mini {
 }
 
 .evento.acontecendo .horario {
-  color: var(--acento);
+  color: var(--texto);
   font-weight: 700;
 }
 
@@ -551,7 +630,7 @@ input.mini {
 .livre {
   margin: 4px 0;
   font-size: 0.8rem;
-  color: var(--acento);
+  color: var(--ok);
   text-align: center;
   border-top: 1px dashed var(--borda);
   padding-top: 4px;
@@ -563,7 +642,7 @@ input.mini {
   padding: 1px 6px;
   border-radius: 6px;
   background: var(--acento-leve);
-  color: var(--acento);
+  color: var(--texto);
   white-space: nowrap;
 }
 
@@ -577,7 +656,7 @@ input.mini {
 }
 
 .positivo {
-  color: var(--acento);
+  color: var(--ok);
 }
 
 .barra-linha {
@@ -649,8 +728,8 @@ input.mini {
   align-items: center;
   padding: 10px 16px;
   min-height: 44px;
-  border-radius: 10px;
-  border: 1px solid var(--borda);
+  border-radius: var(--raio-controle);
+  border: 1px solid var(--borda-2);
   background: var(--superficie);
   cursor: pointer;
 }
@@ -661,7 +740,7 @@ input.mini {
 
 details summary {
   cursor: pointer;
-  color: var(--acento);
+  color: var(--info);
   font-weight: 600;
   padding: 6px 0;
 }
@@ -672,7 +751,7 @@ details summary {
 }
 
 code {
-  background: var(--fundo);
+  background: var(--rebaixado);
   padding: 1px 6px;
   border-radius: 6px;
   font-size: 0.85em;
@@ -701,7 +780,7 @@ code {
   border-left-width: 4px;
   border-radius: var(--raio);
   padding: 12px 8px 12px 14px;
-  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+  box-shadow: 0 6px 20px var(--sombra);
 }
 
 /* ── Layouts: celular em pé (padrão), celular deitado (trilho) e tela larga (barra lateral) ── */
@@ -1032,7 +1111,7 @@ kbd {
 
 textarea {
   resize: vertical;
-  font-family: ui-monospace, Consolas, monospace;
+  font-family: var(--fonte-mono);
   font-size: 0.85rem;
 }
 
@@ -1059,7 +1138,7 @@ textarea {
   font-variant-numeric: tabular-nums;
   background: var(--acento-leve);
   border: 1px solid transparent;
-  color: var(--acento);
+  color: var(--texto);
 }
 
 span.tempo {
@@ -1106,7 +1185,7 @@ span.tempo {
 
 .numeros b {
   font-size: 1.3rem;
-  color: var(--acento);
+  color: var(--texto);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1209,4 +1288,59 @@ kbd.tecla {
 
 .janela-captura input:focus {
   outline: none;
+}
+
+/* ── Aparência ── */
+
+.amostras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.amostra {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  min-height: 40px;
+  border: 1px solid var(--borda-2);
+  border-radius: var(--raio-controle);
+  background: var(--superficie);
+  cursor: pointer;
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.amostra.ativo {
+  background: var(--acento-leve);
+  border-color: var(--acento);
+  font-weight: 600;
+}
+
+.bolinha {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px var(--sombra);
+}
+
+/* O seletor de cor nativo fica invisível por cima da amostra "Outra cor". */
+.amostra input[type='color'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  opacity: 0;
+  cursor: pointer;
+  padding: 0;
+  border: none;
+}
+
+.previa {
+  padding: 10px;
+  border: 1px dashed var(--borda-2);
+  border-radius: var(--raio-controle);
 }

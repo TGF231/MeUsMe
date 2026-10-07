@@ -9,6 +9,7 @@ import { useStore } from './store'
 import { useAgenda } from './stores/agenda'
 import { useConfig } from './stores/config'
 import { useFinancas } from './stores/financas'
+import { manterTema } from './tema/aplicar'
 
 // No navegador, o service worker deixa o app funcionar offline e ser instalado.
 // Dentro dos apps Android e Windows ele é desnecessário e poderia servir uma versão velha depois de uma atualização.
@@ -23,6 +24,9 @@ const lojas = { meusme: useStore, 'meusme-financas': useFinancas, 'meusme-agenda
 window.addEventListener('storage', (e) => {
   if (e.key && e.key in lojas) void lojas[e.key as keyof typeof lojas].persist.rehydrate()
 })
+
+// Antes da primeira pintura, para não abrir piscando no tema errado.
+manterTema()
 
 const captura = location.hash === '#captura'
 if (captura) document.documentElement.classList.add('modo-captura')

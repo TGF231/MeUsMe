@@ -57,6 +57,8 @@ const COLECOES: Colecao[] = [
   { nome: 'config.horaContas', loja: useConfig, campo: 'horaContas', tipo: 'valor' },
   { nome: 'config.minutosAntesEvento', loja: useConfig, campo: 'minutosAntesEvento', tipo: 'valor' },
   { nome: 'config.avisoFocoMin', loja: useConfig, campo: 'avisoFocoMin', tipo: 'valor' },
+  // A cor de destaque acompanha você em todos os aparelhos; claro/escuro fica por aparelho.
+  { nome: 'config.acento', loja: useConfig, campo: 'acento', tipo: 'valor' },
   // Avisos já disparados: evita o mesmo lembrete tocar no PC e no celular.
   { nome: 'config.disparados', loja: useConfig, campo: 'disparados', tipo: 'mapa' },
 ]
