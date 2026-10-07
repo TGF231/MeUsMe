@@ -18,7 +18,7 @@ Princípio: **quem usa o app não configura nada**. Você mantém um servidor s�
 
 > O plano gratuito do Supabase pausa o projeto após 7 dias sem uso e tem limites. Com pessoas usando de verdade, considere o plano Pro.
 
-## 2. Versão
+## 2. Versão e release
 
 Um comando muda a versão em tudo (web, Android e Windows leem do `package.json`):
 
@@ -28,26 +28,35 @@ npm run versao -- patch
 
 Use `minor`/`major` ou um número (`1.2.0`). No Android, a versão 1.2.3 vira o versionCode 10203, que sempre cresce, como a Play Store exige.
 
+### Publicar (GitHub Actions)
+
+Há dois fluxos em [`.github/workflows/`](.github/workflows/):
+
+- **CI** ([`ci.yml`](.github/workflows/ci.yml)): a cada envio para a `master`, roda lint, testes e o build web. Um ✗ vermelho no commit, no GitHub, quer dizer que algo quebrou.
+- **Release** ([`release.yml`](.github/workflows/release.yml)): quando chega uma tag `vX.Y.Z`, confere se ela bate com o `package.json`, gera o instalador do Windows e o APK/AAB do Android e publica tudo em **Releases**, com as notas montadas a partir dos commits.
+
+```bash
+npm run versao -- patch
+git commit -am "Versão 0.1.1"
+git tag v0.1.1
+git push origin master v0.1.1
+```
+
+- **Configuração do build**: as mesmas variáveis do `.env.example` ficam em *Settings → Secrets and variables → Actions → Variables* (ou `gh variable set VITE_SUPABASE_URL --body ...`). Sem elas, o app sai sem servidor embutido.
+- **Refazer os arquivos** de uma tag que já existe: *Actions → Release → Run workflow* e digite a tag.
+- **Minutos**: repositório privado no plano gratuito tem 2.000 minutos por mês, e o Windows conta em dobro. Uma release gasta cerca de 40.
+
 ## 3. Android (Google Play)
 
 ### Chave de assinatura (uma vez, e guarde muito bem)
 
-Rode este comando: ele pergunta as senhas e seus dados.
-
 ```bash
-keytool -genkeypair -v -keystore android/meusme-upload.jks -alias meusme -keyalg RSA -keysize 2048 -validity 10000
+npm run android:chave
 ```
 
-Crie `android/keystore.properties` (fora do git):
+Cria `android/meusme-upload.jks` com uma senha aleatória, grava `android/keystore.properties` (os dois ficam fora do git) e envia a chave para os segredos do repositório, onde o fluxo de release a usa. Sem esses segredos, a release sai sem o Android.
 
-```properties
-storeFile=meusme-upload.jks
-storePassword=SUA_SENHA
-keyAlias=meusme
-keyPassword=SUA_SENHA
-```
-
-Faça backup do `.jks` e das senhas fora do computador. Ative o **Play App Signing** no Play Console: o Google guarda a chave final do app, e a sua vira só "chave de envio". Se ela se perder, dá para trocar.
+Faça backup do `.jks` e do `keystore.properties` fora do computador (um gerenciador de senhas serve): o celular só aceita uma versão nova assinada com a mesma chave. Ative o **Play App Signing** no Play Console: o Google guarda a chave final do app, e a sua vira só "chave de envio". Se ela se perder, dá para trocar.
 
 ### Gerar
 

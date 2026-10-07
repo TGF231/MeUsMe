@@ -63,6 +63,10 @@ npm run windows:release
 
 O instalador sai em `src-tauri/target/release/bundle/nsis/`. Para desenvolver com recarga automática: `npx tauri dev`.
 
+## Versões prontas
+
+Cada tag `vX.Y.Z` enviada ao GitHub gera o instalador do Windows e o APK do Android pelo GitHub Actions, publicados em **Releases**. Como fazer: [PRODUCAO.md](PRODUCAO.md#publicar-github-actions).
+
 ## Google Agenda
 
 1. Em [console.cloud.google.com](https://console.cloud.google.com), crie um projeto e ative a **Google Calendar API**.

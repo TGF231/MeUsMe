@@ -55,8 +55,8 @@ Sugestão: crie no MeUsMe um projeto para cada fase, com a linha de chegada abai
 
 Objetivo: o app deixa de ser "feito pela IA" e passa a ser seu.
 
-- Repositório privado no GitHub, com o histórico atual.
-- **Integração contínua** (GitHub Actions): a cada envio, roda `npm test`, `npm run lint` e `npm run build`. Você nunca mais publica algo que não compila.
+- ~~Repositório privado no GitHub, com o histórico atual.~~ Feito.
+- ~~**Integração contínua** (GitHub Actions): a cada envio, roda `npm test`, `npm run lint` e `npm run build`. Você nunca mais publica algo que não compila.~~ Feito, junto com a release automática por tag (ver [PRODUCAO.md](../PRODUCAO.md#publicar-github-actions)). Falta você ler e explicar os dois arquivos de `.github/workflows/`.
 - Construir as três versões (web, Android, Windows) numa máquina limpa, seguindo só o README. O que faltar no README, você escreve.
 - Ler o [mapa do código](GUIA-DE-ESTUDO.md#0-o-mapa-como-o-meusme-funciona) e fazer as provas de domínio das trilhas 1 a 6.
 

@@ -13,6 +13,7 @@
     "android:sync": "npm run build && cap sync android",
     "android:apk": "npm run android:sync && node scripts/gradle.mjs assembleDebug",
     "android:release": "npm run android:sync && node scripts/gradle.mjs bundleRelease assembleRelease",
+    "android:chave": "node scripts/chave-android.mjs",
     "windows:release": "tauri build"
   },
   "dependencies": {

@@ -1,0 +1,176 @@
+# Gera o instalador do Windows e o APK/AAB do Android e publica em Releases quando uma tag vX.Y.Z é enviada.
+# Para refazer os arquivos de uma tag que já existe: Actions → Release → Run workflow.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag existente (ex.: v0.1.0)
+        required: true
+
+permissions:
+  contents: write
+
+concurrency: release-${{ inputs.tag || github.ref_name }}
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+  # Mesmas variáveis do .env.example, em Settings → Secrets and variables → Actions → Variables.
+  VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+  VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+  VITE_OPEN_FINANCE: ${{ vars.VITE_OPEN_FINANCE }}
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    outputs:
+      versao: ${{ steps.versao.outputs.versao }}
+      android: ${{ steps.chave.outputs.android }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Tag igual à versão do package.json
+        id: versao
+        run: |
+          versao=$(jq -r .version package.json)
+          if [ "$TAG" != "v$versao" ]; then
+            echo "::error::A tag $TAG não bate com a versão $versao do package.json (npm run versao)."
+            exit 1
+          fi
+          echo "versao=$versao" >> "$GITHUB_OUTPUT"
+      - name: Chave de assinatura do Android
+        id: chave
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "android=sim" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Sem a chave de assinatura nos segredos do repositório, o Android fica fora desta release (npm run android:chave)."
+          fi
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  windows:
+    needs: verificar
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      # O beforeBuildCommand do tauri.conf.json já faz o build web.
+      - run: npx tauri build
+      - name: Renomear
+        shell: bash
+        run: |
+          mkdir saida
+          cp src-tauri/target/release/bundle/nsis/*-setup.exe "saida/MeUsMe-${{ needs.verificar.outputs.versao }}-windows-x64-setup.exe"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows
+          path: saida/
+          if-no-files-found: error
+
+  android:
+    needs: verificar
+    if: needs.verificar.outputs.android == 'sim'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: npm ci
+      - name: Chave de assinatura
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_SENHA: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          CHAVE_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          CHAVE_SENHA: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/meusme-upload.jks
+          printf 'storeFile=meusme-upload.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "$KEYSTORE_SENHA" "$CHAVE_ALIAS" "$CHAVE_SENHA" > android/keystore.properties
+      - run: npm run android:release
+      - name: Renomear
+        run: |
+          v=${{ needs.verificar.outputs.versao }}
+          mkdir saida
+          cp android/app/build/outputs/apk/release/app-release.apk "saida/MeUsMe-$v-android.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab "saida/MeUsMe-$v-android-play.aab"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android
+          path: saida/
+          if-no-files-found: error
+
+  publicar:
+    needs: [verificar, windows, android]
+    # Roda também quando o Android foi pulado por falta de chave.
+    if: ${{ !failure() && !cancelled() }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSAO: ${{ needs.verificar.outputs.versao }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          path: saida
+          merge-multiple: true
+      - name: Notas da versão
+        run: |
+          anterior=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)
+          {
+            echo '## Instalar'
+            echo
+            if [ -f "saida/MeUsMe-$VERSAO-windows-x64-setup.exe" ]; then
+              echo "- **Windows 10/11:** baixe \`MeUsMe-$VERSAO-windows-x64-setup.exe\` e abra. O instalador ainda não tem assinatura digital, então o Windows mostra \"O Windows protegeu o computador\": clique em *Mais informações* → *Executar assim mesmo*."
+            fi
+            if [ -f "saida/MeUsMe-$VERSAO-android.apk" ]; then
+              echo "- **Android 7 ou mais novo:** baixe \`MeUsMe-$VERSAO-android.apk\` no celular e abra; o Android pede para permitir a instalação. O \`.aab\` é o pacote da Play Store e não instala direto."
+            fi
+            echo
+            echo '## Mudanças'
+            echo
+            git log --no-merges --format='- %s' "${anterior:+$anterior..}$TAG"
+          } > notas.md
+          (cd saida && sha256sum * > SHA256SUMS.txt)
+      - name: Publicar
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" saida/* --clobber
+            gh release edit "$TAG" --notes-file notas.md
+          else
+            gh release create "$TAG" saida/* --verify-tag --title "MeUsMe $VERSAO" --notes-file notas.md
+          fi

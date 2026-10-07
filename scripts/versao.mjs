@@ -22,4 +22,4 @@ const [maior, menor, correcao] = version.split('.').map((n) => Number.parseInt(n
 console.log(`Versão ${version}`)
 console.log(`  Android: versionName ${version}, versionCode ${maior * 10000 + menor * 100 + correcao}`)
 console.log(`  Windows: ${version}`)
-console.log('Depois: npm run android:release e npm run windows:release')
+console.log(`Depois: faça o commit, git tag v${version} e git push origin master v${version} (o GitHub Actions publica a release).`)

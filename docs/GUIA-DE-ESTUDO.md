@@ -301,9 +301,10 @@ A ordem importa: cada trilha usa a anterior. Tempo estimado com ~1 h por dia.
   - RLS como última barreira.
 - **LGPD:** quais dados, finalidade, exportar e apagar (as duas funções já existem).
 - **Publicação:** assinatura (keystore, certificados), versões semânticas, exigências das lojas.
-- **Leia no MeUsMe:** [testes/](../testes/), [scripts/](../scripts/), [PRODUCAO.md](../PRODUCAO.md), [ROADMAP.md](ROADMAP.md).
-- **Prova de domínio:** escrever o primeiro teste de componente (ex.: `PassoForm` mostra o aviso de "ideia vaga") e ligar a integração contínua no GitHub para rodá-lo a cada envio.
-- **Referências:** [Vitest](https://vitest.dev/), [Testing Library](https://testing-library.com/docs/react-testing-library/intro/), [Playwright](https://playwright.dev/), [OWASP Top 10](https://owasp.org/www-project-top-ten/), [LGPD (texto da lei)](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm).
+- **GitHub Actions:** gatilhos (`on:`), jobs em máquinas separadas (Linux e Windows), `needs` e `outputs` entre jobs, segredos × variáveis, artefatos.
+- **Leia no MeUsMe:** [testes/](../testes/), [scripts/](../scripts/), [.github/workflows/](../.github/workflows/), [PRODUCAO.md](../PRODUCAO.md), [ROADMAP.md](ROADMAP.md).
+- **Prova de domínio:** escrever o primeiro teste de componente (ex.: `PassoForm` mostra o aviso de "ideia vaga"), fazê-lo rodar no `ci.yml`, e explicar por que o job `publicar` do `release.yml` ainda roda quando o job do Android é pulado.
+- **Referências:** [Vitest](https://vitest.dev/), [Testing Library](https://testing-library.com/docs/react-testing-library/intro/), [Playwright](https://playwright.dev/), [GitHub Actions](https://docs.github.com/pt/actions), [OWASP Top 10](https://owasp.org/www-project-top-ten/), [LGPD (texto da lei)](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm).
 
 ---
 
