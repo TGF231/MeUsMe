@@ -28,7 +28,23 @@ A lógica de mesclagem tem testes: `npm test`.
 
 ## Notificações
 
-Avisos de compromissos, lembretes, contas a vencer, check-in e tempo de foco. Funcionam enquanto o app está aberto (mesmo minimizado ou em outra aba). Avisos com o app totalmente fechado exigem um servidor de push, que entra junto com a sincronização entre aparelhos.
+Avisos de compromissos, lembretes, contas a vencer, check-in e tempo de foco. No navegador funcionam enquanto o app está aberto (mesmo minimizado ou em outra aba); no app Android ficam agendados no sistema e tocam com o app fechado.
+
+## App Android
+
+O mesmo código, empacotado com [Capacitor](https://capacitorjs.com) (pasta `android/`). Além do que a web faz:
+
+- **Avisos com o app fechado**: os da próxima semana ficam agendados no Android.
+- **Gastos pelas notificações do banco** (Nubank, Inter, Mercado Pago, PicPay, Next e outros que você marcar): viram lançamentos provisórios na hora; quando o Open Finance traz o oficial, ele substitui o provisório. O que não der para entender com segurança vai para a Caixa.
+- O Google não permite login dentro do app: os compromissos do Google chegam pela sincronização com o PC.
+
+Para gerar o APK (precisa do JDK 21 e do Android SDK; o caminho do SDK fica em `android/local.properties`):
+
+```bash
+npm run build && npx cap sync android && cd android && ./gradlew.bat assembleDebug
+```
+
+O arquivo sai em `android/app/build/outputs/apk/debug/app-debug.apk`. No celular, ao liberar "Acesso a notificações", o Android pode mostrar "configuração restrita" para apps instalados por APK: em Configurações → Apps → MeUsMe → ⋮ → **Permitir configurações restritas**.
 
 ## Google Agenda
 
