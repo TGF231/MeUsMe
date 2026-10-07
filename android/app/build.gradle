@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// A versão vem do package.json (única fonte; mude com "npm run versao -- X.Y.Z").
+// versionCode precisa sempre crescer na Play Store: 1.2.3 → 10203.
+def pacote = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json'))
+def (maior, menor, correcao) = pacote.version.tokenize('.').collect { it.replaceAll('[^0-9].*', '') as int }
+
+// Chave de assinatura da versão de produção. Fica fora do git (ver PRODUCAO.md).
+def assinatura = rootProject.file('keystore.properties')
+
 android {
     namespace = "app.meusme"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +15,8 @@ android {
         applicationId "app.meusme"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode maior * 10000 + menor * 100 + correcao
+        versionName pacote.version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +24,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (assinatura.exists()) {
+                def p = new Properties()
+                assinatura.withInputStream { p.load(it) }
+                storeFile rootProject.file(p['storeFile'])
+                storePassword p['storePassword']
+                keyAlias p['keyAlias']
+                keyPassword p['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            // Sem keystore.properties o release sai sem assinatura (serve para testar, não para a loja).
+            if (assinatura.exists()) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

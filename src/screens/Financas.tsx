@@ -725,7 +725,8 @@ export function Financas() {
         <>
           <div className="estreito">
             <CapturaBancos />
-            <OpenFinance sync={sync} />
+            {/* Meu Pluggy só permite uso pessoal: versões públicas compilam com VITE_OPEN_FINANCE=desligado. */}
+            {import.meta.env.VITE_OPEN_FINANCE !== 'desligado' && <OpenFinance sync={sync} />}
           </div>
           <Importar />
         </>

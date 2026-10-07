@@ -36,6 +36,22 @@ create policy "dono le" on public.registros for select to authenticated using (a
 create policy "dono grava" on public.registros for insert to authenticated with check (auth.uid() = usuario);
 create policy "dono altera" on public.registros for update to authenticated using (auth.uid() = usuario) with check (auth.uid() = usuario);
 
+-- Apagar a própria conta e tudo o que está no servidor, de dentro do app (exigência do Google Play e da App Store).
+-- Roda com permissão elevada só para apagar o próprio usuário: auth.uid() vem do login de quem chamou.
+create or replace function public.apagar_minha_conta() returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  if auth.uid() is null then
+    raise exception 'precisa estar logado';
+  end if;
+  delete from public.registros where usuario = auth.uid();
+  delete from auth.users where id = auth.uid();
+end;
+$$;
+
+revoke all on function public.apagar_minha_conta() from public, anon;
+grant execute on function public.apagar_minha_conta() to authenticated;
+
 -- Tempo real: avisa os outros aparelhos assim que algo muda.
 do $$
 begin

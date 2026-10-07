@@ -18,9 +18,9 @@ Os dados ficam no próprio aparelho (localStorage) e, se você ativar, são sinc
 
 Usa um projeto [Supabase](https://supabase.com) seu (plano gratuito). Cada item (passo, gasto, evento…) sincroniza separadamente, então editar coisas diferentes no PC e no celular ao mesmo tempo não perde nada; funciona offline e envia quando a conexão volta.
 
-1. Crie um projeto no Supabase e rode `supabase/esquema.sql` no SQL Editor (o app tem um botão "Copiar script").
-2. Em **Ajustes → Sincronização**, cole a Project URL e a chave anon/publishable, e crie sua conta.
-3. Nos outros aparelhos, use **Adicionar outro aparelho** para copiar um código e cole em "Usar código".
+Para quem usa: **Ajustes → Sincronização e backup**, digita o e-mail e o código de 6 dígitos que chega. Sem senha. Nos outros aparelhos, entra com o mesmo e-mail.
+
+Para isso o app é compilado com o endereço do servidor (`.env.production.local`, ver [PRODUCAO.md](PRODUCAO.md)). Sem ele, há a opção avançada de usar um servidor próprio, dentro do mesmo cartão.
 
 Não sincronizam, de propósito: o segredo da Pluggy, a conexão com o Google (cada aparelho conecta a sua) e o cache de eventos do Google.
 
@@ -41,7 +41,8 @@ O mesmo código, empacotado com [Capacitor](https://capacitorjs.com) (pasta `and
 Para gerar o APK (precisa do JDK 21 e do Android SDK; o caminho do SDK fica em `android/local.properties`):
 
 ```bash
-npm run build && npx cap sync android && cd android && ./gradlew.bat assembleDebug
+npm run android:apk        # APK de teste
+npm run android:release    # AAB para a Play Store (assinatura: ver PRODUCAO.md)
 ```
 
 O arquivo sai em `android/app/build/outputs/apk/debug/app-debug.apk`. No celular, ao liberar "Acesso a notificações", o Android pode mostrar "configuração restrita" para apps instalados por APK: em Configurações → Apps → MeUsMe → ⋮ → **Permitir configurações restritas**.
@@ -57,7 +58,7 @@ O mesmo código, empacotado com [Tauri](https://tauri.app) (pasta `src-tauri/`).
 Para gerar o instalador (precisa de Rust e do Visual Studio Build Tools com C++):
 
 ```bash
-npx tauri build
+npm run windows:release
 ```
 
 O instalador sai em `src-tauri/target/release/bundle/nsis/`. Para desenvolver com recarga automática: `npx tauri dev`.
@@ -68,6 +69,10 @@ O instalador sai em `src-tauri/target/release/bundle/nsis/`. Para desenvolver co
 2. Configure a **Tela de consentimento OAuth** como "Externo" e adicione seu e-mail como usuário de teste.
 3. Crie uma credencial **ID do cliente OAuth** do tipo **Aplicativo da Web**, com `http://localhost:5173` (e o endereço publicado, quando houver) em **Origens JavaScript autorizadas**.
 4. Cole o Client ID em **Ajustes → Google Agenda** no app, ou crie um arquivo `.env.local` com `VITE_GOOGLE_CLIENT_ID=...`.
+
+## Publicar
+
+O passo a passo para colocar nas lojas (servidor, chaves de assinatura, versões, exigências do Google Play, Microsoft Store e Apple) está em [PRODUCAO.md](PRODUCAO.md).
 
 ## Rodar
 

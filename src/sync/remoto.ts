@@ -2,7 +2,12 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Remota } from './planejar'
 
 /**
- * Servidor de sincronização: um projeto Supabase seu (plano gratuito).
+ * Servidor de sincronização (Supabase).
+ *
+ * Versão de produção: o servidor vem embutido na compilação (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
+ * em .env.production.local). Quem usa o app só informa o e-mail e o código que chega por e-mail.
+ * Opção avançada: apontar para um servidor próprio (gravado neste aparelho), que vence o embutido.
+ *
  * A chave "anon"/"publishable" pode ficar no app: quem protege os dados é a regra de segurança
  * do banco (cada usuário só lê e escreve as próprias linhas), criada pelo script supabase/esquema.sql.
  */
@@ -15,7 +20,15 @@ export interface ConfigSync {
   chave: string
 }
 
-export function lerConfigSync(): ConfigSync | null {
+const EMBUTIDO: ConfigSync | null =
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+    ? { url: import.meta.env.VITE_SUPABASE_URL, chave: import.meta.env.VITE_SUPABASE_ANON_KEY }
+    : null
+
+/** O app foi compilado com o servidor oficial: a pessoa não precisa configurar nada. */
+export const temServidorEmbutido = () => EMBUTIDO !== null
+
+function lerServidorProprio(): ConfigSync | null {
   try {
     return JSON.parse(localStorage.getItem(CHAVE) ?? 'null')
   } catch {
@@ -23,17 +36,24 @@ export function lerConfigSync(): ConfigSync | null {
   }
 }
 
+export const usandoServidorProprio = () => lerServidorProprio() !== null
+
+export function lerConfigSync(): ConfigSync | null {
+  return lerServidorProprio() ?? EMBUTIDO
+}
+
 export function salvarConfigSync(c: ConfigSync) {
   localStorage.setItem(CHAVE, JSON.stringify({ url: c.url.trim().replace(/\/+$/, ''), chave: c.chave.trim() }))
   cliente = null
 }
 
+/** Esquece o servidor próprio (volta para o embutido, se houver). */
 export function apagarConfigSync() {
   localStorage.removeItem(CHAVE)
   cliente = null
 }
 
-/** Código para colar no outro aparelho (endereço + chave pública, nada secreto). */
+/** Código para colar no outro aparelho (endereço + chave pública, nada secreto). Só para servidor próprio. */
 export const codigoDeConfiguracao = (c: ConfigSync) => btoa(JSON.stringify(c))
 
 export function lerCodigoDeConfiguracao(codigo: string): ConfigSync | null {
@@ -66,12 +86,14 @@ function exigirCliente() {
 function explicar(erro: { message?: string; code?: string } | null): Error {
   const msg = erro?.message ?? 'erro desconhecido'
   if (erro?.code === 'PGRST205' || erro?.code === '42P01' || (/registros/.test(msg) && /not find|does not exist/i.test(msg)))
-    return new Error('A tabela de sincronização não existe. Rode o script de configuração no SQL Editor do Supabase.')
-  if (/Invalid login credentials/i.test(msg)) return new Error('E-mail ou senha incorretos.')
-  if (/Email not confirmed/i.test(msg)) return new Error('Confirme o e-mail pelo link que o Supabase enviou e tente entrar de novo.')
-  if (/User already registered/i.test(msg)) return new Error('Já existe uma conta com este e-mail. Use "Entrar".')
-  if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) return new Error('Sem conexão com o servidor. As mudanças ficam guardadas e sobem quando a internet voltar.')
-  if (/JWT|apikey|Invalid API key/i.test(msg)) return new Error('Endereço ou chave do Supabase inválidos. Confira em Ajustes.')
+    return new Error('O servidor ainda não foi preparado: falta rodar o script supabase/esquema.sql.')
+  if (/token has expired|invalid|otp/i.test(msg) && /token|otp/i.test(msg)) return new Error('Código errado ou vencido. Peça um novo.')
+  if (/rate limit|security purposes|only request this after/i.test(msg))
+    return new Error('Muitos pedidos de código seguidos. Espere um minuto e tente de novo.')
+  if (/Signups not allowed/i.test(msg)) return new Error('Novas contas estão desativadas neste servidor.')
+  if (/Failed to fetch|NetworkError|Load failed/i.test(msg))
+    return new Error('Sem conexão com o servidor agora. Confira a internet; nada do que está neste aparelho se perde.')
+  if (/JWT|apikey|Invalid API key/i.test(msg)) return new Error('Endereço ou chave do servidor inválidos.')
   return new Error(msg)
 }
 
@@ -83,20 +105,30 @@ export async function usuarioAtual() {
   return u ? { id: u.id, email: u.email ?? '' } : null
 }
 
-export async function entrar(email: string, senha: string) {
-  const { error } = await exigirCliente().auth.signInWithPassword({ email, password: senha })
+/**
+ * Login sem senha: manda um código para o e-mail (cria a conta na primeira vez).
+ * Funciona igual na web, no Android e no Windows, porque não depende de abrir links.
+ */
+export async function enviarCodigo(email: string) {
+  const { error } = await exigirCliente().auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
   if (error) throw explicar(error)
 }
 
-/** Devolve true se o Supabase pediu confirmação por e-mail antes do primeiro login. */
-export async function criarConta(email: string, senha: string) {
-  const { data, error } = await exigirCliente().auth.signUp({ email, password: senha })
+export async function confirmarCodigo(email: string, codigo: string) {
+  const { error } = await exigirCliente().auth.verifyOtp({ email, token: codigo.replace(/\D/g, ''), type: 'email' })
   if (error) throw explicar(error)
-  return !data.session
 }
 
 export async function sair() {
   await obterCliente()?.auth.signOut()
+}
+
+/** Apaga a conta e tudo o que está no servidor (exigência das lojas). Os dados deste aparelho continuam. */
+export async function apagarConta() {
+  const c = exigirCliente()
+  const { error } = await c.rpc('apagar_minha_conta')
+  if (error) throw explicar(error)
+  await c.auth.signOut()
 }
 
 /** Avisa com o id do usuário logado (ou null) a cada evento de login; inclui renovação de token. */

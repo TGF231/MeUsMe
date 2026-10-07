@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Produção: chaves e configurações que nunca vão para o git (ver PRODUCAO.md)
+android/keystore.properties
+*.jks
+*.keystore
+.env.production

@@ -1,14 +1,19 @@
 {
   "name": "meusme",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node --test \"testes/**/*.test.ts\""
+    "test": "node --test \"testes/**/*.test.ts\"",
+    "versao": "node scripts/versao.mjs",
+    "android:sync": "npm run build && cap sync android",
+    "android:apk": "npm run android:sync && node scripts/gradle.mjs assembleDebug",
+    "android:release": "npm run android:sync && node scripts/gradle.mjs bundleRelease assembleRelease",
+    "windows:release": "tauri build"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

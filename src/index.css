@@ -1344,3 +1344,23 @@ kbd.tecla {
   border: 1px dashed var(--borda-2);
   border-radius: var(--raio-controle);
 }
+
+/* ── Login por código ── */
+
+.codigo-otp {
+  font-family: var(--fonte-mono);
+  font-size: 1.4rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+button.perigo {
+  background: transparent;
+  color: var(--erro);
+  border-color: var(--erro);
+}
+
+button.perigo:hover {
+  background: var(--erro);
+  color: var(--superficie);
+}
