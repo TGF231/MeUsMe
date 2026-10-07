@@ -5,19 +5,17 @@ export interface Escolha {
   passo: Passo
   projeto: Projeto | null
   restantes: number
-  /** Por que este passo, em linguagem humana. */
+  /** Texto exibido explicando a escolha. */
   motivo: string
   acimaDaEnergia: boolean
 }
 
 /**
- * Decide por você qual é o próximo passo, para que a prioridade não dependa do humor do momento.
- *
- * Regras, nesta ordem:
- * 1. Só o próximo passo de cada projeto entra na disputa (nunca o projeto inteiro).
- * 2. O projeto em foco vence.
- * 3. Depois, o projeto mais perto da linha de chegada: terminar vale mais que começar.
- * 4. Passos acima da energia atual ficam de fora, a não ser que não sobre nada.
+ * Escolhe o próximo passo. Critérios, em ordem:
+ * 1. Só o primeiro passo pendente de cada projeto concorre.
+ * 2. Projeto em foco tem prioridade.
+ * 3. Projetos com menos passos restantes vêm antes.
+ * 4. Passos acima da energia informada são descartados, salvo se não houver alternativa.
  */
 export function escolherPasso(
   projetos: Projeto[],
@@ -50,9 +48,9 @@ export function escolherPasso(
 
   const pontuar = (c: Omit<Escolha, 'acimaDaEnergia'>) =>
     (c.projeto?.id === focoId ? 1000 : 0) +
-    // Projeto com até 4 passos restantes vence uma tarefa solta: o embalo não deve ser quebrado.
+    // 100/restantes: projeto com até 4 passos restantes supera tarefa solta (25).
     (c.projeto ? 100 / c.restantes : 25) +
-    // Coisas antigas sobem devagar, para nada ficar esquecido para sempre.
+    // Bônus por idade (até 30) para itens antigos não ficarem sem ser escolhidos.
     Math.min(30, (Date.now() - c.passo.criadoEm) / 86_400_000)
 
   const ordenados = [...candidatos].sort((a, b) => pontuar(b) - pontuar(a))

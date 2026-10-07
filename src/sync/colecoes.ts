@@ -6,7 +6,7 @@ import { canonico, type Locais } from './planejar'
 
 type Registro = Record<string, unknown>
 
-// Sintaxe de método de propósito: aceita as lojas do zustand, cujos tipos de estado são mais específicos.
+// Sintaxe de método para aceitar as lojas do zustand (parâmetros bivariantes).
 interface Loja {
   getState(): object
   setState(parcial: Record<string, unknown>): void
@@ -14,13 +14,13 @@ interface Loja {
 }
 
 interface Colecao {
-  /** Nome no servidor. Nunca renomear: é a chave dos dados já sincronizados. */
+  /** Nome da coleção no servidor. Não renomear: identifica os dados já sincronizados. */
   nome: string
   loja: Loja
   campo: string
   tipo: 'lista' | 'mapa' | 'valor'
   chave?: (x: Registro) => string
-  /** Só os itens que passam aqui sincronizam; os outros ficam só neste aparelho. */
+  /** Filtro opcional: itens rejeitados não sincronizam. */
   incluir?: (x: Registro) => boolean
   ordenar?: (a: Registro, b: Registro) => number
 }
@@ -28,10 +28,8 @@ interface Colecao {
 const maisNovoPrimeiro = (a: Registro, b: Registro) => (b.criadoEm as number) - (a.criadoEm as number)
 
 /**
- * O que sincroniza entre aparelhos. Fica de fora, de propósito:
- * - credenciais (segredo da Pluggy, token do Google, sessão do Supabase);
- * - estado da conexão com o Google (cada aparelho conecta o seu, ou recebe os eventos pela sincronização);
- * - compromissos "encerrados" na tela Agora (detalhe de cada sessão de uso).
+ * Coleções sincronizadas. Ficam de fora: credenciais (Pluggy, token do Google, sessão do Supabase),
+ * estado da conexão com o Google e eventos encerrados na tela Agora.
  */
 const COLECOES: Colecao[] = [
   { nome: 'nucleo.capturas', loja: useStore, campo: 'capturas', tipo: 'lista', ordenar: maisNovoPrimeiro },
@@ -47,8 +45,7 @@ const COLECOES: Colecao[] = [
   { nome: 'financas.transacoes', loja: useFinancas, campo: 'transacoes', tipo: 'lista', ordenar: maisNovoPrimeiro },
   { nome: 'financas.fixas', loja: useFinancas, campo: 'fixas', tipo: 'lista' },
 
-  // Inclui os eventos do Google (com id estável, o mesmo em todos os aparelhos): é assim que eles chegam
-  // ao app Android, onde o Google não deixa fazer login.
+  // Inclui eventos do Google (id estável entre aparelhos); é por aqui que chegam ao Android.
   { nome: 'agenda.eventos', loja: useAgenda, campo: 'eventos', tipo: 'lista' },
   { nome: 'agenda.lembretes', loja: useAgenda, campo: 'lembretes', tipo: 'lista' },
   { nome: 'agenda.googleClientId', loja: useAgenda, campo: 'googleClientId', tipo: 'valor' },
@@ -57,16 +54,16 @@ const COLECOES: Colecao[] = [
   { nome: 'config.horaContas', loja: useConfig, campo: 'horaContas', tipo: 'valor' },
   { nome: 'config.minutosAntesEvento', loja: useConfig, campo: 'minutosAntesEvento', tipo: 'valor' },
   { nome: 'config.avisoFocoMin', loja: useConfig, campo: 'avisoFocoMin', tipo: 'valor' },
-  // A cor de destaque acompanha você em todos os aparelhos; claro/escuro fica por aparelho.
+  // Acento sincroniza; tema claro/escuro é por aparelho.
   { nome: 'config.acento', loja: useConfig, campo: 'acento', tipo: 'valor' },
-  // Avisos já disparados: evita o mesmo lembrete tocar no PC e no celular.
+  // Evita disparar o mesmo aviso em dois aparelhos.
   { nome: 'config.disparados', loja: useConfig, campo: 'disparados', tipo: 'mapa' },
 ]
 
 const chaveDe = (c: Colecao, x: Registro) => (c.chave ? c.chave(x) : (x.id as string))
 const campoDe = (c: Colecao) => (c.loja.getState() as Record<string, unknown>)[c.campo]
 
-/** Fotografia dos dados locais no formato que o planejador entende. */
+/** Estado local no formato do planejador. */
 export function lerLocais(): Locais {
   const locais: Locais = {}
   for (const c of COLECOES) {
@@ -87,7 +84,7 @@ export function lerLocais(): Locais {
 let aplicando = false
 export const aplicandoRemotas = () => aplicando
 
-/** Aplica nas lojas do app o que chegou do servidor (JSON canônico, ou null = apagar). */
+/** Aplica mudanças remotas nas lojas (JSON canônico, ou null para remover). */
 export function aplicarRemotas(mudancas: Record<string, Record<string, string | null>>) {
   const porLoja = new Map<Loja, Record<string, unknown>>()
   for (const c of COLECOES) {
@@ -132,7 +129,7 @@ export function aplicarRemotas(mudancas: Record<string, Record<string, string | 
   }
 }
 
-/** Avisa quando qualquer dado sincronizável muda neste aparelho (não quando a mudança veio do servidor). */
+/** Notifica mudanças locais nas lojas sincronizadas, ignorando as aplicadas pelo sync. */
 export function aoMudarLocalmente(ouvinte: () => void) {
   const lojas = [...new Set(COLECOES.map((c) => c.loja))]
   const cancelar = lojas.map((l) =>

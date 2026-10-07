@@ -1,6 +1,6 @@
 export const pad = (n: number) => String(n).padStart(2, '0')
 
-/** randomUUID só existe em contexto seguro (https/localhost); no celular via rede local não. */
+/** crypto.randomUUID exige contexto seguro (HTTPS/localhost); fallback para acesso via IP na rede local. */
 export const novoId = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -52,12 +52,12 @@ export const nomeDoDia = (data: string) => {
 
 const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
-/** Valores de dinheiro são sempre guardados em centavos inteiros. */
+/** Formata centavos como moeda (BRL). */
 export const reais = (centavos: number) => moeda.format(centavos / 100)
 
 /**
- * Lê valores digitados do jeito brasileiro ou americano: "35", "35,5", "1.234,56", "R$ 1234.56", "-20".
- * Devolve centavos, ou null se não houver número.
+ * Converte texto em centavos, aceitando formatos BR e US: "35", "35,5", "1.234,56", "R$ 1234.56", "-20".
+ * Retorna null se não houver número.
  */
 export function lerValor(texto: string): number | null {
   let t = texto.replace(/r\$|\s/gi, '')
@@ -77,7 +77,7 @@ export function lerValor(texto: string): number | null {
   return Math.round(n * 100) * (negativo ? -1 : 1)
 }
 
-/** "35 almoço" ou "R$ 12,90 uber" → valor + descrição. Usado para reconhecer gastos na captura. */
+/** Extrai valor e descrição de textos como "35 almoço" ou "R$ 12,90 uber". */
 export function lerGasto(texto: string): { valor: number; descricao: string } | null {
   const m = texto.trim().match(/^(?:r\$\s*)?(\d+(?:[.,]\d+)*)\s+(.+)$/i) ?? texto.trim().match(/^(.+?)\s+(?:r\$\s*)?(\d+(?:[.,]\d{1,2})?)$/i)
   if (!m) return null

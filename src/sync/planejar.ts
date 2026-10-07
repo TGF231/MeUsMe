@@ -1,19 +1,14 @@
 /**
- * Núcleo da sincronização, sem dependências (dá para testar direto no Node).
+ * Mesclagem de sincronização (sem dependências; testes em testes/sincronizacao.test.ts).
  *
- * Cada registro (um passo, um gasto, um evento…) é comparado em três versões:
- * - local: como está agora neste aparelho;
- * - base: como estava na última sincronização bem-sucedida (guardamos só um hash);
- * - remota: como está no servidor.
- *
- * Regras:
- * - Só mudou de um lado → esse lado vence.
- * - Mudou dos dois lados → vence este aparelho (a edição local é a mais recente que ele conhece).
- * - Registro que este aparelho nunca sincronizou (primeira vez) → o servidor vence,
- *   para um aparelho novo, com dados de fábrica, não apagar o que você já tinha no outro.
+ * Três versões por registro: local, base (hash da última versão sincronizada) e remota.
+ * - Mudou só de um lado: esse lado prevalece.
+ * - Mudou dos dois lados: prevalece o local.
+ * - Registro nunca sincronizado neste aparelho: prevalece o servidor, para um aparelho novo
+ *   não sobrescrever dados existentes com valores padrão.
  */
 
-/** JSON com chaves ordenadas: o Postgres (jsonb) reordena as chaves e isso não pode parecer mudança. */
+/** JSON com chaves ordenadas: o jsonb do Postgres não preserva a ordem das chaves. */
 export function canonico(v: unknown): string {
   if (v === undefined) return 'null'
   if (v === null || typeof v !== 'object') return JSON.stringify(v)
@@ -23,7 +18,7 @@ export function canonico(v: unknown): string {
   return `{${chaves.map((k) => `${JSON.stringify(k)}:${canonico(obj[k])}`).join(',')}}`
 }
 
-/** Hash curto (cyrb53) para a base não duplicar todos os dados no localStorage. */
+/** Hash curto (cyrb53) para a base não duplicar os dados no localStorage. */
 export function hash(texto: string): string {
   let h1 = 0xdeadbeef
   let h2 = 0x41c6ce57
@@ -37,9 +32,9 @@ export function hash(texto: string): string {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36)
 }
 
-/** coleção → id → JSON canônico do registro (ausente = apagado). */
+/** Por coleção e id: JSON canônico do registro (ausente = removido). */
 export type Locais = Record<string, Record<string, string>>
-/** coleção → id → hash da versão sincronizada. */
+/** Por coleção e id: hash da última versão sincronizada. */
 export type Base = Record<string, Record<string, string>>
 
 export interface Remota {
@@ -50,11 +45,11 @@ export interface Remota {
 }
 
 export interface Plano {
-  /** Mudanças vindas do servidor para aplicar aqui: JSON canônico, ou null para apagar. */
+  /** Mudanças remotas a aplicar: JSON canônico, ou null para remover. */
   aplicar: Record<string, Record<string, string | null>>
   /** Mudanças locais para enviar. */
   enviar: Remota[]
-  /** Base depois de aplicar as remotas (as enviadas entram na base só depois do envio dar certo). */
+  /** Base após aplicar as remotas; as enviadas entram só após confirmação (confirmarEnvio). */
   base: Base
 }
 
@@ -70,7 +65,7 @@ export function planejar(locais: Locais, base: Base, remotas: Remota[]): Plano {
     novaBase[r.colecao] ??= {}
 
     if (json === local) {
-      // Já iguais: só registra que está em dia.
+      // Já iguais: só atualiza a base.
       if (json === null) delete novaBase[r.colecao][r.id]
       else novaBase[r.colecao][r.id] = hash(json)
       continue
@@ -90,7 +85,7 @@ export function planejar(locais: Locais, base: Base, remotas: Remota[]): Plano {
     }
   }
 
-  // O que ficou diferente da base depois de aplicar o servidor é mudança local a enviar.
+  // Diferenças restantes em relação à base são mudanças locais.
   const enviar: Remota[] = []
   const colecoes = new Set([...Object.keys(depois), ...Object.keys(novaBase)])
   for (const c of colecoes) {
@@ -107,7 +102,7 @@ export function planejar(locais: Locais, base: Base, remotas: Remota[]): Plano {
   return { aplicar, enviar, base: novaBase }
 }
 
-/** Depois que o servidor confirmou o envio, a base passa a refletir o que foi enviado. */
+/** Atualiza a base com os registros confirmados pelo servidor. */
 export function confirmarEnvio(base: Base, enviados: Remota[]): Base {
   const nova: Base = Object.fromEntries(Object.entries(base).map(([c, m]) => [c, { ...m }]))
   for (const r of enviados) {

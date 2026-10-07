@@ -1,11 +1,10 @@
 /*
- * Paleta da assinatura visual dos apps PySide6 (skill minha-ui, tema.py), traduzida para o app.
- * Nenhuma cor literal fora deste bloco. Só o acento muda (Ajustes → Aparência): src/tema/aplicar.ts
- * escreve as variáveis --acento-*-claro/escuro; o resto da paleta é fixo de propósito, para as
- * duas versões continuarem parecendo o mesmo programa.
+ * Tokens de cor. Nenhuma cor literal fora deste bloco.
+ * Paleta compartilhada com os apps desktop (PySide6). Só o acento é configurável:
+ * src/tema/aplicar.ts escreve as variáveis --acento-*-claro/escuro.
  */
 :root {
-  /* Acento da assinatura: vermelho-escuro no claro, tijolo no escuro. */
+  /* Acento padrão */
   --acento-claro: #7d0e0e;
   --acento-hover-claro: #5c0a0a;
   --acento-leve-claro: #f6e7e6;
@@ -15,7 +14,7 @@
   --acento-leve-escuro: #2e1616;
   --acento-texto-escuro: #ffffff;
 
-  /* Tema claro (padrão). */
+  /* Tema claro (padrão) */
   --fundo: #f4f6f8;
   --superficie: #ffffff;
   --superficie-2: #e9edf1;
@@ -25,7 +24,7 @@
   --apagado: #74848f;
   --borda: #d2dae2;
   --borda-2: #bac5d0;
-  /* Cores de estado, separadas do acento: "atenção" nunca se confunde com "isto é clicável". */
+  /* Cores de estado, independentes do acento. */
   --ok: #15803d;
   --aviso: #a16207;
   --erro: #d92d20;
@@ -48,7 +47,7 @@
   color-scheme: light;
 }
 
-/* Tema escuro: automático (segue o sistema) ou escolhido em Ajustes. Os dois blocos são iguais. */
+/* Tema escuro: automático (prefers-color-scheme) ou forçado por data-tema. Manter os dois blocos iguais. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-tema='claro']) {
     --fundo: #0f1620;
@@ -180,7 +179,7 @@ button.discreto {
 .conteudo {
   max-width: 640px;
   margin: 0 auto;
-  /* No app Android a página vai até a borda: o topo respeita a barra de status. */
+  /* Edge-to-edge no Android: respeita a área da barra de status. */
   padding: env(safe-area-inset-top) 16px calc(96px + env(safe-area-inset-bottom));
 }
 
@@ -431,7 +430,7 @@ h2.titulo {
   font-weight: 600;
 }
 
-/* Seleção na assinatura: texto normal sobre o acento suave; o acento fica no ícone. */
+/* Item ativo: texto padrão sobre o acento suave; acento no ícone. */
 .abas button.ativo svg {
   color: var(--acento);
 }
@@ -486,7 +485,7 @@ h2.titulo {
   gap: 10px;
 }
 
-/* ── Módulos novos ── */
+/* Componentes compartilhados (formulários, chips, agenda, finanças) */
 
 button:disabled {
   opacity: 0.5;
@@ -783,9 +782,9 @@ code {
   box-shadow: 0 6px 20px var(--sombra);
 }
 
-/* ── Layouts: celular em pé (padrão), celular deitado (trilho) e tela larga (barra lateral) ── */
+/* Layouts: celular em pé (padrão), celular deitado (trilho) e tela larga (barra lateral) */
 
-/* .abas .x vence a regra .abas button, que define display: flex. */
+/* Especificidade maior que .abas button (que define display: flex). */
 .marca,
 .abas .nav-capturar,
 .abas .nav-ajustes,
@@ -821,7 +820,7 @@ code {
   flex: 1 1 280px;
 }
 
-/* Agora no celular: energia e pendências vêm antes do passo, mesmo estando na coluna lateral no PC. */
+/* Em telas estreitas, energia e pendências aparecem antes do passo. */
 .agora > .col {
   display: contents;
 }
@@ -869,7 +868,7 @@ kbd {
   margin-left: auto;
 }
 
-/* Navegação lateral: vale para o trilho do celular deitado e para a barra do PC. */
+/* Navegação lateral (trilho e barra) */
 @media (min-width: 900px), (orientation: landscape) and (max-height: 540px) {
   .app {
     display: grid;
@@ -887,7 +886,7 @@ kbd {
     border-top: none;
     border-right: 1px solid var(--borda);
     overflow-y: auto;
-    /* A barra de rolagem do Windows espremeria os ícones; a roda do mouse e o toque continuam funcionando. */
+    /* Oculta a barra de rolagem; o conteúdo continua rolável. */
     scrollbar-width: none;
   }
 
@@ -910,7 +909,7 @@ kbd {
   }
 }
 
-/* Celular deitado: trilho estreito de ícones, para não gastar altura com a barra de baixo. */
+/* Celular deitado: trilho de ícones */
 @media (orientation: landscape) and (max-height: 540px) and (max-width: 899px) {
   .abas {
     width: 76px;
@@ -940,7 +939,7 @@ kbd {
   }
 }
 
-/* Tela larga (PC, notebook, tablet deitado): barra lateral completa. */
+/* Tela larga: barra lateral */
 @media (min-width: 900px) {
   .abas {
     width: 232px;
@@ -1020,7 +1019,7 @@ kbd {
   }
 }
 
-/* Espaço para duas colunas lado a lado. */
+/* Duas colunas */
 @media (min-width: 1100px) {
   .colunas {
     display: grid;
@@ -1034,7 +1033,7 @@ kbd {
     gap: 16px;
   }
 
-  /* No histórico, os dias são o conteúdo principal; check-in e resumo ficam na lateral. */
+  /* Histórico: lista de dias na coluna principal. */
   .historico .colunas {
     grid-template-columns: minmax(320px, 1fr) minmax(0, 1.65fr);
   }
@@ -1085,7 +1084,7 @@ kbd {
     font-size: 0.75rem;
   }
 
-  /* Lançamentos viram tabela: descrição | valor | categoria | apagar. */
+  /* Lançamentos em tabela: descrição | valor | categoria | ação */
   .transacao {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 120px 200px auto;
@@ -1107,7 +1106,7 @@ kbd {
   }
 }
 
-/* ── Histórico, tempo gasto e compromissos na tela Agora ── */
+/* Histórico, tempo gasto e eventos na tela Agora */
 
 textarea {
   resize: vertical;
@@ -1228,7 +1227,7 @@ span.tempo {
   flex-shrink: 0;
 }
 
-/* ── Sincronização ── */
+/* Sincronização */
 
 .mini-botao {
   min-height: 30px;
@@ -1246,7 +1245,7 @@ span.tempo {
   font-size: 0.75rem;
 }
 
-/* ── App Windows ── */
+/* App Windows */
 
 kbd.tecla {
   margin-left: 4px;
@@ -1263,7 +1262,7 @@ kbd.tecla {
   flex: none;
 }
 
-/* Janela da captura rápida: só o campo, ocupando a janela inteira. */
+/* Janela de captura rápida (app Windows) */
 .modo-captura,
 .modo-captura body {
   background: var(--superficie);
@@ -1290,7 +1289,7 @@ kbd.tecla {
   outline: none;
 }
 
-/* ── Aparência ── */
+/* Aparência */
 
 .amostras {
   display: flex;
@@ -1326,7 +1325,7 @@ kbd.tecla {
   box-shadow: inset 0 0 0 1px var(--sombra);
 }
 
-/* O seletor de cor nativo fica invisível por cima da amostra "Outra cor". */
+/* Seletor de cor nativo sobreposto à amostra "Outra cor". */
 .amostra input[type='color'] {
   position: absolute;
   inset: 0;
@@ -1345,7 +1344,7 @@ kbd.tecla {
   border-radius: var(--raio-controle);
 }
 
-/* ── Login por código ── */
+/* Login por código */
 
 .codigo-otp {
   font-family: var(--fonte-mono);

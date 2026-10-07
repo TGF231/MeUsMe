@@ -10,11 +10,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Fila de notificações de banco capturadas enquanto o app está fechado.
- * O app web lê e esvazia a fila quando abre (CapturaPlugin.pegarCapturas).
+ * Fila persistente (SharedPreferences) de notificações capturadas, consumida pelo app web
+ * via CapturaPlugin.pegarCapturas.
  *
- * Privacidade: o conteúdo só é guardado para apps da lista de bancos. De outros apps que
- * mencionam "R$" guardamos apenas o nome do pacote, para o usuário poder liberá-lo se for um banco.
+ * O conteúdo só é armazenado para pacotes habilitados; de outros apps com "R$", apenas o nome do pacote.
  */
 final class Capturas {
 
@@ -28,7 +27,7 @@ final class Capturas {
         Arrays.asList("com.nu.production", "br.com.intermedium", "com.mercadopago.wallet", "com.picpay", "br.com.bradesco.next")
     );
 
-    /** Avisado quando chega uma captura com o app aberto. */
+    /** Notificado quando chega uma captura com o app em execução. */
     interface Ouvinte {
         void novaCaptura();
     }
@@ -52,7 +51,7 @@ final class Capturas {
     static synchronized void adicionar(Context c, String pacote, String titulo, String texto, long quando) {
         try {
             JSONArray fila = new JSONArray(prefs(c).getString(FILA, "[]"));
-            // Bancos às vezes republicam a mesma notificação; ignora repetida em 10 minutos.
+            // Ignora republicações idênticas dentro de 10 minutos.
             for (int i = 0; i < fila.length(); i++) {
                 JSONObject o = fila.getJSONObject(i);
                 if (

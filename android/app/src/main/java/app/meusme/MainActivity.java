@@ -7,7 +7,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Plugins próprios do app precisam ser registrados antes do super.onCreate.
+        // Plugins locais devem ser registrados antes de super.onCreate.
         registerPlugin(CapturaPlugin.class);
         super.onCreate(savedInstanceState);
     }

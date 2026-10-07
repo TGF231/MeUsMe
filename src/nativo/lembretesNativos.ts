@@ -8,13 +8,13 @@ import { hash } from '../sync/planejar'
 import { ehNativo } from './plataforma'
 
 const SEMANA = 7 * 86_400_000
-// O Android limita alarmes por app; 60 cobrem uma semana com folga.
+// Android limita alarmes por app; 60 cobre uma semana.
 const LIMITE = 60
 
-/** Id numérico estável para cada aviso (o Android exige inteiro de 32 bits). */
+/** Id estável (int32) derivado da chave do aviso. */
 const idDe = (chave: string) => (Number.parseInt(hash(chave).slice(0, 8), 36) % 2_000_000_000) + 1
 
-/** Refaz a agenda de notificações do sistema com os avisos da próxima semana. */
+/** Cancela os pendentes e agenda os avisos dos próximos 7 dias. */
 export async function reagendarNotificacoes() {
   if (!ehNativo()) return
   if ((await LocalNotifications.checkPermissions()).display !== 'granted') return
@@ -41,7 +41,7 @@ export async function reagendarNotificacoes() {
 
 let espera: ReturnType<typeof setTimeout> | undefined
 
-/** Reagenda (com uma pequena espera) sempre que algo que gera aviso mudar. */
+/** Reagenda (com debounce) a cada mudança nas lojas. */
 export function manterNotificacoesAgendadas() {
   if (!ehNativo()) return () => {}
   const logo = () => {

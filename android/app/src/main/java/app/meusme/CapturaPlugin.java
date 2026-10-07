@@ -20,7 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/** Ponte entre o app web e a captura de notificações de banco. */
+/** Plugin Capacitor da captura de notificações bancárias. */
 @CapacitorPlugin(name = "Captura")
 public class CapturaPlugin extends Plugin {
 
@@ -43,7 +43,7 @@ public class CapturaPlugin extends Plugin {
         call.resolve(r);
     }
 
-    /** Abre a tela do Android onde o usuário libera o acesso às notificações. */
+    /** Abre a tela de permissão de acesso a notificações. */
     @PluginMethod
     public void abrirAjustes(PluginCall call) {
         Intent i;
@@ -66,7 +66,7 @@ public class CapturaPlugin extends Plugin {
         call.resolve();
     }
 
-    /** Tela de informações do app: é por ela que se libera "configurações restritas" em apps instalados por APK. */
+    /** Abre as informações do app (onde se liberam "configurações restritas" em instalações via APK). */
     @PluginMethod
     public void abrirInfoDoApp(PluginCall call) {
         Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getContext().getPackageName()));
@@ -102,7 +102,7 @@ public class CapturaPlugin extends Plugin {
         call.resolve(r);
     }
 
-    /** Apps fora da lista que mandaram notificações com "R$" (só nome e quantidade, sem conteúdo). */
+    /** Apps fora da lista que publicaram notificações com "R$" (apenas pacote e contagem). */
     @PluginMethod
     public void candidatos(PluginCall call) {
         JSONObject c = Capturas.candidatos(getContext());
@@ -116,7 +116,7 @@ public class CapturaPlugin extends Plugin {
                 ApplicationInfo info = pm.getApplicationInfo(pacote, 0);
                 nome = pm.getApplicationLabel(info).toString();
             } catch (PackageManager.NameNotFoundException ignorada) {
-                // Sem visibilidade do pacote: mostra o nome técnico.
+                // Sem visibilidade do pacote: usa o nome do pacote.
             }
             JSObject o = new JSObject();
             o.put("pacote", pacote);

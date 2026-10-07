@@ -5,7 +5,7 @@ import { confirmarEnvio, planejar, type Base } from './planejar'
 import { aoMudarLogin, baixar, enviar, lerConfigSync, ouvirServidor, usuarioAtual } from './remoto'
 
 const CHAVE_ESTADO = 'meusme-sync-estado'
-/** Janela de segurança: relê alguns segundos para trás, caso uma gravação concorrente tenha chegado fora de ordem. */
+/** Margem na leitura incremental, para cobrir gravações concorrentes confirmadas fora de ordem. */
 const MARGEM_MS = 10_000
 
 interface EstadoSalvo {
@@ -17,7 +17,7 @@ interface EstadoSalvo {
 function lerEstado(usuario: string): EstadoSalvo {
   try {
     const e = JSON.parse(localStorage.getItem(CHAVE_ESTADO) ?? 'null') as EstadoSalvo | null
-    // Outra conta neste aparelho: começa do zero (o servidor vence na primeira vez, como num aparelho novo).
+    // Usuário diferente: recomeça do zero (servidor tem prioridade na primeira sincronização).
     if (e && e.usuario === usuario) return e
   } catch {
     /* estado corrompido: recomeça */
@@ -34,7 +34,7 @@ export interface StatusSync {
   email?: string
   ultima?: number
   erro?: string
-  /** Muda quando a configuração ou o login mudam, para o motor se reiniciar. */
+  /** Incrementado ao mudar configuração ou login; reinicia o motor. */
   versao: number
   reiniciar: () => void
 }
@@ -45,13 +45,13 @@ export const useStatusSync = create<StatusSync>()((set) => ({
   reiniciar: () => set((s) => ({ versao: s.versao + 1 })),
 }))
 
-/** Usuário visto no último evento de login; undefined = ainda não sabemos. */
+/** Último usuário visto em eventos de auth; undefined antes do primeiro evento. */
 let usuarioConhecido: string | null | undefined
 
 let emAndamento: Promise<void> | null = null
 let deNovo = false
 
-/** Sincroniza agora. Chamadas durante uma sincronização em curso viram uma rodada extra logo depois. */
+/** Executa uma sincronização; chamadas durante a execução agendam mais uma rodada. */
 export function sincronizarAgora(): Promise<void> {
   if (emAndamento) {
     deNovo = true
@@ -98,7 +98,7 @@ async function rodada() {
   }
 }
 
-/** Liga a sincronização automática enquanto o app estiver aberto. */
+/** Sincronização automática enquanto o app está aberto. */
 export function useSincronizacao() {
   const versao = useStatusSync((s) => s.versao)
 
@@ -114,15 +114,15 @@ export function useSincronizacao() {
       espera = setTimeout(() => ativo && void sincronizarAgora(), ms)
     }
 
-    // Mudança feita aqui: espera 2 s de calma (para juntar várias edições) e envia.
+    // Debounce de 2 s para agrupar edições.
     const pararLocal = aoMudarLocalmente(() => logo(2000))
-    // Sessão expirou ou trocou de conta: reinicia. Renovação de token (mesmo usuário) não conta.
+    // Reinicia se o usuário mudar (ignora renovação de token).
     const pararLogin = aoMudarLogin((id) => {
       const mudou = usuarioConhecido !== undefined && id !== usuarioConhecido
       usuarioConhecido = id
       if (mudou) useStatusSync.getState().reiniciar()
     })
-    // Outro aparelho gravou algo: busca já.
+    // Realtime: mudança gravada por outro aparelho.
     let pararServidor = () => {}
     void usuarioAtual().then((u) => {
       if (u && ativo) pararServidor = ouvirServidor(u.id, () => logo(300))
@@ -131,7 +131,7 @@ export function useSincronizacao() {
     const aoVoltar = () => document.visibilityState === 'visible' && logo(200)
     document.addEventListener('visibilitychange', aoVoltar)
     window.addEventListener('online', aoVoltar)
-    // Rede de segurança caso o tempo real caia.
+    // Fallback caso o Realtime caia.
     const periodico = setInterval(() => document.visibilityState === 'visible' && void sincronizarAgora(), 60_000)
 
     void sincronizarAgora()

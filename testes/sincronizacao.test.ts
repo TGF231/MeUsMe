@@ -1,9 +1,9 @@
-// Roda com: npm test  (Node 23.6+ executa TypeScript direto)
+// Executar com npm test (Node 23.6+ executa TypeScript nativamente).
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { canonico, confirmarEnvio, planejar, type Base, type Locais, type Remota } from '../src/sync/planejar.ts'
 
-/** Servidor falso: guarda a última versão de cada registro, com um relógio que só avança. */
+/** Servidor em memória: última versão de cada registro, com relógio monotônico. */
 class Servidor {
   relogio = 0
   linhas = new Map<string, Remota & { t: number }>()
@@ -61,7 +61,7 @@ const doisAparelhos = () => {
 
 test('aparelho novo recebe tudo e não sobrescreve dados editados com os de fábrica', () => {
   const [pc, cel] = doisAparelhos()
-  // Os dois nascem com a mesma categoria de fábrica; no PC você definiu um limite.
+  // Mesma categoria padrão nos dois aparelhos; o PC define um orçamento.
   pc.por('categorias', 'lazer', { nome: 'Lazer', orcamento: 30000 })
   pc.por('passos', 'p1', { texto: 'Escrever README' })
   pc.sincronizar()
@@ -137,7 +137,7 @@ test('aparelho novo respeita o que foi apagado no outro', () => {
   pc.sincronizar()
   pc.apagar('categorias', 'lazer')
   pc.sincronizar()
-  cel.por('categorias', 'lazer', { nome: 'Lazer' }) // de fábrica
+  cel.por('categorias', 'lazer', { nome: 'Lazer' }) // valor padrão
   cel.sincronizar()
   assert.equal(cel.pegar('categorias', 'lazer'), undefined)
 })
@@ -151,7 +151,7 @@ test('nada mudou → nada é enviado (inclusive com chaves reordenadas pelo serv
   cel.sincronizar()
   assert.equal(pc.enviados, 0)
   assert.equal(cel.enviados, 0)
-  // Mesmo reprocessando tudo desde o início (janela de segurança), nada muda.
+  // Reprocessar desde o início (margem de leitura) não gera mudanças.
   cel.ultimoPull = 0
   cel.sincronizar()
   assert.equal(cel.enviados, 0)

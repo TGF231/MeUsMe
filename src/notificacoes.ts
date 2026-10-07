@@ -9,7 +9,7 @@ export const notificacoesSuportadas = () => ehNativo() || ehDesktop() || (typeof
 
 const doNativo = (p: string): Permissao => (p === 'granted' ? 'granted' : p === 'denied' ? 'denied' : 'default')
 
-/** Situação atual da permissão (no Android, a do sistema; no navegador, a do site). */
+/** Permissão de notificação (do sistema no Android, do site no navegador). */
 export async function lerPermissao(): Promise<Permissao> {
   if (ehNativo()) return doNativo((await LocalNotifications.checkPermissions()).display)
   if (ehDesktop()) return (await NotificacaoDesktop.isPermissionGranted()) ? 'granted' : 'default'
@@ -28,8 +28,8 @@ export async function pedirPermissao(): Promise<Permissao> {
 }
 
 /**
- * Android 12+: sem "alarmes e lembretes" liberado, o sistema pode atrasar avisos em alguns minutos.
- * Devolve null fora do Android.
+ * Android 12+: sem permissão de alarme exato, o sistema pode atrasar avisos.
+ * Retorna null fora do Android.
  */
 export async function horarioExatoLiberado(): Promise<boolean | null> {
   if (!ehNativo()) return null
@@ -40,10 +40,7 @@ export const abrirAjusteDeHorarioExato = () => LocalNotifications.changeExactNot
 
 const ICONE = `${import.meta.env.BASE_URL}icone.svg`
 
-/**
- * Se você está olhando para o app, o aviso aparece dentro dele.
- * Se não está, vira notificação do sistema (Windows/Android).
- */
+/** Com o app em foco, mostra aviso interno; caso contrário, notificação do sistema. */
 export async function notificar(titulo: string, corpo: string, tag?: string) {
   const olhando = document.visibilityState === 'visible' && document.hasFocus()
   if (ehNativo()) {
@@ -52,7 +49,7 @@ export async function notificar(titulo: string, corpo: string, tag?: string) {
     return
   }
   if (ehDesktop()) {
-    // App Windows: a janela pode estar escondida na bandeja; o aviso vai para a central de notificações.
+    // Windows: a janela pode estar oculta na bandeja.
     if (olhando) return useAvisos.getState().mostrar(titulo, corpo)
     if (await NotificacaoDesktop.isPermissionGranted()) NotificacaoDesktop.sendNotification({ title: titulo, body: corpo })
     else useAvisos.getState().mostrar(titulo, corpo)
@@ -65,7 +62,7 @@ export async function notificar(titulo: string, corpo: string, tag?: string) {
   }
   if (permissao !== 'granted') return
   try {
-    // No Chrome do Android, notificações só funcionam pelo service worker.
+    // Chrome no Android só exibe notificações via service worker.
     const reg = await navigator.serviceWorker?.getRegistration()
     if (reg) {
       await reg.showNotification(titulo, { body: corpo, tag, icon: ICONE, badge: ICONE })

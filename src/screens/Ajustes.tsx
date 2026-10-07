@@ -24,7 +24,7 @@ function Notificacoes() {
       void horarioExatoLiberado().then(setExato)
     }
     atualizar()
-    // Volta da tela de ajustes do Android: relê as permissões.
+    // Relê ao voltar das configurações do sistema.
     document.addEventListener('visibilitychange', atualizar)
     return () => document.removeEventListener('visibilitychange', atualizar)
   }, [])

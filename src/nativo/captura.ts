@@ -23,12 +23,12 @@ interface PluginCaptura {
   addListener(evento: 'captura', ouvinte: () => void): Promise<PluginListenerHandle>
 }
 
-/** Plugin nativo (android/app/src/main/java/app/meusme/CapturaPlugin.java). */
+/** Plugin nativo: android/app/src/main/java/app/meusme/CapturaPlugin.java */
 export const Captura = registerPlugin<PluginCaptura>('Captura')
 
 export const nomeDoApp = (pacote: string) => BANCOS[pacote] ?? pacote
 
-/** Escolhe a conta: a que tem o nome do banco, preferindo a de cartão quando a compra foi no crédito. */
+/** Conta pelo nome do banco; prefere a de cartão para compras no crédito. */
 function contaPara(banco: string, cartao: boolean) {
   const contas = useFinancas.getState().contas
   const doBanco = contas.filter((c) => c.nome.toLowerCase().includes(banco.toLowerCase()))
@@ -36,10 +36,7 @@ function contaPara(banco: string, cartao: boolean) {
   return (doBanco.find((c) => ehCartao(c.nome) === cartao) ?? doBanco[0] ?? contas[0])?.id
 }
 
-/**
- * Transforma as notificações guardadas pelo serviço nativo em lançamentos.
- * O que não dá para entender com segurança vai para a Caixa, para você decidir.
- */
+/** Converte a fila nativa em lançamentos provisórios; o que não for reconhecido vai para a Caixa. */
 export async function processarCapturas() {
   if (!ehAndroid()) return
   const { capturas } = await Captura.pegarCapturas()

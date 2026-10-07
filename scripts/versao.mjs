@@ -1,9 +1,8 @@
-// Muda a versão do app em um lugar só.
+// Atualiza a versão do app.
 // Uso: npm run versao -- patch | minor | major | 1.2.3
 //
-// O package.json é a única fonte: o Android (android/app/build.gradle) e o Windows
-// (src-tauri/tauri.conf.json) leem a versão de lá. Aqui só acertamos o Cargo.toml, que aparece
-// nas propriedades do executável do Windows.
+// package.json é a fonte da versão (Android e Tauri leem dele). O Cargo.toml é atualizado
+// para as propriedades do executável do Windows.
 import { execSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 

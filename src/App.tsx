@@ -88,7 +88,7 @@ export default function App() {
   useAgendador()
   useSincronizacao()
 
-  // Atalho no PC: Ctrl+Espaço abre a captura de qualquer lugar do app.
+  // Ctrl+Espaço abre a captura rápida.
   useEffect(() => {
     const atalho = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === 'Space') {
@@ -100,7 +100,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', atalho)
   }, [])
 
-  // Android: avisos agendados no sistema, gastos capturados das notificações e botão "voltar".
+  // Android: agenda notificações, processa capturas e trata o botão voltar.
   useEffect(() => manterNotificacoesAgendadas(), [])
   useEffect(() => {
     if (!ehAndroid()) return
@@ -128,7 +128,7 @@ export default function App() {
 
   const nomeDaAba = aba === 'ajustes' ? 'Ajustes' : ABAS.find((a) => a.id === aba)!.nome
 
-  // Celular em pé: abas embaixo. Celular deitado: trilho de ícones à esquerda. PC: barra lateral completa.
+  // Layout da navegação (abas, trilho ou barra lateral) definido em index.css.
   return (
     <div className="app">
       <nav className="abas" aria-label="Seções">

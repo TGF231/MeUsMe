@@ -9,7 +9,7 @@ interface Candidato {
   vezes: number
 }
 
-/** Android: liberar a leitura das notificações dos bancos e escolher quais apps contam. */
+/** Configuração da captura de notificações bancárias (só Android). */
 export function CapturaBancos() {
   const [permitido, setPermitido] = useState<boolean | null>(null)
   const [pacotes, setPacotes] = useState<string[]>([])
@@ -25,7 +25,7 @@ export function CapturaBancos() {
       if (e.permitido) void processarCapturas()
     }
     void atualizar()
-    // Ao voltar da tela de ajustes do Android, relê a permissão.
+    // Relê a permissão ao voltar das configurações do sistema.
     const aoVoltar = () => document.visibilityState === 'visible' && void atualizar()
     document.addEventListener('visibilitychange', aoVoltar)
     return () => document.removeEventListener('visibilitychange', aoVoltar)

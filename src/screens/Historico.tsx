@@ -14,7 +14,7 @@ export function Historico() {
   const agora = Date.now()
   const projetoDe = (id: string | null) => s.projetos.find((p) => p.id === id)
 
-  // Últimos 7 dias, para o resumo.
+  // Resumo: últimos 7 dias
   const desde7 = new Date().setHours(0, 0, 0, 0) - 6 * DIA
   const feitos7 = s.passos.filter((p) => p.feitoEm && p.feitoEm >= desde7)
   const foco7 = s.sessoes.filter((x) => x.inicio >= desde7).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0)
@@ -22,7 +22,7 @@ export function Historico() {
   const comTempo = feitos7.map((p) => minutosDoPasso(p, s.sessoes, agora)).filter((m) => m >= 1)
   const mediaPorPasso = comTempo.length ? comTempo.reduce((a, b) => a + b, 0) / comTempo.length : 0
 
-  // Tempo por projeto nos últimos 7 dias (sessões + tempo informado à mão).
+  // Tempo por projeto (sessões + minutosManuais), últimos 7 dias
   const porProjeto = new Map<string, number>()
   for (const x of s.sessoes.filter((x) => x.inicio >= desde7)) {
     const pid = s.passos.find((p) => p.id === x.passoId)?.projetoId ?? 'soltas'
@@ -32,7 +32,7 @@ export function Historico() {
   const ranking = [...porProjeto.entries()].filter(([, m]) => m >= 1).sort((a, b) => b[1] - a[1])
   const maior = Math.max(1, ...ranking.map(([, m]) => m))
 
-  // Dias com alguma atividade, do mais recente para o mais antigo (até 30 dias).
+  // Dias com atividade, mais recentes primeiro (máx. 30)
   const dias = new Set<string>()
   for (const p of s.passos) if (p.feitoEm) dias.add(dataISO(p.feitoEm))
   for (const x of s.sessoes) dias.add(dataISO(x.inicio))
@@ -94,7 +94,7 @@ export function Historico() {
             const sessoesDoDia = s.sessoes.filter((x) => x.inicio >= inicio && x.inicio < fim)
             const foco = sessoesDoDia.reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0)
             const registrado = foco + feitos.reduce((t, p) => t + (p.minutosManuais ?? 0), 0)
-            // Passos em que você trabalhou neste dia, mas que não foram concluídos nele.
+            // Passos com sessões neste dia, mas não concluídos nele
             const trabalhados = [...new Set(sessoesDoDia.map((x) => x.passoId))]
               .filter((id) => !feitos.some((p) => p.id === id))
               .map((id) => ({

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Tela de abertura em Android 11 ou anterior (do 12 em diante, o sistema usa os atributos do tema). -->
+<!-- Splash para Android 11 ou anterior; a partir do 12 o sistema usa os atributos do tema. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/ic_launcher_background" />
     <item

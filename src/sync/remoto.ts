@@ -2,14 +2,11 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Remota } from './planejar'
 
 /**
- * Servidor de sincronização (Supabase).
+ * Cliente Supabase.
  *
- * Versão de produção: o servidor vem embutido na compilação (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
- * em .env.production.local). Quem usa o app só informa o e-mail e o código que chega por e-mail.
- * Opção avançada: apontar para um servidor próprio (gravado neste aparelho), que vence o embutido.
- *
- * A chave "anon"/"publishable" pode ficar no app: quem protege os dados é a regra de segurança
- * do banco (cada usuário só lê e escreve as próprias linhas), criada pelo script supabase/esquema.sql.
+ * Servidor embutido no build (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) ou servidor próprio
+ * salvo neste aparelho, que tem precedência.
+ * A chave anon é pública por design; o isolamento entre usuários vem do RLS (supabase/esquema.sql).
  */
 
 const CHAVE = 'meusme-sync-config'
@@ -25,7 +22,7 @@ const EMBUTIDO: ConfigSync | null =
     ? { url: import.meta.env.VITE_SUPABASE_URL, chave: import.meta.env.VITE_SUPABASE_ANON_KEY }
     : null
 
-/** O app foi compilado com o servidor oficial: a pessoa não precisa configurar nada. */
+/** Build com servidor embutido. */
 export const temServidorEmbutido = () => EMBUTIDO !== null
 
 function lerServidorProprio(): ConfigSync | null {
@@ -47,13 +44,13 @@ export function salvarConfigSync(c: ConfigSync) {
   cliente = null
 }
 
-/** Esquece o servidor próprio (volta para o embutido, se houver). */
+/** Remove o servidor próprio (volta ao embutido, se houver). */
 export function apagarConfigSync() {
   localStorage.removeItem(CHAVE)
   cliente = null
 }
 
-/** Código para colar no outro aparelho (endereço + chave pública, nada secreto). Só para servidor próprio. */
+/** Código de configuração para outros aparelhos (URL e chave pública). Só para servidor próprio. */
 export const codigoDeConfiguracao = (c: ConfigSync) => btoa(JSON.stringify(c))
 
 export function lerCodigoDeConfiguracao(codigo: string): ConfigSync | null {
@@ -82,7 +79,7 @@ function exigirCliente() {
   return c
 }
 
-/** Traduz os erros mais comuns para algo que dá para agir. */
+/** Converte erros do Supabase em mensagens para o usuário. */
 function explicar(erro: { message?: string; code?: string } | null): Error {
   const msg = erro?.message ?? 'erro desconhecido'
   if (erro?.code === 'PGRST205' || erro?.code === '42P01' || (/registros/.test(msg) && /not find|does not exist/i.test(msg)))
@@ -105,10 +102,7 @@ export async function usuarioAtual() {
   return u ? { id: u.id, email: u.email ?? '' } : null
 }
 
-/**
- * Login sem senha: manda um código para o e-mail (cria a conta na primeira vez).
- * Funciona igual na web, no Android e no Windows, porque não depende de abrir links.
- */
+/** Login por OTP de e-mail (cria a conta no primeiro acesso). Não depende de deep links. */
 export async function enviarCodigo(email: string) {
   const { error } = await exigirCliente().auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
   if (error) throw explicar(error)
@@ -123,7 +117,7 @@ export async function sair() {
   await obterCliente()?.auth.signOut()
 }
 
-/** Apaga a conta e tudo o que está no servidor (exigência das lojas). Os dados deste aparelho continuam. */
+/** Remove a conta e os dados no servidor (RPC apagar_minha_conta). Os dados locais permanecem. */
 export async function apagarConta() {
   const c = exigirCliente()
   const { error } = await c.rpc('apagar_minha_conta')
@@ -131,7 +125,7 @@ export async function apagarConta() {
   await c.auth.signOut()
 }
 
-/** Avisa com o id do usuário logado (ou null) a cada evento de login; inclui renovação de token. */
+/** Emite o id do usuário a cada evento de auth, inclusive renovação de token. */
 export function aoMudarLogin(ouvinte: (usuario: string | null) => void) {
   const c = obterCliente()
   if (!c) return () => {}
@@ -143,7 +137,7 @@ export interface LinhaServidor extends Remota {
   atualizado_em: string
 }
 
-/** Tudo o que mudou no servidor desde `desde` (ISO), em páginas de 1000. */
+/** Linhas alteradas desde `desde` (ISO), paginadas de 1000 em 1000. */
 export async function baixar(desde: string | null): Promise<LinhaServidor[]> {
   const c = exigirCliente()
   const linhas: LinhaServidor[] = []
@@ -157,7 +151,7 @@ export async function baixar(desde: string | null): Promise<LinhaServidor[]> {
   }
 }
 
-/** Envia mudanças em lotes. Devolve o maior carimbo de tempo gravado pelo servidor. */
+/** Upsert em lotes; retorna o maior atualizado_em gravado. */
 export async function enviar(usuario: string, registros: Remota[]): Promise<string | null> {
   const c = exigirCliente()
   let maior: string | null = null
@@ -170,7 +164,7 @@ export async function enviar(usuario: string, registros: Remota[]): Promise<stri
   return maior
 }
 
-/** Tempo real: avisa quando outro aparelho grava algo. */
+/** Assinatura do Realtime para mudanças do usuário. */
 export function ouvirServidor(usuario: string, ouvinte: () => void) {
   const c = obterCliente()
   if (!c) return () => {}

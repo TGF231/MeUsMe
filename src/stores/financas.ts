@@ -44,11 +44,11 @@ interface Estado {
   atualizarTransacao: (id: string, mudancas: Partial<Transacao>) => void
   removerTransacao: (id: string) => void
   /**
-   * Remove lançamentos provisórios (vindos de notificação) que o banco confirmou:
-   * mesmo valor, até 3 dias de diferença. A categoria escolhida à mão passa para o oficial.
+   * Remove provisórios (origem: notificação) que correspondem a lançamentos oficiais:
+   * mesmo valor e até 3 dias de diferença. Preserva a categoria escolhida no provisório.
    */
   reconciliar: (oficiais: Omit<Transacao, 'id' | 'criadoEm'>[]) => Omit<Transacao, 'id' | 'criadoEm'>[]
-  /** Devolve quantas linhas eram novas. */
+  /** Retorna a quantidade de linhas novas. */
   importar: (linhas: Omit<Transacao, 'id' | 'criadoEm'>[]) => number
   salvarFixa: (f: Omit<ContaFixa, 'id'> & { id?: string }) => void
   removerFixa: (id: string) => void
@@ -142,7 +142,7 @@ export const useFinancas = create<Estado>()(
     {
       name: 'meusme-financas',
       version: 2,
-      // v2: categoria de transferência, para pagamento de fatura não contar como gasto duas vezes.
+      // v2: adiciona a categoria de transferência.
       migrate: (salvo, versao) => {
         const s = salvo as Estado
         if (versao < 2 && !s.categorias.some((c) => c.id === TRANSFERENCIA))
@@ -153,7 +153,7 @@ export const useFinancas = create<Estado>()(
   ),
 )
 
-// ── Cálculos ──
+// Cálculos
 
 export const saldoDaConta = (conta: Conta, transacoes: Transacao[]) =>
   transacoes.reduce((s, t) => (t.contaId === conta.id ? s + t.valor : s), conta.saldoInicial)
@@ -161,13 +161,10 @@ export const saldoDaConta = (conta: Conta, transacoes: Transacao[]) =>
 export const fixaPagaNoMes = (f: ContaFixa, transacoes: Transacao[], mes = mesISO()) =>
   transacoes.some((t) => t.fixaId === f.id && t.data.startsWith(mes))
 
-/** Dia de vencimento real naquele mês (dia 31 vira 30 em meses curtos). */
+/** Dia de vencimento limitado ao último dia do mês. */
 export const diaDeVencimento = (f: ContaFixa, mes = mesISO()) => Math.min(f.dia, diasNoMes(mes))
 
-/**
- * O número que importa para quem não quer planilha: quanto dá para gastar por dia
- * até o fim do mês sem atrasar nenhuma conta fixa.
- */
+/** Saldo projetado para o fim do mês e valor disponível por dia, descontadas as contas fixas pendentes. */
 export function previsaoDoMes(contas: Conta[], transacoes: Transacao[], fixas: ContaFixa[]) {
   const mes = mesISO()
   const saldo = contas.reduce((s, c) => s + saldoDaConta(c, transacoes), 0)
@@ -195,7 +192,7 @@ export function resumoDoMes(transacoes: Transacao[], mes: string) {
 }
 
 const PALAVRAS: [RegExp, string][] = [
-  // Antes de tudo: dinheiro que só muda de lugar.
+  // Transferências primeiro, para não serem classificadas como gasto ou receita.
   [/pagamento (de |da )?fatura|pagto\.? fatura|fatura paga|pagamento recebido|entre contas|mesma titularidade|aplica[cç][aã]o|resgate|cdb|tesouro direto/i, TRANSFERENCIA],
   [/uber|99 ?(app|pop|taxi)|taxi|combust|posto|shell|ipiranga|estaciona|metr[oô]|onibus|bilhete/i, 'cat-transporte'],
   [/ifood|rappi|restaurante|lanch|padaria|pizza|burger|cafe|bar /i, 'cat-alimentacao'],
@@ -212,7 +209,7 @@ const PALAVRAS: [RegExp, string][] = [
 
 const normalizar = (s: string) => s.toLowerCase().replace(/\d+/g, '').replace(/\s+/g, ' ').trim()
 
-/** Primeiro aprende com o que você já categorizou; depois tenta por palavras conhecidas. */
+/** Usa a categoria de lançamentos anteriores com a mesma descrição; senão, palavras-chave. */
 export function sugerirCategoria(descricao: string, transacoes: Transacao[], categorias: Categoria[]) {
   const alvo = normalizar(descricao)
   const anterior = transacoes.find((t) => t.categoriaId && normalizar(t.descricao) === alvo)

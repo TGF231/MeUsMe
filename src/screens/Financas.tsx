@@ -365,14 +365,14 @@ async function lerArquivoTexto(arquivo: File) {
   try {
     return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
   } catch {
-    // Muitos bancos brasileiros ainda exportam em Latin-1.
+    // Fallback para Latin-1, comum em extratos de bancos brasileiros.
     return new TextDecoder('windows-1252').decode(bytes)
   }
 }
 
 const SEIS_HORAS = 6 * 3_600_000
 
-/** Sincroniza o Open Finance ao abrir Finanças, se já faz mais de 6 horas desde a última vez. */
+/** Sincroniza o Open Finance ao abrir a tela, no máximo a cada 6 h. */
 function useSyncAutomatico() {
   const [estado, setEstado] = useState<{ rodando: boolean; mensagem: string }>({ rodando: false, mensagem: '' })
   const sincronizar = async () => {
@@ -725,7 +725,7 @@ export function Financas() {
         <>
           <div className="estreito">
             <CapturaBancos />
-            {/* Meu Pluggy só permite uso pessoal: versões públicas compilam com VITE_OPEN_FINANCE=desligado. */}
+            {/* Meu Pluggy é restrito a uso pessoal; builds públicos usam VITE_OPEN_FINANCE=desligado. */}
             {import.meta.env.VITE_OPEN_FINANCE !== 'desligado' && <OpenFinance sync={sync} />}
           </div>
           <Importar />

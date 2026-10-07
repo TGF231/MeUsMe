@@ -1,13 +1,11 @@
 /**
- * Cores do tema, sem dependências (testável no Node).
+ * Cálculo de cores do tema (sem dependências; testes em testes/cores.test.ts).
  *
- * A paleta base é a da assinatura visual dos apps PySide6 (minha-ui, tema.py). Só o acento pode mudar,
- * e as variantes dele seguem as regras de lá:
- * - hover: no claro, o acento mais escuro; no escuro, mais claro;
- * - suave (fundo de seleção): o acento a ~8% sobre a superfície, para o texto continuar legível por cima;
- * - texto sobre o acento: o que tiver contraste ≥ 4,5:1;
- * - no escuro o acento sobe de luminosidade e perde um pouco de saturação até ter contraste de borda com o
- *   fundo, sem virar vermelho puro de alerta (como o tema.py faz: #7D0E0E → #C4302A).
+ * Paleta base compartilhada com os apps desktop (PySide6); só o acento varia. Variantes:
+ * - hover: mais escuro no tema claro, mais claro no escuro;
+ * - suave: acento misturado à superfície (fundo de seleção);
+ * - texto: branco ou escuro, o que tiver contraste >= 4,5:1;
+ * - versão escura: clareada e levemente dessaturada até contraste >= 3:1 com o fundo.
  */
 
 export interface VariantesAcento {
@@ -22,7 +20,7 @@ export interface Acento {
   escuro: VariantesAcento
 }
 
-/** Superfícies e textos da paleta da assinatura, usados nas contas de contraste e mistura. */
+/** Valores da paleta usados nos cálculos de contraste e mistura. */
 const SUPERFICIE_CLARO = '#FFFFFF'
 const SUPERFICIE_ESCURO = '#18212C'
 const FUNDO_ESCURO = '#0F1620'
@@ -89,14 +87,14 @@ export function ajustarLuz(hex: string, delta: number, saturacao = 1) {
 
 const textoSobre = (acento: string, escuro: string) => (contraste('#FFFFFF', acento) >= 4.5 ? '#FFFFFF' : escuro)
 
-/** Versão do acento para o tema escuro: clareia e dessatura aos poucos até ter contraste de borda (≥ 3:1) com o fundo. */
+/** Variante para o tema escuro: clareia e dessatura até contraste >= 3,2:1 com o fundo. */
 export function acentoParaEscuro(claro: string) {
   let cor = claro
   for (let i = 0; i < 40 && contraste(cor, FUNDO_ESCURO) < 3.2; i++) cor = ajustarLuz(cor, 0.02, 0.98)
   return cor
 }
 
-/** Todas as variantes a partir de uma cor (e, opcionalmente, da versão já escolhida para o escuro). */
+/** Deriva as variantes de uma cor (opcionalmente com a versão escura já definida). */
 export function derivarAcento(claro: string, escuro = acentoParaEscuro(claro)): Acento {
   return {
     claro: {
@@ -114,13 +112,13 @@ export function derivarAcento(claro: string, escuro = acentoParaEscuro(claro)): 
   }
 }
 
-/** O acento da assinatura, com os valores exatos do tema.py. */
+/** Acento padrão (mesmos valores da paleta desktop). */
 export const ASSINATURA: Acento = {
   claro: { acento: '#7D0E0E', hover: '#5C0A0A', suave: '#F6E7E6', texto: '#FFFFFF' },
   escuro: { acento: '#C4302A', hover: '#DC4A42', suave: '#2E1616', texto: '#FFFFFF' },
 }
 
-/** Opções prontas. Nenhuma fica perto do vermelho de erro, do âmbar de aviso nem do verde de "ok". */
+/** Acentos predefinidos, distantes das cores de estado. */
 export const ACENTOS_PRONTOS: { id: string; nome: string; acento: Acento }[] = [
   { id: 'assinatura', nome: 'Assinatura', acento: ASSINATURA },
   { id: 'petroleo', nome: 'Petróleo', acento: derivarAcento('#1F5F5B', '#4FB3AA') },
@@ -129,7 +127,7 @@ export const ACENTOS_PRONTOS: { id: string; nome: string; acento: Acento }[] = [
   { id: 'grafite', nome: 'Grafite', acento: derivarAcento('#37474F', '#90A4AE') },
 ]
 
-/** Cores de estado da assinatura (claro e escuro), que o acento não pode imitar. */
+/** Cores de estado (claro, escuro) que o acento não deve imitar. */
 const SEMANTICAS = {
   erro: ['#D92D20', '#FF8A8A'],
   aviso: ['#A16207', '#FBBF24'],
@@ -137,9 +135,8 @@ const SEMANTICAS = {
 } as const
 
 /**
- * Se o acento ficar parecido com uma cor de estado (mesmo matiz e luminosidade próxima, em algum dos temas),
- * devolve qual: com acento e alerta iguais, a pessoa para de enxergar o alerta.
- * O vermelho-escuro da assinatura passa: o erro é vermelho vivo e claro, e a diferença está na luminosidade.
+ * Indica se o acento se confunde com uma cor de estado (matiz e luminosidade próximos).
+ * O acento padrão passa porque difere do erro em luminosidade.
  */
 export function pareceSemantica(a: Acento): keyof typeof SEMANTICAS | null {
   for (const [nome, cores] of Object.entries(SEMANTICAS) as [keyof typeof SEMANTICAS, readonly string[]][]) {
@@ -153,7 +150,7 @@ export function pareceSemantica(a: Acento): keyof typeof SEMANTICAS | null {
   return null
 }
 
-/** `acento` salvo nos ajustes: o id de uma opção pronta ou uma cor livre "#RRGGBB". */
+/** Resolve o acento salvo: id predefinido ou cor livre "#RRGGBB"; inválido volta ao padrão. */
 export function resolverAcento(escolha: string): Acento {
   const pronto = ACENTOS_PRONTOS.find((a) => a.id === escolha)
   if (pronto) return pronto.acento

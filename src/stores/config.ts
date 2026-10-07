@@ -6,13 +6,13 @@ interface Estado {
   horaCheckIn: string
   horaContas: string
   minutosAntesEvento: number
-  /** Depois de quantos minutos no mesmo passo o app pergunta se você quer pausar. */
+  /** Minutos de sessão até o aviso de pausa (0 desliga). */
   avisoFocoMin: number
-  /** Chaves de avisos já disparados → quando, para não repetir. */
+  /** Avisos já disparados (chave: timestamp), para não repetir. */
   disparados: Record<string, number>
-  /** Claro, escuro ou o que o sistema estiver usando. Vale só para este aparelho. */
+  /** 'auto' segue o sistema. Não sincroniza (preferência por aparelho). */
   tema: 'auto' | 'claro' | 'escuro'
-  /** Id de um acento pronto (src/tema/cores.ts) ou uma cor livre "#RRGGBB". Sincroniza entre aparelhos. */
+  /** Id de acento predefinido (tema/cores.ts) ou cor livre "#RRGGBB". Sincroniza. */
   acento: string
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
@@ -45,7 +45,7 @@ export const useConfig = create<Estado>()(
   ),
 )
 
-/** Avisos dentro do app (aparecem quando o app está aberto e em uso). Não são persistidos. */
+/** Avisos exibidos dentro do app. Não persistidos. */
 interface Aviso {
   id: number
   titulo: string

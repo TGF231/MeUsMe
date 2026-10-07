@@ -3,10 +3,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../store'
 
-/**
- * Janela pequena do app Windows, aberta pelo atalho global de qualquer programa.
- * Escreve, Enter, some. Sem sair do que você estava fazendo.
- */
+/** Janela de captura rápida do app Windows, aberta pelo atalho global. */
 export function JanelaCaptura() {
   const capturar = useStore((s) => s.capturar)
   const [texto, setTexto] = useState('')

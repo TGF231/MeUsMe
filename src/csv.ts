@@ -1,8 +1,8 @@
 import { lerValor } from './util'
 
-/** Leitor de CSV simples que entende aspas e detecta se o separador é vírgula ou ponto e vírgula. */
+/** Parser de CSV com suporte a aspas; detecta separador vírgula ou ponto e vírgula. */
 export function lerCSV(texto: string): string[][] {
-  const limpo = texto.replace(/^﻿/, '')
+  const limpo = texto.replace(/^\uFEFF/, '')
   const primeira = limpo.split(/\r?\n/, 1)[0]
   const sep = (primeira.match(/;/g)?.length ?? 0) > (primeira.match(/,/g)?.length ?? 0) ? ';' : ','
   const linhas: string[][] = []
@@ -40,9 +40,9 @@ export interface Colunas {
   descricao: number
 }
 
-/** Reconhece os cabeçalhos dos extratos mais comuns (Nubank, Inter, Wallet, planilhas próprias). */
+/** Mapeia cabeçalhos conhecidos (Nubank, Inter, Wallet) para data, valor e descrição. */
 export function detectarColunas(cabecalho: string[]): Colunas | null {
-  const h = cabecalho.map((c) => c.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))
+  const h = cabecalho.map((c) => c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
   const achar = (re: RegExp) => h.findIndex((c) => re.test(c))
   const data = achar(/^(data|date)|data (da )?(transacao|lancamento|compra)/)
   const valor = achar(/^(valor|amount|quantia)|valor/)
@@ -83,7 +83,7 @@ export function converterExtrato(linhas: string[][], colunas: Colunas, inverter:
       ignoradas++
       continue
     }
-    // Duas compras iguais no mesmo dia são legítimas: o contador mantém as duas, mas reimportar não duplica.
+    // O contador distingue lançamentos idênticos no mesmo dia e mantém a chave estável entre importações.
     const base = `${contaId}|${data}|${valor}|${descricao.toLowerCase()}`
     const n = (repeticoes.get(base) ?? 0) + 1
     repeticoes.set(base, n)

@@ -11,21 +11,19 @@ import { useConfig } from './stores/config'
 import { useFinancas } from './stores/financas'
 import { manterTema } from './tema/aplicar'
 
-// No navegador, o service worker deixa o app funcionar offline e ser instalado.
-// Dentro dos apps Android e Windows ele é desnecessário e poderia servir uma versão velha depois de uma atualização.
+// Service worker só na web: nos apps nativos poderia servir assets antigos após atualização.
 if (!ehNativo() && !ehDesktop()) registerSW({ immediate: true })
 
-// App Windows escondido na bandeja: sem isto, o WebView2 desacelera muito os timers (avisos e sincronização).
-// Um Web Lock que nunca é liberado evita a desaceleração mais forte (sugestão da própria documentação do Tauri).
+// WebView2 reduz timers de janelas ocultas (bandeja); um Web Lock pendente evita o throttling intenso.
 if (ehDesktop()) void navigator.locks?.request('meusme-manter-acordado', () => new Promise(() => {}))
 
-// Outra janela (a captura rápida do Windows, ou outra aba) gravou dados: recarrega daqui também.
+// Reidrata quando outra janela ou aba grava no localStorage (ex.: janela de captura no Windows).
 const lojas = { meusme: useStore, 'meusme-financas': useFinancas, 'meusme-agenda': useAgenda, 'meusme-config': useConfig }
 window.addEventListener('storage', (e) => {
   if (e.key && e.key in lojas) void lojas[e.key as keyof typeof lojas].persist.rehydrate()
 })
 
-// Antes da primeira pintura, para não abrir piscando no tema errado.
+// Antes do primeiro render, para evitar flash de tema.
 manterTema()
 
 const captura = location.hash === '#captura'

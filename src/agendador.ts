@@ -16,7 +16,7 @@ export interface Aviso {
   titulo: string
   corpo: string
   quando: number
-  /** Depois disso o aviso perdeu o sentido e não dispara mais. */
+  /** Após este instante o aviso é descartado. */
   valeAte: number
 }
 
@@ -34,9 +34,8 @@ function ocorrencias(l: Lembrete, de: number, ate: number) {
 }
 
 /**
- * Todos os avisos que caem entre `de` e `ate`.
- * Na web, o app confere a cada 20 s quais já venceram; no Android, eles são agendados no sistema
- * com antecedência, para tocar mesmo com o app fechado.
+ * Avisos com horário entre `de` e `ate`.
+ * Web: verificarAvisos() consulta periodicamente. Android: lembretesNativos agenda no sistema.
  */
 export function avisosEntre(de: number, ate: number): Aviso[] {
   const cfg = useConfig.getState()
@@ -45,7 +44,7 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
   const fin = useFinancas.getState()
   const avisos: Aviso[] = []
 
-  // Compromissos: alguns minutos antes.
+  // Compromissos
   for (const e of agenda.eventos) {
     if (e.diaInteiro) continue
     const quando = e.inicio - cfg.minutosAntesEvento * MIN
@@ -59,14 +58,14 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
     })
   }
 
-  // Lembretes, incluindo as próximas repetições.
+  // Lembretes (inclui recorrências)
   for (const l of agenda.lembretes) {
     if (l.concluido) continue
     for (const quando of ocorrencias(l, de - 12 * 60 * MIN, ate))
       avisos.push({ chave: `lembrete:${l.id}:${quando}`, titulo: 'Lembrete', corpo: l.texto, quando, valeAte: quando + 12 * 60 * MIN })
   }
 
-  // Um dia de cada vez: contas fixas (véspera e dia) e check-in.
+  // Contas fixas (véspera e dia) e check-in, dia a dia
   for (let dia = inicioDoDia(de); dia < ate; dia += DIA) {
     const iso = dataISO(dia)
     const fimDoDia = dia + DIA
@@ -93,7 +92,7 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
       })
   }
 
-  // Foco: pergunta se quer pausar e protege contra hiperfoco.
+  // Sessão de foco: aviso de pausa e limite de 90 min
   const sessao = nucleo.sessoes.find((x) => !x.fim)
   if (sessao) {
     const passo = nucleo.passos.find((p) => p.id === sessao.passoId)
@@ -118,7 +117,7 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
   return avisos.filter((a) => a.quando < ate && a.valeAte > de)
 }
 
-/** Na web: dispara o que já venceu. No Android, quem dispara é o sistema (ver nativo/lembretesNativos). */
+/** Dispara avisos vencidos (só na web; no Android o sistema dispara). */
 export function verificarAvisos(agora = Date.now()) {
   if (ehNativo()) return
   const cfg = useConfig.getState()
@@ -129,7 +128,7 @@ export function verificarAvisos(agora = Date.now()) {
   }
 }
 
-/** Avança lembretes repetidos que já avisaram, para a próxima ocorrência aparecer na lista. */
+/** Avança lembretes recorrentes já disparados para a próxima ocorrência. */
 function avancarRepetidos(agora = Date.now()) {
   const agenda = useAgenda.getState()
   for (const l of agenda.lembretes) {

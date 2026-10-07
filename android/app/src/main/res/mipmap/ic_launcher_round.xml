@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Ícone para Android 7 (sem ícone adaptativo): círculo verde com o símbolo. -->
+<!-- Ícone legado (Android 7, sem ícone adaptativo). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="oval">

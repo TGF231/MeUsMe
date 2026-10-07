@@ -1,6 +1,6 @@
 import { lerValor } from '../util.ts'
 
-/** Apps de banco cujas notificações viram lançamentos. O usuário pode ligar outros apps no Android. */
+/** Pacotes Android lidos por padrão (editável em Finanças > Bancos). */
 export const BANCOS: Record<string, string> = {
   'com.nu.production': 'Nubank',
   'br.com.intermedium': 'Inter',
@@ -10,20 +10,20 @@ export const BANCOS: Record<string, string> = {
 }
 
 export interface NotificacaoLida {
-  /** Centavos; negativo = saiu dinheiro. */
+  /** Centavos; negativo para saída. */
   valor: number
   descricao: string
   cartao: boolean
 }
 
 const DINHEIRO = /R\$\s?([\d.]+,\d{2})/i
-// Avisos que mencionam dinheiro mas não são uma movimentação: fatura, limite, saldo, propaganda…
+// Notificações com valor que não representam movimentação (fatura, limite, saldo, ofertas).
 const INFORMATIVO =
   /fatura|limite|saldo|vencimento|vence |agendad|cashback dispon|oferta|empr[eé]stimo|rendeu|rendimento|parcel(as|amento) dispon|pr[eé]-aprovad|proposta|boleto (dispon|gerado)/i
 const ENTRADA = /receb|entrou|creditad|dep[oó]sito|estorno|devolu|reembols|caiu na (sua )?conta/i
 const SAIDA = /compra|pagamento|pagou|\bpago\b|enviou|enviad|transfer[eê]ncia (realizada|feita)|d[eé]bito|debitad|saque|pix (realizado|feito)/i
 
-// Onde costuma estar o nome da loja ou da pessoa, olhando o texto depois do valor.
+// Padrões para extrair estabelecimento ou contraparte, aplicados ao texto após o valor.
 const ALVOS = [
   /\bem\s+(.+?)(?=\s+(?:para o|no|com o|pelo) cart|\s+[àa]s?\s+\d|\s+foi\b|[.;,!]|$)/i,
   /\bpara\s+(?!o cart)(.+?)(?=\s+foi\b|\s+com sucesso|[.;,!]|$)/i,
@@ -40,8 +40,8 @@ const limpar = (s: string) =>
     .slice(0, 60)
 
 /**
- * Lê uma notificação de banco ("Compra de R$ 35,90 APROVADA em IFOOD…").
- * Devolve null quando não dá para ter certeza: nesse caso a notificação vai para a Caixa, e não vira gasto sozinha.
+ * Interpreta uma notificação bancária. Retorna null quando valor ou direção são ambíguos;
+ * nesse caso o chamador envia o texto para a Caixa.
  */
 export function lerNotificacao(titulo: string, texto: string): NotificacaoLida | null {
   const tudo = `${titulo}. ${texto}`

@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Produção: chaves e configurações que nunca vão para o git (ver PRODUCAO.md)
+# Segredos e configurações de produção
 android/keystore.properties
 *.jks
 *.keystore

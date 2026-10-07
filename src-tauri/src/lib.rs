@@ -6,12 +6,11 @@ use tauri::{AppHandle, Emitter, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
-/// Atalho global que abre a captura de qualquer programa. Se o Windows recusar o preferido
-/// (ele reserva alguns atalhos com a tecla Windows), usamos a reserva.
+/// Atalho global da captura; usa o reserva se o Windows recusar o preferido.
 const ATALHO_PREFERIDO: &str = "super+ctrl+alt+Space";
 const ATALHO_RESERVA: &str = "ctrl+alt+Space";
 
-/// Quando iniciado junto com o Windows, o app começa escondido na bandeja.
+/// Argumento passado pelo autostart: inicia oculto na bandeja.
 const ARG_OCULTO: &str = "--oculto";
 
 struct AtalhoAtual(String);
@@ -44,7 +43,7 @@ fn alternar_captura(app: &AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        // Abrir o app de novo (atalho, menu Iniciar) só traz a janela que já existe para a frente.
+        // Segunda instância apenas traz a janela existente para frente.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _pasta| mostrar_principal(app)))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec![ARG_OCULTO])))
@@ -100,12 +99,12 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|janela, evento| match evento {
-            // Fechar só esconde: o app segue na bandeja, medindo o tempo e mandando avisos.
+            // Fechar oculta a janela; o app continua na bandeja.
             WindowEvent::CloseRequested { api, .. } => {
                 api.prevent_close();
                 let _ = janela.hide();
             }
-            // Clicou fora da captura rápida: ela some.
+            // Captura rápida fecha ao perder o foco.
             WindowEvent::Focused(false) if janela.label() == "captura" => {
                 let _ = janela.hide();
             }

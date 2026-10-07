@@ -6,7 +6,7 @@ import { duracao, hoje, horaInput, juntarDataHora } from '../util'
 
 const DURACOES = [15, 30, 45, 60, 90, 120]
 
-/** Próximo horário "redondo" de 15 em 15 minutos. */
+/** Próximo múltiplo de 15 minutos. */
 const proximoQuarto = () => horaInput(Math.ceil(Date.now() / 900_000) * 900_000)
 
 interface Props {

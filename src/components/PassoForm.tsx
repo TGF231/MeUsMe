@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Energia } from '../types'
 import { SeletorEnergia } from './SeletorEnergia'
 
-// Verbos que costumam esconder uma ideia vaga em vez de uma ação.
+// Verbos que indicam intenção vaga em vez de ação concreta.
 const VAGOS = /\b(pensar|ver|resolver|organizar|decidir|melhorar|estudar|planejar|cuidar|arrumar|tentar|trabalhar|focar|entender)\b/i
 
 interface Props {

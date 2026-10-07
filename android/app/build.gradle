@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
-// A versão vem do package.json (única fonte; mude com "npm run versao -- X.Y.Z").
-// versionCode precisa sempre crescer na Play Store: 1.2.3 → 10203.
+// Versão lida do package.json (alterar com npm run versao).
+// versionCode = major*10000 + minor*100 + patch; precisa sempre crescer na Play Store.
 def pacote = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json'))
 def (maior, menor, correcao) = pacote.version.tokenize('.').collect { it.replaceAll('[^0-9].*', '') as int }
 
-// Chave de assinatura da versão de produção. Fica fora do git (ver PRODUCAO.md).
+// Assinatura de release; arquivo fora do git (ver PRODUCAO.md).
 def assinatura = rootProject.file('keystore.properties')
 
 android {
@@ -38,7 +38,7 @@ android {
     }
     buildTypes {
         release {
-            // Sem keystore.properties o release sai sem assinatura (serve para testar, não para a loja).
+            // Sem keystore.properties o release sai sem assinatura.
             if (assinatura.exists()) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

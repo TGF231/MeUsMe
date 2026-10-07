@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { lerNotificacao } from '../src/nativo/bancos.ts'
 
-// Exemplos no formato típico das notificações desses bancos (os textos reais podem variar).
+// Formatos típicos de notificação; os textos reais podem variar por banco.
 const casos: [string, string, string, { valor: number; descricao: string; cartao?: boolean } | null][] = [
   ['Nubank: compra no crédito', 'Compra aprovada', 'Compra de R$ 35,90 APROVADA em IFOOD *RESTAURANTE para o cartão com final 1234.', { valor: -3590, descricao: 'IFOOD *RESTAURANTE', cartao: true }],
   ['Nubank: Pix recebido', 'Transferência recebida', 'Você recebeu uma transferência de R$ 150,00 de Maria Silva.', { valor: 15000, descricao: 'Maria Silva' }],

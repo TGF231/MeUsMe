@@ -5,10 +5,7 @@ import { duracao } from '../util'
 
 const OPCOES = [5, 15, 30, 45, 60, 90, 120]
 
-/**
- * Mostra quanto tempo um passo levou. Se foi feito sem cronômetro, pergunta com um toque,
- * porque "quanto tempo isso leva?" é exatamente o que fica difícil de estimar depois.
- */
+/** Tempo gasto no passo; sem registro de cronômetro, oferece seleção rápida. */
 export function TempoGasto({ passo, perguntar = false }: { passo: Passo; perguntar?: boolean }) {
   const sessoes = useStore((s) => s.sessoes)
   const atualizar = useStore((s) => s.atualizarPasso)

@@ -6,9 +6,8 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
 /**
- * Recebe as notificações do celular (depois que o usuário libera "Acesso a notificações")
- * e guarda as dos apps de banco, para virarem lançamentos no MeUsMe.
- * Funciona com o app fechado: o Android mantém este serviço ligado.
+ * NotificationListenerService: enfileira notificações dos apps de banco habilitados.
+ * Funciona com o app fechado (o sistema mantém o serviço vinculado).
  */
 public class CapturaNotificacoesService extends NotificationListenerService {
 

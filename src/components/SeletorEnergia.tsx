@@ -22,7 +22,7 @@ export function SeletorEnergia({ valor, onChange }: { valor: Energia; onChange: 
   )
 }
 
-/** Pontos clicáveis: cada toque troca a energia (baixa → média → alta → baixa). */
+/** Alterna a energia a cada clique (baixa, média, alta). */
 export function PontosEditaveis({ energia, onChange }: { energia: Energia; onChange: (e: Energia) => void }) {
   return (
     <button

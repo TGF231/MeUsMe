@@ -70,7 +70,7 @@ export const useStore = create<Estado>()(
           if (antesDe) {
             const alvo = s.passos.find((p) => p.id === antesDe)
             if (alvo) {
-              // Um pedaço quebrado herda a "idade" do original, para ser escolhido antes dele.
+              // Herda criadoEm do original para ter a mesma prioridade por idade na escolha.
               ordem = alvo.ordem - 0.5
               criadoEm = alvo.criadoEm - 1
             }
@@ -101,11 +101,11 @@ export const useStore = create<Estado>()(
   ),
 )
 
-/** Passos pendentes de um projeto, na ordem em que devem ser feitos. */
+/** Passos pendentes de um projeto, ordenados. */
 export const pendentes = (passos: Passo[], projetoId: string | null) =>
   passos.filter((p) => p.projetoId === projetoId && !p.feitoEm).sort((a, b) => a.ordem - b.ordem)
 
-/** Tempo gasto num passo: cronômetro (todas as sessões) + o que foi informado à mão. */
+/** Minutos gastos: sessões do cronômetro + minutosManuais. */
 export const minutosDoPasso = (passo: Passo, sessoes: Sessao[], agora = Date.now()) =>
   sessoes.filter((x) => x.passoId === passo.id).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0) +
   (passo.minutosManuais ?? 0)

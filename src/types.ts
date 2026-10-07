@@ -9,7 +9,7 @@ export interface Captura {
 export interface Projeto {
   id: string
   titulo: string
-  /** Como eu sei que terminou? Definido no começo, enquanto ainda há energia. */
+  /** Critério de conclusão definido na criação do projeto. */
   chegada: string
   criadoEm: number
   concluidoEm?: number
@@ -18,13 +18,13 @@ export interface Projeto {
 export interface Passo {
   id: string
   projetoId: string | null
-  /** Uma ação física e concreta, não uma ideia. */
+  /** Ação concreta e executável. */
   texto: string
   energia: Energia
   ordem: number
   criadoEm: number
   feitoEm?: number
-  /** Tempo informado depois, quando o passo foi feito sem o cronômetro. */
+  /** Minutos informados manualmente (passo concluído sem cronômetro). */
   minutosManuais?: number
 }
 
@@ -50,20 +50,20 @@ export interface CheckIn {
   frase: string
 }
 
-// ── Finanças ── valores sempre em centavos inteiros.
+// Finanças: valores monetários em centavos (inteiros).
 
 export interface Conta {
   id: string
   nome: string
   saldoInicial: number
-  /** Conta espelhada do Open Finance (Meu Pluggy). */
+  /** Conta vinculada ao Open Finance (Meu Pluggy). */
   pluggyId?: string
 }
 
 export interface Categoria {
   id: string
   nome: string
-  /** Transferência (entre contas, pagamento de fatura) não conta como gasto nem como entrada. */
+  /** 'transferencia' fica fora dos totais de gastos e receitas. */
   tipo: 'gasto' | 'receita' | 'transferencia'
   /** Limite mensal, em centavos. */
   orcamento?: number
@@ -73,24 +73,24 @@ export interface Transacao {
   id: string
   contaId: string
   categoriaId: string | null
-  /** Negativo = saiu dinheiro, positivo = entrou. */
+  /** Negativo: saída. Positivo: entrada. */
   valor: number
   descricao: string
   /** AAAA-MM-DD */
   data: string
   criadoEm: number
-  /** Impressão digital de uma linha importada de extrato, para não duplicar. */
+  /** Identificador da linha importada, para deduplicação. */
   chaveImport?: string
   fixaId?: string
-  /** Veio da notificação do banco: vale até o Open Finance trazer o lançamento oficial. */
+  /** Criado a partir de notificação; substituído quando o Open Finance traz o lançamento. */
   provisoria?: boolean
 }
 
-/** Conta que se repete todo mês: aluguel, internet, salário… */
+/** Lançamento recorrente mensal. */
 export interface ContaFixa {
   id: string
   nome: string
-  /** Sempre positivo; o sentido vem de `tipo`. */
+  /** Sempre positivo; o sinal vem de `tipo`. */
   valor: number
   dia: number
   tipo: 'gasto' | 'receita'
@@ -98,7 +98,7 @@ export interface ContaFixa {
   contaId: string
 }
 
-// ── Agenda ──
+// Agenda
 
 export interface Evento {
   id: string
@@ -108,7 +108,7 @@ export interface Evento {
   diaInteiro?: boolean
   origem: 'local' | 'google'
   googleId?: string
-  /** Horário reservado para um passo específico. */
+  /** Passo associado a este horário reservado. */
   passoId?: string
 }
 

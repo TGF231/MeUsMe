@@ -19,7 +19,7 @@ const relogio = (ms: number) => {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
-/** Lembretes vencidos e contas do dia: o que não pode passar batido hoje. */
+/** Lembretes vencidos e contas fixas vencidas ou do dia. */
 function PendenciasDeHoje({ agora }: { agora: number }) {
   const agenda = useAgenda()
   const fin = useFinancas()
@@ -59,12 +59,12 @@ export function Agora() {
   const [celebrar, setCelebrar] = useState<{ passoId: string; projeto: Projeto | null; restantes: number } | null>(null)
   const encerrados = useAgenda((a) => a.encerrados)
   const encerrarEvento = useAgenda((a) => a.encerrarEvento)
-  // Compromissos que você pediu para tirar da frente só nesta sessão ("Ver outra coisa").
+  // Eventos dispensados nesta sessão ("Ver outra coisa").
   const [adiados, setAdiados] = useState<Set<string>>(new Set())
   const [ideia, setIdeia] = useState('')
   const [agora, setAgora] = useState(() => Date.now())
 
-  // Uma sessão sem fim é a que está rodando, mesmo depois de fechar e reabrir o app.
+  // Sessão sem fim = cronômetro em andamento (persiste entre aberturas do app).
   const sessao = s.sessoes.find((x) => !x.fim)
   const passoAtivo = sessao && s.passos.find((p) => p.id === sessao.passoId)
 
@@ -74,13 +74,13 @@ export function Agora() {
   }, [sessao])
 
   const sugerida = useMemo(() => {
-    // Passos com horário reservado mais tarde esperam a vez deles.
+    // Passos com reserva futura ficam fora da sugestão até o horário.
     const fora = new Set(pulados)
     for (const e of eventos) if (e.passoId && e.inicio > agora) fora.add(e.passoId)
     return escolherPasso(s.projetos, s.passos, s.focoId, energia, fora)
   }, [s.projetos, s.passos, s.focoId, energia, pulados, eventos, agora])
 
-  // Se você reservou este horário para um passo, a decisão já foi tomada: ele vence qualquer cálculo.
+  // Horário reservado para um passo tem prioridade sobre a sugestão.
   const reserva = eventos.find((e) => e.passoId && !e.diaInteiro && e.inicio <= agora && e.fim > agora)
   const passoReservado = reserva && s.passos.find((p) => p.id === reserva.passoId && !p.feitoEm && !pulados.has(p.id))
   const escolha: Escolha | null = passoReservado
@@ -93,7 +93,7 @@ export function Agora() {
       }
     : sugerida
 
-  // Compromissos da agenda: o que está acontecendo agora, ou começa em até 30 min, vem antes de qualquer tarefa.
+  // Eventos em andamento ou começando em até 30 min têm prioridade sobre passos.
   const relevante = (e: Evento) => !e.diaInteiro && !e.passoId && !encerrados[chaveEvento(e)] && !adiados.has(chaveEvento(e))
   const eventoAgora = eventos.find((e) => relevante(e) && e.inicio <= agora && e.fim > agora)
   const eventoChegando = eventos
@@ -322,7 +322,7 @@ export function Agora() {
         {rodape}
       </div>
 
-      {/* No celular estes cartões sobem para antes do passo (ver .agora no CSS). */}
+      {/* Em telas estreitas, a ordem visual vem de .agora (index.css). */}
       <div className="col">
         <div className="cartao compacto energia">
           <SituacaoAgora />

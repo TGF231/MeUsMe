@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { disable, enable, isEnabled } from '@tauri-apps/plugin-autostart'
 import { ehDesktop } from './plataforma'
 
-/** Funções que só existem no app Windows (src-tauri). */
+/** Comandos do app Windows (src-tauri). */
 
 export interface UsoDeApp {
   dia: string
@@ -10,13 +10,13 @@ export interface UsoDeApp {
   segundos: number
 }
 
-/** Tempo por programa nos últimos `dias` dias (1 = só hoje). */
+/** Uso por programa nos últimos `dias` dias (1 = hoje). */
 export const usoDeApps = (dias: number) => (ehDesktop() ? invoke<UsoDeApp[]>('uso_de_apps', { dias }) : Promise.resolve([]))
 
-/** Atalho global que abre a captura, como o Windows aceitou (ex.: "super+ctrl+alt+Space"). */
+/** Atalho global registrado, no formato do Tauri (ex.: "super+ctrl+alt+Space"). */
 export const atalhoAtual = () => invoke<string>('atalho_atual')
 
-/** "super+ctrl+alt+Space" → "Win + Ctrl + Alt + Espaço" */
+/** Formata o atalho para exibição (ex.: "Win + Ctrl + Alt + Espaço"). */
 export const atalhoLegivel = (atalho: string) =>
   atalho
     .split('+')

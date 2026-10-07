@@ -1,9 +1,9 @@
 import { Capacitor } from '@capacitor/core'
 
-/** Rodando dentro do app Android (Capacitor), e não no navegador. */
+/** Executando no app nativo (Capacitor). */
 export const ehNativo = () => Capacitor.isNativePlatform()
 
 export const ehAndroid = () => Capacitor.getPlatform() === 'android'
 
-/** Rodando dentro do app Windows (Tauri). */
+/** Executando no app Windows (Tauri). */
 export const ehDesktop = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window

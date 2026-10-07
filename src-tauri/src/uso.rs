@@ -1,6 +1,5 @@
-//! Tempo por programa: a cada 5 segundos, anota qual programa está em primeiro plano.
-//! Guarda só o nome do programa (nunca o título da janela) e ignora quando você está longe
-//! do computador (2 minutos sem mexer no teclado ou no mouse).
+//! Tempo por programa em primeiro plano, amostrado a cada 5 s.
+//! Registra só o executável (sem título de janela) e ignora períodos ociosos (> 2 min sem entrada).
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -15,7 +14,7 @@ const ARQUIVO: &str = "uso-de-apps.json";
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct Uso {
-    /// dia (AAAA-MM-DD) → programa → segundos
+    /// dia (AAAA-MM-DD) -> programa -> segundos
     dias: HashMap<String, HashMap<String, u64>>,
 }
 
@@ -74,7 +73,7 @@ pub fn salvar(app: &AppHandle) {
     }
 }
 
-/// Uso dos últimos `dias` dias (1 = só hoje).
+/// Uso dos últimos `dias` dias (1 = hoje).
 #[tauri::command]
 pub fn uso_de_apps(estado: State<EstadoUso>, dias: i64) -> Vec<RegistroUso> {
     let desde = dia_local(dias.max(1) - 1);
@@ -98,7 +97,7 @@ mod janela {
     use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
     use windows::core::{PCWSTR, PWSTR, w};
 
-    /// Guarda o nome amigável de cada executável, para não reler o arquivo a cada 5 segundos.
+    /// Cache do nome amigável por executável.
     #[derive(Default)]
     pub struct Nomes(HashMap<String, String>);
 
@@ -143,7 +142,7 @@ mod janela {
         }
     }
 
-    /// "Descrição do arquivo" do executável (ex.: Code.exe → "Visual Studio Code").
+    /// FileDescription do executável (ex.: Code.exe -> "Visual Studio Code").
     fn descricao(caminho: &str) -> Option<String> {
         let largo: Vec<u16> = caminho.encode_utf16().chain(std::iter::once(0)).collect();
         unsafe {

@@ -55,7 +55,7 @@ function BarraGoogle() {
     }
   }
 
-  // Ao abrir a Agenda, atualiza sozinho se a conexão ainda estiver válida.
+  // Sincroniza ao abrir, se o token ainda for válido.
   useEffect(() => {
     if (agenda.googleConectado && temToken()) void sincronizar(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,7 +116,7 @@ function LinhaEvento({ e }: { e: Evento }) {
   )
 }
 
-/** Compromissos de um dia, com o tempo livre entre eles: tempo visível é tempo que dá para usar. */
+/** Eventos do dia com os intervalos livres entre eles. */
 function ListaDoDia({ dia }: { dia: number }) {
   const eventos = useAgenda((s) => s.eventos)
   const doDia = eventosDoDia(eventos, dia)
@@ -144,7 +144,7 @@ function ListaDoDia({ dia }: { dia: number }) {
   )
 }
 
-/** Para a coluna lateral da tela Agora: o que ainda vem hoje. */
+/** Eventos e lembretes restantes do dia (coluna lateral de Agora). */
 export function RestoDoDia() {
   const agenda = useAgenda()
   const agora = Date.now()
@@ -191,7 +191,7 @@ export function Agenda() {
         <BarraGoogle />
       </div>
 
-      {/* Tela estreita: um dia por vez. */}
+      {/* Telas estreitas: um dia por vez. */}
       <div className="visao-dia">
         <div className="dias">
           {dias.map((d) => (
@@ -205,7 +205,7 @@ export function Agenda() {
         </div>
       </div>
 
-      {/* Tela larga: a semana inteira de uma vez. */}
+      {/* Telas largas: semana inteira. */}
       <div className="visao-semana">
         {dias.map((d) => (
           <div key={d} className={`cartao dia-semana ${d === inicioDoDia() ? 'hoje' : ''}`}>

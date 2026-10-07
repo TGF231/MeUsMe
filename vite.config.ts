@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Registrado à mão em main.tsx, só fora do app Android.
+      // Registrado manualmente em main.tsx (só na web).
       injectRegister: null,
       includeAssets: ['icone.svg'],
       manifest: {
@@ -28,8 +28,8 @@ export default defineConfig({
       },
     }),
   ],
-  // Permite abrir no celular pela rede local durante o desenvolvimento.
+  // Expõe o servidor de desenvolvimento na rede local.
   server: { host: true },
-  // No GitHub Pages o app fica em /MeUsMe/; localmente, na raiz.
+  // Base configurável para hospedagem em subcaminho (ex.: GitHub Pages).
   base: process.env.BASE_PATH ?? '/',
 })

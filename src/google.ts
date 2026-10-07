@@ -2,8 +2,8 @@ import { useAgenda } from './stores/agenda'
 import type { Evento } from './types'
 
 /**
- * Integração com o Google Agenda direto do navegador (sem servidor), via Google Identity Services.
- * O token dura ~1 hora; quando vence, um clique em "Sincronizar" pede outro (normalmente sem nova tela de consentimento).
+ * Google Agenda via Google Identity Services (token client), sem backend.
+ * O token expira em ~1 h; renovar exige interação do usuário (popup).
  */
 
 const ESCOPO = 'https://www.googleapis.com/auth/calendar.events'
@@ -74,7 +74,7 @@ function lerToken() {
 
 export const temToken = () => lerToken() !== null
 
-/** Abre o login do Google. Precisa ser chamado a partir de um clique (senão o navegador bloqueia o pop-up). */
+/** Solicita token. Deve partir de um gesto do usuário, senão o popup é bloqueado. */
 export async function conectarGoogle(): Promise<string> {
   const { googleClientId } = useAgenda.getState()
   if (!googleClientId) throw new ErroGoogle('Falta o Client ID do Google. Configure em Ajustes.')
@@ -131,7 +131,7 @@ interface EventoGoogle {
 const paraMs = (p: { dateTime?: string; date?: string }) =>
   p.dateTime ? new Date(p.dateTime).getTime() : new Date(`${p.date}T00:00:00`).getTime()
 
-/** Baixa do Google os eventos de ontem até daqui a 30 dias e atualiza o cache local. */
+/** Atualiza o cache local com eventos de ontem até +30 dias. */
 export async function sincronizarGoogle() {
   const de = new Date().setHours(0, 0, 0, 0) - 86_400_000
   const ate = de + 32 * 86_400_000

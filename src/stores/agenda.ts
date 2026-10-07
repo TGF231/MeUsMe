@@ -4,19 +4,19 @@ import type { Evento, Lembrete } from '../types'
 import { novoId } from '../util'
 
 interface Estado {
-  /** Eventos locais e a cópia em cache dos eventos do Google, para funcionar offline. */
+  /** Eventos locais e cache dos eventos do Google. */
   eventos: Evento[]
   lembretes: Lembrete[]
   googleClientId: string
   googleConectado: boolean
   ultimaSync?: number
-  /** Compromissos que você marcou como encerrados na tela Agora (chave → quando). */
+  /** Eventos encerrados manualmente na tela Agora (chave: timestamp). */
   encerrados: Record<string, number>
 
   criarEvento: (e: Omit<Evento, 'id'>) => string
   atualizarEvento: (id: string, m: Partial<Evento>) => void
   removerEvento: (id: string) => void
-  /** Troca o cache do Google na janela [de, ate) pelos eventos recém-baixados. */
+  /** Substitui o cache do Google no intervalo [de, ate). */
   substituirGoogle: (eventos: Omit<Evento, 'id'>[], de: number, ate: number) => void
 
   criarLembrete: (l: Omit<Lembrete, 'id'>) => void
@@ -28,13 +28,10 @@ interface Estado {
   encerrarEvento: (e: Evento) => void
 }
 
-/** Eventos do Google ganham id novo a cada sincronização; o googleId + início é estável. */
+/** Chave estável do evento: googleId (ou id) mais o início. */
 export const chaveEvento = (e: Evento) => `${e.googleId ?? e.id}:${e.inicio}`
 
-/**
- * Evento vindo do Google tem id derivado do id do Google: assim o mesmo evento tem o mesmo id
- * em todos os aparelhos e a sincronização não fica apagando e recriando cópias.
- */
+/** Eventos do Google usam id derivado do googleId, igual em todos os aparelhos. */
 const idDoEvento = (e: Omit<Evento, 'id'>) => (e.googleId ? `google:${e.googleId}` : novoId())
 
 export function proximaOcorrencia(l: Lembrete) {
@@ -67,7 +64,7 @@ export const useAgenda = create<Estado>()(
       removerEvento: (id) => set((s) => ({ eventos: s.eventos.filter((e) => e.id !== id) })),
       substituirGoogle: (novos, de, ate) =>
         set((s) => {
-          // Preserva o vínculo com passos que foram agendados daqui para o Google.
+          // Mantém o passoId de eventos criados pelo app no Google.
           const vinculos = new Map(s.eventos.filter((e) => e.googleId && e.passoId).map((e) => [e.googleId, e.passoId]))
           const fora = s.eventos.filter((e) => e.origem !== 'google' || e.fim <= de || e.inicio >= ate)
           return {
@@ -109,7 +106,7 @@ export const eventosDoDia = (eventos: Evento[], diaInicio: number) => {
   return eventos.filter((e) => e.inicio < fim && e.fim > diaInicio).sort((a, b) => a.inicio - b.inicio)
 }
 
-/** Situação do momento para combater a "cegueira do tempo": o que está acontecendo e quanto tempo livre resta. */
+/** Evento em andamento e próximo evento a partir de `agora`. */
 export function situacaoAgora(eventos: Evento[], agora = Date.now()) {
   const comHora = eventos.filter((e) => !e.diaInteiro)
   const atual = comHora.find((e) => e.inicio <= agora && e.fim > agora)

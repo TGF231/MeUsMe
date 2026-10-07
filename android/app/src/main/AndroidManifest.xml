@@ -24,7 +24,7 @@
 
         </activity>
 
-        <!-- Lê notificações de apps de banco para registrar gastos (o usuário precisa liberar o acesso). -->
+        <!-- Leitura de notificações bancárias (requer liberação manual do usuário). -->
         <service
             android:name=".CapturaNotificacoesService"
             android:label="@string/servico_captura"
@@ -50,7 +50,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Para mostrar o nome dos apps que mandam notificações com valores (ex.: um banco fora da lista). -->
+    <!-- Visibilidade de apps com launcher, para exibir o nome dos candidatos à captura. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />

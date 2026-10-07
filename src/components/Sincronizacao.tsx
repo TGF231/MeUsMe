@@ -23,7 +23,7 @@ function copiar(texto: string, avisar: (m: string) => void, mensagem: string) {
   )
 }
 
-/** Opção avançada: apontar para um projeto Supabase próprio, em vez do servidor do app. */
+/** Configuração de um projeto Supabase próprio (opção avançada). */
 function ServidorProprio({ aoMudar }: { aoMudar: () => void }) {
   const [url, setUrl] = useState('')
   const [chave, setChave] = useState('')
@@ -135,7 +135,7 @@ export function Sincronizacao() {
     </details>
   )
 
-  // Compilado sem servidor e sem servidor próprio: só o caminho avançado.
+  // Build sem servidor embutido e sem servidor próprio configurado.
   if (!temServidor)
     return (
       <div className="cartao">

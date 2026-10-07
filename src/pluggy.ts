@@ -3,11 +3,12 @@ import type { Transacao } from './types'
 import { dataISO } from './util'
 
 /**
- * Open Finance pelo Meu Pluggy (gratuito para uso pessoal, até 5 conexões do seu próprio CPF).
- * A API da Pluggy aceita chamadas direto do navegador, então não precisa de servidor.
+ * Open Finance via Meu Pluggy (uso pessoal, até 5 conexões do mesmo CPF).
+ * A API aceita chamadas do navegador (CORS liberado).
  *
- * As credenciais ficam numa chave própria do localStorage, de propósito fora do backup:
- * o Client Secret dá acesso de leitura às suas contas e não deve parar num arquivo exportado.
+ * Credenciais em chave própria do localStorage, fora do backup exportado:
+ * o Client Secret dá acesso de leitura às contas.
+ * TODO: versão comercial exige o secret no servidor (ex.: Edge Function).
  */
 
 const API = 'https://api.pluggy.ai'
@@ -44,7 +45,7 @@ async function autenticar(c: ConfigPluggy) {
   if (r.status === 401 || r.status === 400 || r.status === 403) throw new Error('A Pluggy recusou o Client ID ou o Client Secret. Confira se copiou os dois inteiros.')
   if (!r.ok) throw new Error(`A Pluggy respondeu com erro ${r.status}.`)
   const { apiKey } = (await r.json()) as { apiKey: string }
-  // A chave vale 2 horas; renovamos um pouco antes.
+  // apiKey expira em 2 h; renova com margem.
   chaveApi = { valor: apiKey, expira: Date.now() + 110 * 60_000, clientId: c.clientId }
   return apiKey
 }
@@ -93,11 +94,11 @@ export interface ResultadoSync {
 let emAndamento: Promise<ResultadoSync> | null = null
 
 /**
- * Baixa contas e lançamentos de cada conexão e espelha no app:
- * - cada conta do banco vira (ou atualiza) uma conta local;
- * - lançamentos novos entram já categorizados, sem duplicar os que já existem;
- * - o saldo local é acertado para bater com o saldo que o banco informa.
- * Pedidos simultâneos (ex.: abrir Finanças enquanto já sincroniza) reaproveitam a mesma sincronização.
+ * Sincroniza contas e transações de cada item:
+ * - cria ou atualiza uma conta local por conta Pluggy;
+ * - importa transações novas (deduplicadas por chaveImport) já categorizadas;
+ * - ajusta o saldo inicial para o saldo local coincidir com o do banco.
+ * Chamadas concorrentes compartilham a mesma execução.
  */
 export function sincronizarPluggy(): Promise<ResultadoSync> {
   emAndamento ??= sincronizar().finally(() => (emAndamento = null))
@@ -108,7 +109,7 @@ async function sincronizar(): Promise<ResultadoSync> {
   const cfg = lerConfigPluggy()
   if (!cfg) throw new Error('Open Finance ainda não configurado.')
   const apiKey = await autenticar(cfg)
-  // Na primeira vez, 90 dias de histórico; depois, uma semana de folga para pegar ajustes do banco.
+  // Primeira sincronização: 90 dias. Depois: desde a última, com 7 dias de margem.
   const desde = dataISO(cfg.ultimaSync ? cfg.ultimaSync - 7 * DIA : Date.now() - 90 * DIA)
   const resultado: ResultadoSync = { contas: 0, novas: 0, avisos: [] }
 
@@ -142,24 +143,24 @@ async function sincronizar(): Promise<ResultadoSync> {
         if (!r.totalPages || pagina >= r.totalPages) break
       }
 
-      // Pendentes podem mudar de id quando confirmadas; entram na próxima sincronização, já definitivas.
+      // PENDING pode trocar de id ao ser confirmada; importa só POSTED.
       const atual = useFinancas.getState()
       const linhas: Omit<Transacao, 'id' | 'criadoEm'>[] = transacoes
         .filter((t) => t.status !== 'PENDING')
         .map((t) => ({
           contaId: idLocal,
-          // No cartão a Pluggy usa o sinal invertido: positivo é compra.
+          // Contas CREDIT: amount positivo é compra (sinal invertido).
           valor: Math.round(t.amount * 100) * (credito ? -1 : 1),
           descricao: t.description,
           data: t.date.slice(0, 10),
           categoriaId: sugerirCategoria(t.description, atual.transacoes, atual.categorias),
           chaveImport: `pluggy:${t.providerId || t.id}`,
         }))
-      // Só os novos de verdade; cada um substitui o provisório que veio da notificação do banco, se houver.
+      // Importa só as novas, substituindo provisórios equivalentes (vindos de notificação).
       const existentes = new Set(atual.transacoes.map((t) => t.chaveImport))
       resultado.novas += atual.importar(atual.reconciliar(linhas.filter((l) => !existentes.has(l.chaveImport))))
 
-      // Acerta o saldo: saldo inicial = saldo do banco − soma dos lançamentos que o app conhece.
+      // saldoInicial = saldo do banco - soma das transações conhecidas.
       const depois = useFinancas.getState()
       const soma = depois.transacoes.filter((t) => t.contaId === idLocal).reduce((s, t) => s + t.valor, 0)
       const saldoBanco = Math.round(conta.balance * 100) * (credito ? -1 : 1)

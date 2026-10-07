@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
-// App Android: o mesmo código web, empacotado. O build web (dist/) vai para dentro do APK.
+// Empacota o build web (dist/) no app Android.
 const config: CapacitorConfig = {
   appId: 'app.meusme',
   appName: 'MeUsMe',
@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   plugins: {
     LocalNotifications: {
       smallIcon: 'ic_stat_meusme',
-      iconColor: '#2f6f5e',
+      iconColor: '#7d0e0e',
     },
   },
 }

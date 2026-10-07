@@ -3,7 +3,7 @@ import { usoDeApps, type UsoDeApp } from '../nativo/desktop'
 import { ehDesktop } from '../nativo/plataforma'
 import { duracao, hoje } from '../util'
 
-/** App Windows: para onde foi o tempo no computador (medido sozinho, sem você precisar marcar nada). */
+/** Tempo por programa medido pelo app Windows (src-tauri/src/uso.rs). */
 export function UsoDoComputador() {
   const [periodo, setPeriodo] = useState<1 | 7>(1)
   const [uso, setUso] = useState<UsoDeApp[]>([])

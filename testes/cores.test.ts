@@ -12,7 +12,7 @@ test('a assinatura usa os valores exatos do tema.py', () => {
 })
 
 test('a derivação reproduz de perto o acento suave da assinatura', () => {
-  // tema.py: #F6E7E6 no claro. A mistura a 9% sobre o branco deve chegar perto.
+  // Referência da paleta desktop: #F6E7E6 no tema claro.
   const suave = derivarAcento('#7D0E0E', '#C4302A').claro.suave
   assert.ok(contraste(suave, '#F6E7E6') < 1.05, `${suave} longe de #F6E7E6`)
 })
