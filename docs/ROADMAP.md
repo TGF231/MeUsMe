@@ -4,6 +4,8 @@ Do app que funciona para você até um app que outras pessoas podem baixar numa 
 
 Sugestão: crie no MeUsMe um projeto para cada fase, com a linha de chegada abaixo. O app foi feito para isso.
 
+As fases 1 e 2 já estão quebradas em tarefas pequenas, com energia e linha de chegada, em [TAREFAS.md](TAREFAS.md).
+
 ---
 
 ## Onde estamos (retrato honesto)
