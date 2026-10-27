@@ -138,6 +138,18 @@ function GoogleNavegador() {
   const [mensagem, setMensagem] = useState('')
   const origem = location.origin
 
+  const conectar = async (id: string) => {
+    setMensagem('')
+    agenda.configurarGoogle({ googleClientId: id })
+    try {
+      await conectarGoogle()
+      const n = await sincronizarGoogle()
+      setMensagem(`Conectado! ${n} compromisso${n === 1 ? '' : 's'} nos próximos 30 dias.`)
+    } catch (e) {
+      setMensagem((e as Error).message)
+    }
+  }
+
   return (
     <div className="cartao">
       <h2 className="titulo">Google Agenda</h2>
@@ -148,32 +160,29 @@ function GoogleNavegador() {
         </>
       ) : (
         <>
-          <label className="rotulo">Client ID do Google</label>
-          <input
-            value={clientId}
-            onChange={(e) => setClientId(e.target.value.trim())}
-            placeholder="xxxxxxxx.apps.googleusercontent.com"
-            spellCheck={false}
-          />
-          <button
-            className="primario"
-            disabled={!clientId.endsWith('.apps.googleusercontent.com')}
-            onClick={async () => {
-              setMensagem('')
-              agenda.configurarGoogle({ googleClientId: clientId })
-              try {
-                await conectarGoogle()
-                const n = await sincronizarGoogle()
-                setMensagem(`Conectado! ${n} compromisso${n === 1 ? '' : 's'} nos próximos 30 dias.`)
-              } catch (e) {
-                setMensagem((e as Error).message)
-              }
-            }}
-          >
-            Conectar
-          </button>
+          {agenda.googleClientId ? (
+            <>
+              <p className="motivo">Traga seus compromissos do Google para a Agenda e a tela Agora. Você autoriza na tela do próprio Google.</p>
+              <button className="primario" onClick={() => conectar(agenda.googleClientId)}>
+                Conectar ao Google
+              </button>
+            </>
+          ) : (
+            <p className="motivo">Esta versão do app foi compilada sem a conexão com o Google. A Agenda funciona normalmente, só com o que você marca aqui.</p>
+          )}
           <details>
-            <summary>Como conseguir o Client ID (uma vez só, ~5 minutos)</summary>
+            <summary>Avançado: usar um Client ID próprio</summary>
+            <label className="rotulo">Client ID do Google</label>
+            <input
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value.trim())}
+              placeholder="xxxxxxxx.apps.googleusercontent.com"
+              spellCheck={false}
+            />
+            <button disabled={!clientId.endsWith('.apps.googleusercontent.com')} onClick={() => conectar(clientId)}>
+              Conectar com este Client ID
+            </button>
+            <p className="rotulo">Como conseguir o Client ID (uma vez só, ~5 minutos)</p>
             <ol className="passos-guia">
               <li>
                 Abra <b>console.cloud.google.com</b> e crie um projeto (ex.: "MeUsMe").
@@ -265,8 +274,8 @@ function Aparencia() {
         <span className="selo">etiqueta</span>
       </div>
       <p className="motivo">
-        A Assinatura é a mesma dos seus programas PySide6. Em outra cor, o app ajusta sozinho a versão do tema escuro e o texto por cima para
-        continuarem legíveis. A cor de destaque acompanha você em todos os aparelhos.
+        Em qualquer cor, o app ajusta sozinho a versão do tema escuro e o texto por cima para continuarem legíveis. A cor de destaque
+        acompanha você em todos os aparelhos.
       </p>
     </div>
   )

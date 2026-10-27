@@ -67,6 +67,8 @@ export function Agora() {
   // Eventos dispensados nesta sessão ("Ver outra coisa").
   const [adiados, setAdiados] = useState<Set<string>>(new Set())
   const [ideia, setIdeia] = useState('')
+  // Confirmação discreta da última ideia estacionada (some ao digitar outra).
+  const [guardada, setGuardada] = useState('')
   const [agora, setAgora] = useState(() => Date.now())
   const cfg = useConfig()
   const [revisando, setRevisando] = useState(false)
@@ -86,11 +88,14 @@ export function Agora() {
   }, [sessao])
 
   const sugerida = useMemo(() => {
-    // Passos com reserva futura ficam fora da sugestão até o horário.
-    const fora = new Set(pulados)
-    for (const e of eventos) if (e.passoId && e.inicio > agora) fora.add(e.passoId)
-    return escolherPasso(s.projetos, s.passos, s.focoId, energia, fora)
+    // Passos com reserva futura ficam fora da sugestão até o horário (o resto do projeto continua).
+    const reservados = new Set(eventos.filter((e) => e.passoId && e.inicio > agora).map((e) => e.passoId!))
+    return escolherPasso(s.projetos, s.passos, s.focoId, energia, pulados, reservados)
   }, [s.projetos, s.passos, s.focoId, energia, pulados, eventos, agora])
+
+  const proximaReserva = eventos
+    .filter((e) => e.passoId && e.inicio > agora && s.passos.some((p) => p.id === e.passoId && !p.feitoEm))
+    .sort((a, b) => a.inicio - b.inicio)[0]
 
   // Horário reservado para um passo tem prioridade sobre a sugestão.
   const reserva = eventos.find((e) => e.passoId && !e.diaInteiro && e.inicio <= agora && e.fim > agora)
@@ -134,6 +139,7 @@ export function Agora() {
   const estacionar = (projetoId: string | null) => {
     if (!ideia.trim()) return
     s.estacionarIdeia(ideia.trim(), projetoId)
+    setGuardada(ideia.trim())
     setIdeia('')
   }
 
@@ -240,9 +246,18 @@ export function Agora() {
         >
           <label className="rotulo">Surgiu uma ideia? Estacione aqui e continue.</label>
           <div className="linha">
-            <input value={ideia} onChange={(e) => setIdeia(e.target.value)} placeholder="A ideia fica guardada, sem desviar você" />
+            <input
+              value={ideia}
+              onChange={(e) => (setIdeia(e.target.value), setGuardada(''))}
+              placeholder="A ideia fica guardada, sem desviar você"
+            />
             <button type="submit">Estacionar</button>
           </div>
+          {guardada && (
+            <p className="motivo" role="status">
+              ✓ “{guardada}” guardada {projeto ? `em ${projeto.titulo}` : 'na Caixa'}. Pode voltar ao passo.
+            </p>
+          )}
         </form>
         {rodape}
       </section>
@@ -308,6 +323,10 @@ export function Agora() {
                 <p>Você pulou tudo por agora. Tudo bem.</p>
                 <button onClick={() => setPulados(new Set())}>Ver de novo desde o início</button>
               </>
+            ) : proximaReserva ? (
+              <p>
+                O que está na fila já tem horário: <b>{hora(proximaReserva.inicio)}</b>. Até lá, o tempo é seu.
+              </p>
             ) : (
               <p>
                 Nada na fila. Jogue o que estiver na cabeça no botão <b>+</b> e transforme em passos na <b>Caixa</b>.

@@ -29,7 +29,9 @@ export function Historico() {
   // Tempo por projeto (sessões + minutosManuais), últimos 7 dias
   const porProjeto = new Map<string, number>()
   for (const x of s.sessoes.filter((x) => x.inicio >= desde7)) {
-    const pid = s.passos.find((p) => p.id === x.passoId)?.projetoId ?? 'soltas'
+    // Tempo de passo apagado continua contando, mas não como tarefa solta.
+    const passo = s.passos.find((p) => p.id === x.passoId)
+    const pid = passo ? (passo.projetoId ?? 'soltas') : 'apagados'
     porProjeto.set(pid, (porProjeto.get(pid) ?? 0) + ((x.fim ?? agora) - x.inicio) / 60_000)
   }
   for (const p of feitos7) if (p.minutosManuais) porProjeto.set(p.projetoId ?? 'soltas', (porProjeto.get(p.projetoId ?? 'soltas') ?? 0) + p.minutosManuais)
@@ -92,7 +94,7 @@ export function Historico() {
                 {ranking.map(([pid, m]) => (
                   <div key={pid} className="barra-linha">
                     <div className="linha entre">
-                      <span>{pid === 'soltas' ? 'Tarefas soltas' : (projetoDe(pid)?.titulo ?? 'Projeto apagado')}</span>
+                      <span>{pid === 'soltas' ? 'Tarefas soltas' : pid === 'apagados' ? 'Itens apagados' : (projetoDe(pid)?.titulo ?? 'Projeto apagado')}</span>
                       <span className="motivo">{duracao(m)}</span>
                     </div>
                     <div className="barra">

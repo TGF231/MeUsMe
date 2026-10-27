@@ -58,8 +58,8 @@ function BarraGoogle() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (!agenda.googleClientId)
-    return <p className="vazio-texto">Para ver seus compromissos do Google aqui, configure a conexão em Ajustes (ícone no topo).</p>
+  // Sem Client ID (versão sem Google), a Agenda é só local: nada a oferecer aqui.
+  if (!agenda.googleClientId) return null
 
   return (
     <div className="linha entre google">

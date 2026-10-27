@@ -1,4 +1,4 @@
-import { pendentes } from './store'
+import { pendentes } from './calculos.ts'
 import type { Energia, Passo, Projeto } from './types'
 
 export interface Escolha {
@@ -16,6 +16,9 @@ export interface Escolha {
  * 2. Projeto em foco tem prioridade.
  * 3. Projetos com menos passos restantes vêm antes.
  * 4. Passos acima da energia informada são descartados, salvo se não houver alternativa.
+ *
+ * `pulados` ("Agora não") tira o projeto da vez; `reservados` (horário marcado mais tarde) só
+ * tira aquele passo, e o seguinte do mesmo projeto concorre no lugar.
  */
 export function escolherPasso(
   projetos: Projeto[],
@@ -23,12 +26,13 @@ export function escolherPasso(
   focoId: string | null,
   energia: Energia,
   pulados: Set<string>,
+  reservados: Set<string> = new Set(),
 ): Escolha | null {
   const candidatos: Omit<Escolha, 'acimaDaEnergia'>[] = []
 
   for (const projeto of projetos.filter((p) => !p.concluidoEm)) {
     const fila = pendentes(passos, projeto.id)
-    const proximo = fila[0]
+    const proximo = fila.find((p) => !reservados.has(p.id))
     if (!proximo || pulados.has(proximo.id)) continue
     const motivo =
       projeto.id === focoId
@@ -40,7 +44,7 @@ export function escolherPasso(
   }
 
   for (const passo of pendentes(passos, null)) {
-    if (pulados.has(passo.id)) continue
+    if (pulados.has(passo.id) || reservados.has(passo.id)) continue
     candidatos.push({ passo, projeto: null, restantes: 1, motivo: 'Tarefa solta, rápida de tirar da frente.' })
   }
 

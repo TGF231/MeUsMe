@@ -14,7 +14,7 @@ import {
   sugerirCategoria,
   useFinancas,
 } from '../stores/financas'
-import type { ContaFixa } from '../types'
+import type { ContaFixa, Transacao } from '../types'
 import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
@@ -168,10 +168,46 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
   )
 }
 
+/** Corrige descrição, valor e data. O sinal (gasto ou entrada) é mantido. */
+function EditarLancamento({ t, onPronto }: { t: Transacao; onPronto: () => void }) {
+  const atualizar = useFinancas((f) => f.atualizarTransacao)
+  const [descricao, setDescricao] = useState(t.descricao)
+  // Valores ficam em centavos (lerValor também devolve centavos).
+  const [valorTexto, setValorTexto] = useState((Math.abs(t.valor) / 100).toFixed(2).replace('.', ','))
+  const [data, setData] = useState(t.data)
+  const valor = lerValor(valorTexto)
+  return (
+    <form
+      className="form"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (!valor || !data) return
+        atualizar(t.id, { descricao: descricao.trim(), valor: Math.sign(t.valor) * Math.abs(valor), data })
+        onPronto()
+      }}
+    >
+      <input value={descricao} onChange={(e) => setDescricao(e.target.value)} aria-label="Descrição" placeholder="Descrição" />
+      <div className="linha">
+        <input className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
+        <input type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" />
+      </div>
+      <div className="linha">
+        <button type="submit" className="primario">
+          Salvar
+        </button>
+        <button type="button" onClick={onPronto}>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  )
+}
+
 function Lancamentos() {
   const f = useFinancas()
   const [mes, setMes] = useState(mesISO())
   const [soSemCategoria, setSoSemCategoria] = useState(false)
+  const [editando, setEditando] = useState<string | null>(null)
   const { doMes, gastos, receitas } = resumoDoMes(f.transacoes, mes)
   const lista = doMes
     .filter((t) => !soSemCategoria || !t.categoriaId)
@@ -231,10 +267,16 @@ function Lancamentos() {
                         </option>
                       ))}
                   </select>
-                  <button className="discreto" onClick={() => f.removerTransacao(t.id)} aria-label="Apagar lançamento">
-                    Apagar
-                  </button>
+                  <span className="linha">
+                    <button className="discreto" onClick={() => setEditando(editando === t.id ? null : t.id)} aria-label="Editar lançamento">
+                      Editar
+                    </button>
+                    <button className="discreto" onClick={() => f.removerTransacao(t.id)} aria-label="Apagar lançamento">
+                      Apagar
+                    </button>
+                  </span>
                 </div>
+                {editando === t.id && <EditarLancamento t={t} onPronto={() => setEditando(null)} />}
               </div>
             ))}
         </div>
@@ -252,6 +294,8 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
   const [categoriaId, setCategoriaId] = useState('')
   const [contaId, setContaId] = useState(f.contas[0]?.id ?? '')
   const valor = lerValor(valorTexto)
+
+  if (f.contas.length === 0) return <p className="dica">Crie uma conta em Finanças → Contas e categorias antes de cadastrar contas fixas.</p>
 
   return (
     <form

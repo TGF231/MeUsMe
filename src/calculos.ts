@@ -4,6 +4,10 @@ import type { Passo, Sessao } from './types'
 
 const DIA = 86_400_000
 
+/** Passos pendentes de um projeto (ou soltos, com null), ordenados. */
+export const pendentes = (passos: Passo[], projetoId: string | null) =>
+  passos.filter((p) => p.projetoId === projetoId && !p.feitoEm).sort((a, b) => a.ordem - b.ordem)
+
 /** Minutos gastos: sessões do cronômetro + minutosManuais. */
 export const minutosDoPasso = (passo: Passo, sessoes: Sessao[], agora = Date.now()) =>
   sessoes.filter((x) => x.passoId === passo.id).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0) +

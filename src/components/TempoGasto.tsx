@@ -22,8 +22,8 @@ export function TempoGasto({ passo, perguntar = false }: { passo: Passo; pergunt
 
   if (!aberto)
     return (
-      <button className="tempo vazio" onClick={() => setAberto(true)}>
-        + tempo
+      <button className="tempo vazio" onClick={() => setAberto(true)} title="Ajustar o tempo">
+        {cronometrado ? 'menos de 1 min' : '+ tempo'}
       </button>
     )
 

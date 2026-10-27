@@ -19,6 +19,10 @@ interface Estado {
 
   criarProjeto: (titulo: string, chegada: string) => string
   concluirProjeto: (id: string) => void
+  reabrirProjeto: (id: string) => void
+  atualizarProjeto: (id: string, mudancas: Partial<Pick<Projeto, 'titulo' | 'chegada'>>) => void
+  /** Apaga o projeto e os passos pendentes. Passos feitos ficam no Histórico; ideias voltam para a Caixa. */
+  removerProjeto: (id: string) => void
   definirFoco: (id: string | null) => void
 
   criarPasso: (projetoId: string | null, texto: string, energia: Energia, antesDe?: string) => void
@@ -34,6 +38,10 @@ interface Estado {
 
   salvarCheckIn: (c: CheckIn) => void
 }
+
+/** Encerra o cronômetro de passos que estão saindo; senão a sessão aberta somaria tempo para sempre. */
+const fecharSessoes = (sessoes: Sessao[], passos: Set<string>) =>
+  sessoes.map((x) => (passos.has(x.passoId) && !x.fim ? { ...x, fim: Date.now() } : x))
 
 export const useStore = create<Estado>()(
   persist(
@@ -60,6 +68,26 @@ export const useStore = create<Estado>()(
           projetos: s.projetos.map((p) => (p.id === pid ? { ...p, concluidoEm: Date.now() } : p)),
           focoId: s.focoId === pid ? null : s.focoId,
         })),
+      reabrirProjeto: (pid) =>
+        set((s) => ({
+          projetos: s.projetos.map((p) => {
+            if (p.id !== pid) return p
+            const { concluidoEm: _, ...aberto } = p
+            return aberto
+          }),
+        })),
+      atualizarProjeto: (pid, m) => set((s) => ({ projetos: s.projetos.map((p) => (p.id === pid ? { ...p, ...m } : p)) })),
+      removerProjeto: (pid) =>
+        set((s) => {
+          const saem = new Set(s.passos.filter((p) => p.projetoId === pid && !p.feitoEm).map((p) => p.id))
+          return {
+            projetos: s.projetos.filter((p) => p.id !== pid),
+            passos: s.passos.filter((p) => !saem.has(p.id)),
+            sessoes: fecharSessoes(s.sessoes, saem),
+            ideias: s.ideias.map((i) => (i.projetoId === pid ? { ...i, projetoId: null } : i)),
+            focoId: s.focoId === pid ? null : s.focoId,
+          }
+        }),
       definirFoco: (pid) => set({ focoId: pid }),
 
       criarPasso: (projetoId, texto, energia, antesDe) =>
@@ -80,7 +108,8 @@ export const useStore = create<Estado>()(
       concluirPasso: (pid) =>
         set((s) => ({ passos: s.passos.map((p) => (p.id === pid ? { ...p, feitoEm: Date.now() } : p)) })),
       atualizarPasso: (pid, m) => set((s) => ({ passos: s.passos.map((p) => (p.id === pid ? { ...p, ...m } : p)) })),
-      removerPasso: (pid) => set((s) => ({ passos: s.passos.filter((p) => p.id !== pid) })),
+      removerPasso: (pid) =>
+        set((s) => ({ passos: s.passos.filter((p) => p.id !== pid), sessoes: fecharSessoes(s.sessoes, new Set([pid])) })),
 
       estacionarIdeia: (texto, projetoId) =>
         set((s) => ({ ideias: [{ id: id(), texto, projetoId, criadoEm: Date.now() }, ...s.ideias] })),
@@ -101,10 +130,6 @@ export const useStore = create<Estado>()(
   ),
 )
 
-/** Passos pendentes de um projeto, ordenados. */
-export const pendentes = (passos: Passo[], projetoId: string | null) =>
-  passos.filter((p) => p.projetoId === projetoId && !p.feitoEm).sort((a, b) => a.ordem - b.ordem)
-
-export { minutosDoPasso } from './calculos'
+export { minutosDoPasso, pendentes } from './calculos'
 
 export const checkInDeHoje = () => useStore.getState().checkins.find((c) => c.dia === hoje())

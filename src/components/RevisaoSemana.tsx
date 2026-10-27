@@ -3,7 +3,7 @@ import { pendentes, useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
-import { reais } from '../util'
+import { mesISO, reais } from '../util'
 
 const DIA = 86_400_000
 
@@ -21,9 +21,13 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
   const ativos = s.projetos.filter((p) => !p.concluidoEm)
   const semProximo = ativos.filter((p) => pendentes(s.passos, p.id).length === 0)
   const proximos7 = eventos.filter((e) => e.inicio >= agora && e.inicio < agora + 7 * DIA)
-  const hojeDia = new Date(agora).getDate()
-  const contas = fin.fixas.filter(
-    (f) => f.tipo === 'gasto' && !fixaPagaNoMes(f, fin.transacoes) && diaDeVencimento(f) >= hojeDia && diaDeVencimento(f) < hojeDia + 7,
+  const compromissos = proximos7.filter((e) => !e.passoId).length
+  const reservas = proximos7.length - compromissos
+  // Vencimentos dos próximos 7 dias, inclusive os do mês seguinte.
+  const contas = Array.from({ length: 7 }, (_, i) => new Date(agora + i * DIA)).flatMap((d) =>
+    fin.fixas
+      .filter((f) => f.tipo === 'gasto' && diaDeVencimento(f, mesISO(d)) === d.getDate() && !fixaPagaNoMes(f, fin.transacoes, mesISO(d)))
+      .map((f) => ({ f, dia: d.getDate() })),
   )
   const terminar = () => {
     ajustar({ revisaoFeitaEm: Date.now() })
@@ -81,13 +85,14 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
         <p className="rotulo">{semProximo.length > 0 ? '4' : '3'}. Os próximos 7 dias</p>
         <div className="linha entre">
           <span>
-            {proximos7.length === 0 ? 'Nenhum compromisso marcado.' : `${proximos7.length} compromisso${proximos7.length > 1 ? 's' : ''}.`}
+            {compromissos === 0 ? 'Nenhum compromisso marcado.' : `${compromissos} compromisso${compromissos > 1 ? 's' : ''}.`}
+            {reservas > 0 && ` ${reservas} horário${reservas > 1 ? 's' : ''} reservado${reservas > 1 ? 's' : ''} para passos.`}
           </span>
           <button onClick={() => ir('agenda')}>Ver a agenda</button>
         </div>
-        {contas.map((f) => (
+        {contas.map(({ f, dia }) => (
           <p key={f.id} className="motivo">
-            💸 {f.nome} · {reais(f.valor)} · dia {diaDeVencimento(f)}
+            💸 {f.nome} · {reais(f.valor)} · dia {dia}
           </p>
         ))}
       </div>

@@ -1,4 +1,6 @@
 import { SystemBars, SystemBarsStyle } from '@capacitor/core'
+// Estático: o módulo já vai no pacote principal (JanelaCaptura), então import() não economizaria nada.
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { ehDesktop, ehNativo } from '../nativo/plataforma'
 import { useConfig } from '../stores/config'
 import { resolverAcento } from './cores'
@@ -34,11 +36,9 @@ export function aplicarTema() {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(raiz).getPropertyValue('--fundo').trim())
   if (ehNativo()) void SystemBars.setStyle({ style: escuro ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(() => {})
   if (ehDesktop())
-    void import('@tauri-apps/api/window').then(({ getCurrentWindow }) =>
-      getCurrentWindow()
-        .setTheme(tema === 'auto' ? null : escuro ? 'dark' : 'light')
-        .catch(() => {}),
-    )
+    void getCurrentWindow()
+      .setTheme(tema === 'auto' ? null : escuro ? 'dark' : 'light')
+      .catch(() => {})
 }
 
 /** Reaplica o tema ao mudar a configuração ou o esquema de cores do sistema. */

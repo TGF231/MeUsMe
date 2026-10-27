@@ -19,6 +19,7 @@ export async function lerPermissao(): Promise<Permissao> {
 export async function pedirPermissao(): Promise<Permissao> {
   if (ehNativo()) {
     const r = doNativo((await LocalNotifications.requestPermissions()).display)
+    // import() só para evitar ciclo (lembretesNativos → agendador → notificacoes); o aviso de build sobre isso é esperado.
     if (r === 'granted') void import('./nativo/lembretesNativos').then((m) => m.reagendarNotificacoes())
     return r
   }
