@@ -2,6 +2,9 @@ import { App as AppNativo } from '@capacitor/app'
 import { useEffect, useRef, useState } from 'react'
 import { useAgendador } from './agendador'
 import { Icone } from './components/Icone'
+import { Introducao } from './components/Introducao'
+import { usoDoArmazenamento } from './erros'
+import { useNavegacao, type Aba } from './navegacao'
 import { Captura, processarCapturas } from './nativo/captura'
 import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
 import { ehAndroid, ehNativo } from './nativo/plataforma'
@@ -13,10 +16,8 @@ import { Financas } from './screens/Financas'
 import { Historico } from './screens/Historico'
 import { Projetos } from './screens/Projetos'
 import { useStore } from './store'
-import { useAvisos } from './stores/config'
+import { useAvisos, useConfig } from './stores/config'
 import { useSincronizacao } from './sync/motor'
-
-type Aba = 'agora' | 'agenda' | 'caixa' | 'financas' | 'projetos' | 'historico' | 'ajustes'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -82,7 +83,9 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
 }
 
 export default function App() {
-  const [aba, setAba] = useState<Aba>('agora')
+  const aba = useNavegacao((n) => n.aba)
+  const setAba = useNavegacao((n) => n.ir)
+  const introducaoVista = useConfig((c) => c.introducaoVista)
   const [capturando, setCapturando] = useState(false)
   const naCaixa = useStore((s) => s.capturas.length)
   useAgendador()
@@ -98,6 +101,12 @@ export default function App() {
     }
     window.addEventListener('keydown', atalho)
     return () => window.removeEventListener('keydown', atalho)
+  }, [])
+
+  // Armazenamento quase cheio: gravações começariam a falhar sem aviso.
+  useEffect(() => {
+    if (usoDoArmazenamento() > 0.8)
+      useAvisos.getState().mostrar('Espaço quase cheio', 'Exporte um backup em Ajustes. Veja o uso em Ajustes → Sobre o MeUsMe.')
   }, [])
 
   // Android: agenda notificações, processa capturas e trata o botão voltar.
@@ -120,7 +129,7 @@ export default function App() {
     const ouvinte = AppNativo.addListener('backButton', () => {
       const { aba, capturando } = estado.current
       if (capturando) setCapturando(false)
-      else if (aba !== 'agora') setAba('agora')
+      else if (aba !== 'agora') useNavegacao.getState().ir('agora')
       else void AppNativo.minimizeApp()
     })
     return () => void ouvinte.then((h) => h.remove())
@@ -170,13 +179,17 @@ export default function App() {
         </header>
 
         <main>
-          {aba === 'agora' && <Agora />}
-          {aba === 'agenda' && <Agenda />}
-          {aba === 'caixa' && <Caixa />}
-          {aba === 'financas' && <Financas />}
-          {aba === 'projetos' && <Projetos />}
-          {aba === 'historico' && <Historico />}
-          {aba === 'ajustes' && <Ajustes />}
+          {!introducaoVista ? <Introducao /> : aba === 'agora' && <Agora />}
+          {introducaoVista && (
+            <>
+              {aba === 'agenda' && <Agenda />}
+              {aba === 'caixa' && <Caixa />}
+              {aba === 'financas' && <Financas />}
+              {aba === 'projetos' && <Projetos />}
+              {aba === 'historico' && <Historico />}
+              {aba === 'ajustes' && <Ajustes />}
+            </>
+          )}
         </main>
       </div>
 

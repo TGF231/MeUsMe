@@ -105,9 +105,6 @@ export const useStore = create<Estado>()(
 export const pendentes = (passos: Passo[], projetoId: string | null) =>
   passos.filter((p) => p.projetoId === projetoId && !p.feitoEm).sort((a, b) => a.ordem - b.ordem)
 
-/** Minutos gastos: sessões do cronômetro + minutosManuais. */
-export const minutosDoPasso = (passo: Passo, sessoes: Sessao[], agora = Date.now()) =>
-  sessoes.filter((x) => x.passoId === passo.id).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0) +
-  (passo.minutosManuais ?? 0)
+export { minutosDoPasso } from './calculos'
 
 export const checkInDeHoje = () => useStore.getState().checkins.find((c) => c.dia === hoje())

@@ -44,6 +44,7 @@ const COLECOES: Colecao[] = [
   { nome: 'financas.categorias', loja: useFinancas, campo: 'categorias', tipo: 'lista' },
   { nome: 'financas.transacoes', loja: useFinancas, campo: 'transacoes', tipo: 'lista', ordenar: maisNovoPrimeiro },
   { nome: 'financas.fixas', loja: useFinancas, campo: 'fixas', tipo: 'lista' },
+  { nome: 'financas.desejos', loja: useFinancas, campo: 'desejos', tipo: 'lista', ordenar: maisNovoPrimeiro },
 
   // Inclui eventos do Google (id estável entre aparelhos); é por aqui que chegam ao Android.
   { nome: 'agenda.eventos', loja: useAgenda, campo: 'eventos', tipo: 'lista' },
@@ -56,6 +57,9 @@ const COLECOES: Colecao[] = [
   { nome: 'config.avisoFocoMin', loja: useConfig, campo: 'avisoFocoMin', tipo: 'valor' },
   // Acento sincroniza; tema claro/escuro é por aparelho.
   { nome: 'config.acento', loja: useConfig, campo: 'acento', tipo: 'valor' },
+  { nome: 'config.diaRevisao', loja: useConfig, campo: 'diaRevisao', tipo: 'valor' },
+  { nome: 'config.revisaoFeitaEm', loja: useConfig, campo: 'revisaoFeitaEm', tipo: 'valor' },
+  { nome: 'config.horasDeEspera', loja: useConfig, campo: 'horasDeEspera', tipo: 'valor' },
   // Evita disparar o mesmo aviso em dois aparelhos.
   { nome: 'config.disparados', loja: useConfig, campo: 'disparados', tipo: 'mapa' },
 ]

@@ -10,7 +10,9 @@ As fases 1 e 2 já estão quebradas em tarefas pequenas, com energia e linha de 
 
 ## Onde estamos (retrato honesto)
 
-**Funciona e tem teste automático (38 testes):** escolha do próximo passo, mesclagem da sincronização, leitor de notificações de banco, cálculo das cores do tema.
+**Funciona e tem teste automático (44 testes):** mesclagem da sincronização, leitor de notificações de banco, cálculo das cores do tema, progresso, calibração do tempo e revisão semanal.
+
+**Revisão pela pesquisa sobre TDAH (outubro de 2026):** cada função foi conferida contra a evidência, e entraram introdução, progresso, combinado de 5 minutos, anel de foco, palpite × real, revisão da semana, recepção sem culpa e lista de espera de compras. Detalhes em [PESQUISA-TDAH.md](PESQUISA-TDAH.md).
 
 **Funciona e foi testado à mão:** todas as telas na web; app Android no emulador (captura de notificação, lembrete com app em segundo plano, tema); app Windows (atalho global, bandeja, tempo por programa).
 
@@ -30,8 +32,8 @@ As fases 1 e 2 já estão quebradas em tarefas pequenas, com energia e linha de 
 1. **localStorage tem limite de ~5 MB** e é síncrono. Com anos de lançamentos e sessões, pode encher. Plano: migrar para IndexedDB antes de ter usuários com muito histórico.
 2. **Conflito de sincronização é por registro inteiro.** Se o mesmo passo for editado em dois aparelhos offline, vence a última edição inteira; não há mescla campo a campo.
 3. **Os testes cobrem só funções puras.** Não há testes de tela (componentes) nem de ponta a ponta.
-4. **Erros em produção não chegam até você.** Não há relatório de erros.
-5. **Biblioteca do Supabase no pacote inicial:** ela entra mesmo para quem não sincroniza (~50 KB a mais). Dá para carregar só quando preciso.
+4. **Erros em produção ficam só no aparelho.** Há tela de erro e registro local (Ajustes → Sobre); ainda não são enviados a um painel.
+5. ~~Biblioteca do Supabase no pacote inicial.~~ Resolvido: carregada só por quem entra na sincronização.
 6. **Fuso horário:** datas usam o fuso do aparelho. Viajar ou ter aparelhos em fusos diferentes pode deslocar um dia no histórico.
 7. **A captura depende do texto de cada banco:** se um banco mudar o formato da notificação, o gasto deixa de ser reconhecido (vai para a Caixa) até o leitor ser ajustado.
 
@@ -80,18 +82,18 @@ Objetivo: tirar tudo da coluna "nunca testado com o serviço real".
 ### Fase 2: Robustez
 
 - **IndexedDB** no lugar do localStorage (a persistência do zustand aceita outro armazenamento), com migração automática dos dados atuais.
-- **Relatório de erros** (ex.: Sentry, plano gratuito), sem enviar conteúdo pessoal, só o erro.
+- **Relatório de erros** sem enviar conteúdo pessoal, só o erro. Parte local feita (tela de erro e registro no aparelho); falta enviar ao servidor.
 - **Testes de tela** com Vitest + Testing Library para os fluxos centrais (concluir passo, registrar gasto, capturar), e **testes de ponta a ponta** com Playwright para o primeiro uso e a sincronização.
 - Teste de estresse da sincronização: dois aparelhos offline editando, depois sincronizando.
-- Restaurar um backup exportado num aparelho limpo (teste de recuperação).
-- Carregar o Supabase só quando a sincronização for usada.
+- Restaurar um backup exportado num aparelho limpo (teste de recuperação). A restauração já valida o arquivo antes de gravar e avisa quando a sincronização vai espalhar o backup.
+- ~~Carregar o Supabase só quando a sincronização for usada.~~ Feito.
 - Revisão de acessibilidade (leitor de tela, contraste, tamanho de toque).
 
 **Linha de chegada:** a integração contínua roda testes de tela e de ponta a ponta, e um erro forçado em produção aparece no seu painel em minutos.
 
 ### Fase 3: Produto para outras pessoas
 
-- **Primeiro uso guiado:** 3 telas curtas (Agora, Caixa, Linha de chegada) e um projeto de exemplo que dá para apagar.
+- ~~**Primeiro uso guiado:** 3 telas curtas (Agora, Caixa, Linha de chegada) e um projeto de exemplo que dá para apagar.~~ Feito (4 telas, com o aviso de que não é tratamento).
 - **Decisão sobre Open Finance:** plano comercial da Pluggy (servidor próprio para o segredo, Edge Function) **ou** ficar só com notificações de banco + importação de extrato. A segunda opção é bem mais barata.
 - **Decisão sobre Google Agenda:** passar pela verificação do Google **ou** trocar por assinatura do "endereço secreto iCal" da agenda. A pessoa cola um link, o app só lê e não precisa de verificação; criar eventos no Google deixa de existir.
 - Textos de ajuda onde as pessoas travarem (anotados na fase 1).
@@ -101,9 +103,9 @@ Objetivo: tirar tudo da coluna "nunca testado com o serviço real".
 ### Fase 4: Jurídico e presença
 
 - Domínio próprio e um site simples com o app web, a política de privacidade, os termos de uso e a página "como apagar sua conta" (exigida pelo Google Play).
-- Política de privacidade cobrindo LGPD: que dados, onde ficam (aparelho e Supabase), por quanto tempo, como exportar (o backup já existe) e como apagar (já existe).
+- ~~Política de privacidade cobrindo LGPD~~: escrita em [public/privacidade.html](../public/privacidade.html), com a seção de exclusão de conta. Falta publicar num endereço fixo e revisar com quem entende de LGPD.
 - E-mail de suporte.
-- Link para a política dentro do app (Ajustes).
+- ~~Link para a política dentro do app (Ajustes).~~ Feito (Ajustes → Sobre).
 
 **Linha de chegada:** os três links (política, termos, exclusão de conta) estão públicos e acessíveis de dentro do app.
 

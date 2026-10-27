@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Categoria, Conta, ContaFixa, Transacao } from '../types'
+import type { Categoria, Conta, ContaFixa, Desejo, Transacao } from '../types'
 import { diasNoMes, hoje, mesISO, novoId } from '../util'
 
 const categorias = (tipo: Categoria['tipo'], lista: [string, string][]): Categoria[] =>
@@ -35,6 +35,7 @@ interface Estado {
   categorias: Categoria[]
   transacoes: Transacao[]
   fixas: ContaFixa[]
+  desejos: Desejo[]
 
   salvarConta: (c: Omit<Conta, 'id'> & { id?: string }) => void
   removerConta: (id: string) => void
@@ -53,6 +54,9 @@ interface Estado {
   salvarFixa: (f: Omit<ContaFixa, 'id'> & { id?: string }) => void
   removerFixa: (id: string) => void
   pagarFixa: (id: string) => void
+  adiarCompra: (texto: string, valor: number | undefined, horas: number) => void
+  decidirCompra: (id: string, decisao: Desejo['decisao']) => void
+  removerDesejo: (id: string) => void
 }
 
 export const useFinancas = create<Estado>()(
@@ -62,6 +66,7 @@ export const useFinancas = create<Estado>()(
       categorias: CATEGORIAS_INICIAIS,
       transacoes: [],
       fixas: [],
+      desejos: [],
 
       salvarConta: (c) =>
         set((s) =>
@@ -138,6 +143,14 @@ export const useFinancas = create<Estado>()(
           fixaId: f.id,
         })
       },
+
+      adiarCompra: (texto, valor, horas) =>
+        set((s) => ({
+          desejos: [{ id: novoId(), texto, valor, criadoEm: Date.now(), decidirEm: Date.now() + horas * 3_600_000 }, ...s.desejos],
+        })),
+      decidirCompra: (id, decisao) =>
+        set((s) => ({ desejos: s.desejos.map((d) => (d.id === id ? { ...d, decisao, decididoEm: Date.now() } : d)) })),
+      removerDesejo: (id) => set((s) => ({ desejos: s.desejos.filter((d) => d.id !== id) })),
     }),
     {
       name: 'meusme-financas',

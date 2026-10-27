@@ -4,6 +4,8 @@ import { LancamentoForm } from '../components/LancamentoForm'
 import { LembreteForm } from '../components/LembreteForm'
 import { PassoForm } from '../components/PassoForm'
 import { useStore } from '../store'
+import { useConfig } from '../stores/config'
+import { useFinancas } from '../stores/financas'
 import type { Captura } from '../types'
 import { lerGasto, reais } from '../util'
 
@@ -23,6 +25,8 @@ function Processar({ captura }: { captura: Captura }) {
   const ativos = s.projetos.filter((p) => !p.concluidoEm)
   const gasto = lerGasto(captura.texto)
   const resolver = () => s.descartarCaptura(captura.id)
+  const adiarCompra = useFinancas((f) => f.adiarCompra)
+  const horasDeEspera = useConfig((c) => c.horasDeEspera)
   const cancelar = () => setModo(null)
 
   if (modo?.tipo === 'gasto')
@@ -98,6 +102,15 @@ function Processar({ captura }: { captura: Captura }) {
       )}
       <button onClick={() => setModo({ tipo: 'projeto' })}>Virar projeto</button>
       {!gasto && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
+      <button
+        onClick={() => {
+          adiarCompra(gasto?.descricao ?? captura.texto, gasto?.valor, horasDeEspera)
+          resolver()
+        }}
+        title={`Vai para Finanças → Antes de comprar, e o app pergunta de novo em ${horasDeEspera}h`}
+      >
+        Quero comprar: esperar {horasDeEspera}h
+      </button>
       <button onClick={() => setModo({ tipo: 'evento' })}>Compromisso</button>
       <button onClick={() => setModo({ tipo: 'lembrete' })}>Lembrete</button>
       <button

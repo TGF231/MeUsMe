@@ -1363,3 +1363,125 @@ button.perigo:hover {
   background: var(--erro);
   color: var(--superficie);
 }
+
+/* Progresso até a linha de chegada */
+
+.progresso {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+/* Bloco de foco: anel que se fecha com o tempo */
+
+.anel-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.anel-bloco svg {
+  width: 96px;
+  height: 96px;
+}
+
+.anel-bloco circle {
+  fill: none;
+  stroke-width: 8;
+}
+
+.anel-bloco .trilho {
+  stroke: var(--borda);
+}
+
+.anel-bloco .andado {
+  stroke: var(--acento);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anel-bloco .andado {
+    transition: none;
+  }
+}
+
+/* Introdução */
+
+.introducao .cartao {
+  max-width: 520px;
+  gap: 16px;
+}
+
+.pontinhos {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.pontinhos span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--borda-2);
+}
+
+.pontinhos span.ativo {
+  background: var(--acento);
+}
+
+/* Revisão da semana */
+
+.revisao .etapa {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid var(--borda);
+}
+
+.revisao .etapa p {
+  margin: 0;
+}
+
+.de-volta p {
+  margin: 0;
+}
+
+/* Sobre */
+
+.principios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.principios dt {
+  font-weight: 600;
+}
+
+.principios dd {
+  margin: 2px 0 0;
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+
+.lista-simples {
+  margin: 8px 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.codigo.erros {
+  user-select: text;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--rebaixado);
+  max-height: 240px;
+  overflow: auto;
+}

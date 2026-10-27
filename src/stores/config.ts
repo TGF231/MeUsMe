@@ -14,6 +14,14 @@ interface Estado {
   tema: 'auto' | 'claro' | 'escuro'
   /** Id de acento predefinido (tema/cores.ts) ou cor livre "#RRGGBB". Sincroniza. */
   acento: string
+  /** Introdução vista neste aparelho. Não sincroniza. */
+  introducaoVista: boolean
+  /** Dia da revisão semanal (0 = domingo … 6 = sábado; -1 desliga). Sincroniza. */
+  diaRevisao: number
+  /** Quando a última revisão semanal foi feita ou pulada. Sincroniza. */
+  revisaoFeitaEm: number
+  /** Horas de espera antes de decidir uma compra da lista de espera. Sincroniza. */
+  horasDeEspera: number
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -31,6 +39,10 @@ export const useConfig = create<Estado>()(
       disparados: {},
       tema: 'auto',
       acento: 'assinatura',
+      introducaoVista: false,
+      diaRevisao: 0,
+      revisaoFeitaEm: 0,
+      horasDeEspera: 48,
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>

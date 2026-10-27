@@ -4,12 +4,16 @@ import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App.tsx'
 import { JanelaCaptura } from './components/JanelaCaptura'
+import { LimiteDeErro } from './components/LimiteDeErro'
+import { capturarErrosGlobais } from './erros'
 import { ehDesktop, ehNativo } from './nativo/plataforma'
 import { useStore } from './store'
 import { useAgenda } from './stores/agenda'
 import { useConfig } from './stores/config'
 import { useFinancas } from './stores/financas'
 import { manterTema } from './tema/aplicar'
+
+capturarErrosGlobais()
 
 // Service worker só na web: nos apps nativos poderia servir assets antigos após atualização.
 if (!ehNativo() && !ehDesktop()) registerSW({ immediate: true })
@@ -29,4 +33,8 @@ manterTema()
 const captura = location.hash === '#captura'
 if (captura) document.documentElement.classList.add('modo-captura')
 
-createRoot(document.getElementById('root')!).render(<StrictMode>{captura ? <JanelaCaptura /> : <App />}</StrictMode>)
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <LimiteDeErro>{captura ? <JanelaCaptura /> : <App />}</LimiteDeErro>
+  </StrictMode>,
+)

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { CapturaBancos } from '../components/CapturaBancos'
 import { LancamentoForm } from '../components/LancamentoForm'
+import { ListaDeEspera } from '../components/ListaDeEspera'
+import { useAgora } from '../hooks'
 import { converterExtrato, detectarColunas, lerCSV, type Colunas } from '../csv'
 import { apagarConfigPluggy, lerConfigPluggy, salvarConfigPluggy, sincronizarPluggy } from '../pluggy'
 import {
@@ -15,12 +17,13 @@ import {
 import type { ContaFixa } from '../types'
 import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 
-type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'importar' | 'ajustes'
+type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
 const SUBS: [Sub, string][] = [
   ['resumo', 'Resumo'],
   ['lancamentos', 'Lançamentos'],
   ['fixas', 'Contas fixas'],
+  ['espera', 'Antes de comprar'],
   ['importar', 'Bancos'],
   ['ajustes', 'Contas e categorias'],
 ]
@@ -39,10 +42,11 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
   const f = useFinancas()
   const [lancando, setLancando] = useState(false)
   const [verPagas, setVerPagas] = useState(false)
-  const mes = mesISO()
+  const agora = useAgora(60_000)
+  const mes = mesISO(agora)
   const p = previsaoDoMes(f.contas, f.transacoes, f.fixas)
   const { gastos, receitas, porCategoria } = resumoDoMes(f.transacoes, mes)
-  const diaHoje = new Date().getDate()
+  const diaHoje = new Date(agora).getDate()
 
   const fixasOrdenadas = [...f.fixas].sort((a, b) => diaDeVencimento(a) - diaDeVencimento(b))
   const pendentes = fixasOrdenadas.filter((x) => !fixaPagaNoMes(x, f.transacoes, mes))
@@ -721,12 +725,17 @@ export function Financas() {
       {sub === 'resumo' && <Resumo sync={sync} />}
       {sub === 'lancamentos' && <Lancamentos />}
       {sub === 'fixas' && <Fixas />}
+      {sub === 'espera' && (
+        <div className="estreito">
+          <ListaDeEspera />
+        </div>
+      )}
       {sub === 'importar' && (
         <>
           <div className="estreito">
             <CapturaBancos />
-            {/* Meu Pluggy é restrito a uso pessoal; builds públicos usam VITE_OPEN_FINANCE=desligado. */}
-            {import.meta.env.VITE_OPEN_FINANCE !== 'desligado' && <OpenFinance sync={sync} />}
+            {/* Meu Pluggy é restrito a uso pessoal: só aparece em builds com VITE_OPEN_FINANCE=ligado. */}
+            {import.meta.env.VITE_OPEN_FINANCE === 'ligado' && <OpenFinance sync={sync} />}
           </div>
           <Importar />
         </>

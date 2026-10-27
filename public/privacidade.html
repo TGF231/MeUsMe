@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MeUsMe · Privacidade</title>
+    <style>
+      :root {
+        --fundo: #f4f6f8;
+        --superficie: #ffffff;
+        --texto: #1b2530;
+        --suave: #52606d;
+        --acento: #7d0e0e;
+        --borda: #d9e0e7;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --fundo: #0f1620;
+          --superficie: #17212c;
+          --texto: #e6ebf0;
+          --suave: #a3b0bd;
+          --acento: #e0625b;
+          --borda: #2a3846;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--fundo);
+        color: var(--texto);
+        font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px 16px 64px;
+      }
+      section {
+        background: var(--superficie);
+        border: 1px solid var(--borda);
+        border-radius: 8px;
+        padding: 4px 20px;
+        margin: 16px 0;
+      }
+      h1 {
+        font-size: 1.6rem;
+        margin: 8px 0 0;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 16px 0 8px;
+      }
+      a {
+        color: var(--acento);
+      }
+      .suave {
+        color: var(--suave);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Política de privacidade do MeUsMe</h1>
+      <p class="suave">Atualizada em 26 de outubro de 2026.</p>
+
+      <section>
+        <h2>Em resumo</h2>
+        <ul>
+          <li>Seus dados ficam no seu aparelho. Só vão para um servidor se você entrar na sincronização.</li>
+          <li>Não há anúncios, venda de dados, rastreamento de uso nem compartilhamento com terceiros para marketing.</li>
+          <li>Você pode exportar tudo a qualquer momento e apagar sua conta de dentro do app.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Quem é responsável</h2>
+        <p>
+          O MeUsMe é desenvolvido por TGF231. Dúvidas, pedidos sobre seus dados ou suporte:
+          <a href="mailto:tgf231.dev@gmail.com">tgf231.dev@gmail.com</a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>Que dados o app guarda</h2>
+        <ul>
+          <li><b>Organização:</b> capturas, projetos, passos, ideias, tempo de foco e check-ins (humor, energia e uma frase opcional).</li>
+          <li><b>Finanças:</b> contas, categorias, lançamentos, contas fixas e a lista de compras em espera, com os valores que você digita ou importa.</li>
+          <li><b>Agenda:</b> compromissos e lembretes.</li>
+          <li><b>Configurações:</b> horários de aviso, tema e cor.</li>
+          <li><b>Registro de erros:</b> mensagem técnica dos últimos 20 erros, só no aparelho, sem o conteúdo dos seus dados.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Recursos opcionais e o que cada um usa</h2>
+        <ul>
+          <li>
+            <b>Sincronização:</b> pede seu e-mail para enviar um código de acesso. Seus dados passam a ser guardados também num servidor
+            (Supabase), acessíveis só pela sua conta e transmitidos com criptografia (HTTPS).
+          </li>
+          <li>
+            <b>Leitura de notificações de banco (Android):</b> com a sua permissão, o app lê as notificações apenas dos aplicativos que você
+            marcar. O texto é interpretado no próprio celular; só o lançamento resultante (valor e descrição) é guardado.
+          </li>
+          <li>
+            <b>Google Agenda:</b> com a sua autorização, o app lê e cria compromissos na sua agenda. O acesso pode ser revogado a qualquer
+            momento em Ajustes ou na sua conta Google.
+          </li>
+          <li>
+            <b>Tempo por programa (Windows):</b> o app anota o nome do programa em uso a cada 5 segundos, nunca o título da janela nem o
+            conteúdo. Fica só no computador.
+          </li>
+          <li><b>Importação de extratos:</b> o arquivo é lido no aparelho e não é enviado a lugar nenhum.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Por quanto tempo</h2>
+        <p>
+          No aparelho, até você apagar os dados ou desinstalar o app. No servidor, enquanto sua conta existir: ao apagar a conta, tudo o que
+          está no servidor é removido na hora.
+        </p>
+      </section>
+
+      <section>
+        <h2>Seus direitos (LGPD)</h2>
+        <p>
+          Você pode acessar e levar seus dados (Ajustes → Backup → Exportar, um arquivo JSON), corrigi-los no próprio app e apagá-los. Para
+          qualquer outro pedido previsto na Lei Geral de Proteção de Dados, escreva para o e-mail acima.
+        </p>
+      </section>
+
+      <section id="apagar-conta">
+        <h2>Como apagar sua conta</h2>
+        <ol>
+          <li>Abra o MeUsMe e vá em <b>Ajustes → Sincronização</b>.</li>
+          <li>Abra <b>Apagar minha conta</b> e confirme.</li>
+        </ol>
+        <p>
+          A conta e todos os dados guardados no servidor são apagados imediatamente. Os dados no seu aparelho continuam lá até você
+          desinstalar o app. Sem acesso ao app? Peça a exclusão pelo e-mail acima, a partir do endereço da conta.
+        </p>
+      </section>
+
+      <section>
+        <h2>Saúde</h2>
+        <p>
+          O MeUsMe é uma ferramenta de organização pessoal inspirada em pesquisas sobre TDAH. Não é um dispositivo médico, não faz diagnóstico
+          e não substitui acompanhamento profissional.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mudanças nesta política</h2>
+        <p>Mudanças importantes serão avisadas dentro do app antes de valerem.</p>
+      </section>
+    </main>
+  </body>
+</html>

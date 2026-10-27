@@ -99,9 +99,9 @@ Precisa de um Mac com Xcode e da conta Apple Developer (US$ 99 por ano). O Capac
 
 ## 7. O que ainda impede uma publicação aberta
 
-1. **Open Finance (Pluggy)**: o Meu Pluggy é gratuito **só para uso pessoal** (um CPF). Para oferecer a outras pessoas é preciso o plano comercial da Pluggy (a partir de R$ 2.500/mês, segundo a própria Pluggy), e o segredo da API precisa morar num servidor (por exemplo, uma Edge Function do Supabase), nunca dentro do app. Por isso as versões públicas devem ser compiladas com `VITE_OPEN_FINANCE=desligado` (já é o padrão no `.env.example`).
+1. **Open Finance (Pluggy)**: o Meu Pluggy é gratuito **só para uso pessoal** (um CPF). Para oferecer a outras pessoas é preciso o plano comercial da Pluggy (a partir de R$ 2.500/mês, segundo a própria Pluggy), e o segredo da API precisa morar num servidor (por exemplo, uma Edge Function do Supabase), nunca dentro do app. Por isso o Open Finance só aparece em builds com `VITE_OPEN_FINANCE=ligado`; sem a variável (o padrão), fica escondido.
 2. **Google Agenda**: o acesso à agenda é um escopo "sensível" do Google. Para o público, o Google exige **verificação do app** (política de privacidade, domínio próprio, vídeo de demonstração). Até lá, só funciona para até 100 usuários de teste cadastrados por você.
-3. **Política de privacidade e termos de uso** (LGPD e exigência das lojas): falta escrever, publicar num endereço fixo e pôr o link dentro do app.
+3. **Política de privacidade e termos de uso** (LGPD e exigência das lojas): a política está escrita em `public/privacidade.html` (sai junto com o app web e tem a seção `#apagar-conta` que a Play pede) e tem link em Ajustes → Sobre. Falta publicar num endereço fixo, revisar o texto e escrever os termos de uso.
 
 ## Custos para começar
 

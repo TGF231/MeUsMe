@@ -60,7 +60,7 @@ Para uso pessoal, o e-mail padrão do Supabase basta: ele só envia para os memb
 
 Energia leve · 1 passo
 
-1. Copie `.env.example` para `.env.production.local`, preencha a URL e a chave anon e apague a linha `VITE_OPEN_FINANCE` (é uso pessoal).
+1. Copie `.env.example` para `.env.production.local`, preencha a URL e a chave anon e ponha `VITE_OPEN_FINANCE=ligado` (é uso pessoal; sem isso o Open Finance fica escondido).
 2. `npm run build` e `npm run preview`.
 3. Ajustes → Sincronização → seu e-mail → código.
 
@@ -73,6 +73,7 @@ Energia leve · 1 passo
 ```bash
 gh variable set VITE_SUPABASE_URL --body "https://SEU-PROJETO.supabase.co"
 gh variable set VITE_SUPABASE_ANON_KEY --body "SUA-CHAVE-ANON"
+gh variable set VITE_OPEN_FINANCE --body ligado   # só enquanto as releases forem para você
 npm run versao -- patch
 git commit -am "Versão 0.1.1"
 git tag v0.1.1
@@ -134,7 +135,9 @@ Código de verdade. Cada tarefa indica a trilha do [guia de estudo](GUIA-DE-ESTU
 
 **Chegada da fase:** o CI roda testes de tela e de ponta a ponta, e um erro forçado no app instalado aparece no seu painel em minutos.
 
-### 2.1 Lint sem avisos (aquecimento)
+### 2.1 Lint sem avisos (aquecimento) · feito
+
+> Feito na revisão de outubro de 2026 (hook `useAgora` em `src/hooks.ts`). Como estudo: leia o diff do commit e explique por que o `useState(() => Date.now())` é permitido e o `Date.now()` no corpo não.
 
 Trilha 4 · energia média · 2 passos
 
@@ -149,7 +152,9 @@ Pista: um hook `useAgora()` com `useState`, `useEffect` e `setInterval`, e a lim
 
 **Na revisão:** o intervalo é limpo ao sair da tela; nenhum componente chama `Date.now()` no corpo; a frequência do relógio combina com a tela (a Agenda não precisa de segundos).
 
-### 2.2 Supabase só para quem sincroniza
+### 2.2 Supabase só para quem sincroniza · feito
+
+> Feito na revisão de outubro de 2026. Como estudo: leia `src/sync/remoto.ts` e explique o que acontece se o arquivo do Supabase falhar ao baixar.
 
 Trilha 6 · energia média · 2 passos
 
@@ -175,7 +180,9 @@ Em [testes/sincronizacao.test.ts](../testes/sincronizacao.test.ts), as classes `
 
 **Na revisão:** por que "mais duas vezes" no fim, e não uma; o teste todo roda em menos de 2 segundos.
 
-### 2.4 Backup confiável
+### 2.4 Backup confiável · parcial
+
+> Já feito: validação antes de gravar, mensagem clara para arquivo inválido, aviso quando a sincronização vai espalhar o backup e o texto do cartão. Falta: levar a lógica para `src/backup.ts` com testes.
 
 Trilha 5 · energia média · 2 passos
 
@@ -188,7 +195,9 @@ Exportar e restaurar estão dentro de [Ajustes.tsx](../src/screens/Ajustes.tsx) 
 
 **Na revisão:** toda a validação acontece antes da primeira gravação.
 
-### 2.5 Registro de erros
+### 2.5 Registro de erros · parcial
+
+> Já feito: passo 1 (captura, tela de erro, 20 últimos no aparelho) e passo 3 (Ajustes → Sobre → Erros recentes), em `src/erros.ts`. Falta o passo 2, enviar à tabela `erros`.
 
 Trilha 7 · energia pesada · 3 passos
 

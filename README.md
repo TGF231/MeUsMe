@@ -1,16 +1,18 @@
 # MeUsMe
 
-Uma coisa de cada vez. App pessoal para decidir o próximo passo, chegar ao fim do que começou e manter tempo e dinheiro à vista.
+Uma coisa de cada vez. App para decidir o próximo passo, chegar ao fim do que começou e manter tempo e dinheiro à vista, pensado para quem tem TDAH. Cada função segue um achado de pesquisa: ver [docs/PESQUISA-TDAH.md](docs/PESQUISA-TDAH.md).
+
+No primeiro uso, uma introdução de quatro telas oferece um projeto de exemplo.
 
 ## Módulos
 
-- **Agora**: o app escolhe *um* passo para você, de acordo com sua energia. Horário reservado vence; depois o projeto em foco; depois o projeto mais perto da linha de chegada. Mostra quanto tempo livre há até o próximo compromisso, lembretes vencidos e contas do dia.
+- **Agora**: o app escolhe *um* passo para você, de acordo com sua energia. Horário reservado vence; depois o projeto em foco; depois o projeto mais perto da linha de chegada. Mostra quanto tempo livre há até o próximo compromisso, lembretes vencidos e contas do dia. Barra de progresso até a linha de chegada, combinado de 5 minutos para começar, anel do bloco de foco e palpite de tempo. Quem volta depois de dias sumido é recebido sem cobrança, e uma vez por semana aparece a **revisão da semana** (Caixa, foco, projetos sem próximo passo, próximos 7 dias).
 - **Agenda**: compromissos e lembretes (únicos ou repetidos), tempo livre entre eventos, sincronização com o Google Agenda.
-- **Caixa**: tire da cabeça em 1 segundo (botão `+` ou `Ctrl+Espaço`). Depois vira passo, projeto, gasto, compromisso, lembrete ou ideia. Textos como `35 almoço` são reconhecidos como gasto.
-- **Finanças**: "livre para gastar por dia até o fim do mês", contas fixas com aviso de vencimento, limites por categoria, Open Finance pelo Meu Pluggy (gratuito para uso pessoal) e importação de extrato CSV (Nubank, Inter, Wallet…), sem duplicar e com categorização automática.
-- **Projetos**: todo projeto nasce com uma *linha de chegada*. Só o próximo passo fica visível.
-- **Histórico**: check-in de 30 segundos (humor, energia, uma frase) e o que você fez em cada dia, com o tempo de cada passo e por projeto.
-- **Ajustes**: sincronização entre aparelhos, notificações, conexão com o Google, backup.
+- **Caixa**: tire da cabeça em 1 segundo (botão `+` ou `Ctrl+Espaço`). Depois vira passo, projeto, gasto, compromisso, lembrete ou ideia. Textos como `35 almoço` são reconhecidos como gasto. Vontade de comprar algo vai para a lista de espera.
+- **Finanças**: "livre para gastar por dia até o fim do mês", contas fixas com aviso de vencimento, limites por categoria, Open Finance pelo Meu Pluggy (gratuito para uso pessoal) e importação de extrato CSV (Nubank, Inter, Wallet…), sem duplicar e com categorização automática. **Antes de comprar**: a compra espera de 24h a 1 semana e o app pergunta de novo. O Open Finance só aparece em builds com `VITE_OPEN_FINANCE=ligado` (uso pessoal).
+- **Projetos**: todo projeto nasce com uma *linha de chegada*. Só o próximo passo fica visível, com o progresso de quanto já foi feito.
+- **Histórico**: check-in de 30 segundos (humor, energia, uma frase) e o que você fez em cada dia, com o tempo de cada passo e por projeto, e o quanto seus palpites de tempo batem com o real.
+- **Ajustes**: sincronização entre aparelhos, notificações (inclusive o dia da revisão semanal), conexão com o Google, backup e **Sobre** (por que o app funciona assim, privacidade, espaço usado e erros recentes).
 
 Os dados ficam no próprio aparelho (localStorage) e, se você ativar, são sincronizados entre aparelhos.
 

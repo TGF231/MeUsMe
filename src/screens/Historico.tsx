@@ -1,7 +1,10 @@
-import { CheckInForm, HUMORES } from '../components/CheckInForm'
+import { calibracao, explicarFator } from '../calculos'
+import { CheckInForm } from '../components/CheckInForm'
 import { Pontos } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { UsoDoComputador } from '../components/UsoDoComputador'
+import { useAgora } from '../hooks'
+import { HUMORES } from '../rotulos'
 import { minutosDoPasso, useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { dataISO, duracao, hora, hoje, nomeDoDia } from '../util'
@@ -11,11 +14,12 @@ const DIA = 86_400_000
 export function Historico() {
   const s = useStore()
   const eventos = useAgenda((a) => a.eventos)
-  const agora = Date.now()
+  const agora = useAgora(60_000)
   const projetoDe = (id: string | null) => s.projetos.find((p) => p.id === id)
+  const cal = calibracao(s.passos, s.sessoes)
 
   // Resumo: últimos 7 dias
-  const desde7 = new Date().setHours(0, 0, 0, 0) - 6 * DIA
+  const desde7 = new Date(agora).setHours(0, 0, 0, 0) - 6 * DIA
   const feitos7 = s.passos.filter((p) => p.feitoEm && p.feitoEm >= desde7)
   const foco7 = s.sessoes.filter((x) => x.inicio >= desde7).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0)
   const manuais7 = feitos7.reduce((t, p) => t + (p.minutosManuais ?? 0), 0)
@@ -49,6 +53,23 @@ export function Historico() {
           </div>
 
           <UsoDoComputador />
+
+          <div className="cartao">
+            <p className="rotulo">Palpite × tempo real</p>
+            {cal ? (
+              <>
+                <p>{explicarFator(cal.fator)}</p>
+                <p className="motivo">
+                  Com base em {cal.passos} passo{cal.passos === 1 ? '' : 's'} com palpite. Errar a estimativa de tempo é comum, e ver o seu número
+                  ajuda a reservar o tempo certo.
+                </p>
+              </>
+            ) : (
+              <p className="motivo">
+                Ao começar um passo, dê um palpite de quanto ele vai levar. Com alguns palpites, aparece aqui o quanto eles batem com o real.
+              </p>
+            )}
+          </div>
 
           <div className="cartao">
             <p className="rotulo">Últimos 7 dias</p>

@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
+import { diasDesde, revisaoPendente, ultimaAtividade } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
+import { BarraProgresso } from '../components/Progresso'
+import { AnelDoBloco, Palpite } from '../components/RelogioDeFoco'
+import { RevisaoSemana } from '../components/RevisaoSemana'
 import { PontosEditaveis, SeletorEnergia } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { escolherPasso, type Escolha } from '../escolher'
 import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
 import { chaveEvento, useAgenda } from '../stores/agenda'
+import { useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import type { Energia, Evento, Projeto } from '../types'
 import { duracao, hora, inicioDoDia, reais } from '../util'
@@ -63,6 +68,13 @@ export function Agora() {
   const [adiados, setAdiados] = useState<Set<string>>(new Set())
   const [ideia, setIdeia] = useState('')
   const [agora, setAgora] = useState(() => Date.now())
+  const cfg = useConfig()
+  const [revisando, setRevisando] = useState(false)
+  // Última atividade lida ao abrir a tela: o cartão de boas-vindas não some no meio do primeiro passo.
+  const [diasLonge, setDiasLonge] = useState(() => {
+    const ultima = ultimaAtividade(useStore.getState())
+    return ultima ? diasDesde(ultima) : 0
+  })
 
   // Sessão sem fim = cronômetro em andamento (persiste entre aberturas do app).
   const sessao = s.sessoes.find((x) => !x.fim)
@@ -145,6 +157,13 @@ export function Agora() {
               <TempoGasto passo={passoFeito} perguntar={!s.sessoes.some((x) => x.passoId === passoFeito.id)} />
             </div>
           )}
+          {passoFeito?.estimativaMin && minutosDoPasso(passoFeito, s.sessoes) >= 1 && (
+            <p className="motivo">
+              Palpite: {duracao(passoFeito.estimativaMin)} · real: {duracao(minutosDoPasso(passoFeito, s.sessoes))}. Errar o palpite é normal; o
+              Histórico usa isso para mostrar o seu ritmo.
+            </p>
+          )}
+          {projeto && <BarraProgresso passos={s.passos} projetoId={projeto.id} />}
           {projeto && (
             <p>
               {feitosNoProjeto} passo{feitosNoProjeto === 1 ? '' : 's'} já {feitosNoProjeto === 1 ? 'feito' : 'feitos'} em{' '}
@@ -189,13 +208,20 @@ export function Agora() {
 
   if (sessao && passoAtivo) {
     const projeto = s.projetos.find((p) => p.id === passoAtivo.projetoId) ?? null
+    // agora vem do intervalo e pode estar até 1 s atrás do início da sessão.
+    const decorrido = Math.max(0, agora - sessao.inicio)
     return (
       <section className="tela centro">
         <div className="cartao foco">
           {projeto && <p className="projeto">{projeto.titulo}</p>}
           <p className="passo">{passoAtivo.texto}</p>
-          <p className="relogio">{relogio(agora - sessao.inicio)}</p>
-          {minutosDoPasso(passoAtivo, s.sessoes, agora) - (agora - sessao.inicio) / 60_000 >= 1 && (
+          <p className="relogio">{relogio(decorrido)}</p>
+          <AnelDoBloco decorrido={decorrido} blocoMin={cfg.avisoFocoMin || 25} />
+          {decorrido >= 5 * 60_000 && decorrido < 10 * 60_000 && (
+            <p className="dica neutra centralizado">5 minutos feitos. Dá para parar aqui sem culpa, ou seguir.</p>
+          )}
+          <Palpite passo={passoAtivo} />
+          {minutosDoPasso(passoAtivo, s.sessoes, agora) - decorrido / 60_000 >= 1 && (
             <p className="motivo centralizado">Total neste passo: {duracao(minutosDoPasso(passoAtivo, s.sessoes, agora))}</p>
           )}
           <div className="linha">
@@ -226,6 +252,28 @@ export function Agora() {
   return (
     <section className="tela colunas agora">
       <div className="col">
+        {diasLonge >= 3 && (
+          <div className="cartao compacto de-volta">
+            <p>
+              <b>Que bom te ver de novo.</b> Faz {diasLonge} dias. Nada se perdeu e nada ficou atrasado aqui: escolha uma coisa leve para
+              recomeçar.
+            </p>
+            <div className="linha">
+              <button
+                className="primario"
+                onClick={() => {
+                  setEnergia(1)
+                  setDiasLonge(0)
+                }}
+              >
+                Começar leve
+              </button>
+              <button className="discreto" onClick={() => setDiasLonge(0)}>
+                Ok
+              </button>
+            </div>
+          </div>
+        )}
         {eventoAgora ? (
           <div className="cartao foco compromisso">
             <p className="projeto">Compromisso agora{eventoAgora.origem === 'google' && <span className="selo">Google</span>}</p>
@@ -275,9 +323,12 @@ export function Agora() {
               {escolha.motivo}
             </p>
             {escolha.projeto && (
-              <p className="chegada">
-                Linha de chegada: <i>{escolha.projeto.chegada}</i>
-              </p>
+              <>
+                <p className="chegada">
+                  Linha de chegada: <i>{escolha.projeto.chegada}</i>
+                </p>
+                <BarraProgresso passos={s.passos} projetoId={escolha.projeto.id} />
+              </>
             )}
             {escolha.acimaDaEnergia && (
               <p className="dica">Tudo na fila pede mais energia do que você tem agora. Que tal quebrar este em algo menor?</p>
@@ -309,6 +360,7 @@ export function Agora() {
                 <button className="primario grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
                   Começar
                 </button>
+                <p className="motivo centralizado">Combinado: só 5 minutos. Depois você decide se continua.</p>
                 <div className="linha">
                   <button onClick={() => concluir(escolha.passo.id)}>Já fiz</button>
                   <button onClick={() => setModo('quebrando')}>Grande demais</button>
@@ -324,6 +376,22 @@ export function Agora() {
 
       {/* Em telas estreitas, a ordem visual vem de .agora (index.css). */}
       <div className="col">
+        {revisando ? (
+          <RevisaoSemana agora={agora} onFechar={() => setRevisando(false)} />
+        ) : (
+          revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) && (
+            <div className="cartao compacto">
+              <div className="linha entre">
+                <span>
+                  <b>Revisão da semana</b>
+                  <br />
+                  <span className="motivo">5 minutos para escolher o foco e olhar a semana.</span>
+                </span>
+                <button onClick={() => setRevisando(true)}>Fazer agora</button>
+              </div>
+            </div>
+          )
+        )}
         <div className="cartao compacto energia">
           <SituacaoAgora />
           <label className="rotulo">Sua energia agora</label>

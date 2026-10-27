@@ -1,6 +1,5 @@
+import { NOMES_ENERGIA } from '../rotulos'
 import type { Energia } from '../types'
-
-export const NOMES_ENERGIA: Record<Energia, string> = { 1: 'Baixa', 2: 'Média', 3: 'Alta' }
 
 export function SeletorEnergia({ valor, onChange }: { valor: Energia; onChange: (e: Energia) => void }) {
   return (

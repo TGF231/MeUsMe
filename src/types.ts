@@ -26,6 +26,8 @@ export interface Passo {
   feitoEm?: number
   /** Minutos informados manualmente (passo concluído sem cronômetro). */
   minutosManuais?: number
+  /** Palpite de duração feito antes ou durante o passo; comparado com o real no Histórico. */
+  estimativaMin?: number
 }
 
 export interface Ideia {
@@ -84,6 +86,19 @@ export interface Transacao {
   fixaId?: string
   /** Criado a partir de notificação; substituído quando o Open Finance traz o lançamento. */
   provisoria?: boolean
+}
+
+/** Compra adiada: espera um prazo antes de decidir (contra a compra por impulso). */
+export interface Desejo {
+  id: string
+  texto: string
+  /** Centavos, se informado. */
+  valor?: number
+  criadoEm: number
+  /** A partir deste instante o app pergunta se ainda quer. */
+  decidirEm: number
+  decisao?: 'comprei' | 'desisti'
+  decididoEm?: number
 }
 
 /** Lançamento recorrente mensal. */

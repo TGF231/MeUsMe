@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
 import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows } from '../nativo/desktop'
 import { Sincronizacao } from '../components/Sincronizacao'
+import { Sobre } from '../components/Sobre'
 import { ehDesktop, ehNativo } from '../nativo/plataforma'
 import { abrirAjusteDeHorarioExato, horarioExatoLiberado, lerPermissao, notificar, pedirPermissao, type Permissao } from '../notificacoes'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
+import { useStatusSync } from '../sync/motor'
 import { ACENTOS_PRONTOS, pareceSemantica, resolverAcento } from '../tema/cores'
 import { temaEfetivo } from '../tema/aplicar'
 import { baixarArquivo, hoje } from '../util'
@@ -100,6 +102,18 @@ function Notificacoes() {
         ))}
       </div>
       <p className="motivo">Com 1h30 no mesmo passo, o app sempre avisa: é a proteção contra hiperfoco.</p>
+
+      <label className="rotulo">Revisão da semana (aviso às 10h)</label>
+      <div className="chips">
+        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((nome, d) => (
+          <button key={d} className={cfg.diaRevisao === d ? 'ativo' : ''} onClick={() => cfg.ajustar({ diaRevisao: d })}>
+            {nome}
+          </button>
+        ))}
+        <button className={cfg.diaRevisao < 0 ? 'ativo' : ''} onClick={() => cfg.ajustar({ diaRevisao: -1 })}>
+          Desligada
+        </button>
+      </div>
     </div>
   )
 }
@@ -304,7 +318,7 @@ function Backup() {
     <div className="cartao">
       <h2 className="titulo">Backup</h2>
       <p className="motivo">
-        Seus dados ficam só neste aparelho. Exporte de vez em quando, e use o mesmo arquivo para levar tudo para outro aparelho.
+        Um arquivo com todos os seus dados. Exporte de vez em quando: é a garantia de que nada se perde, com ou sem sincronização.
       </p>
       <div className="linha">
         <button
@@ -326,14 +340,25 @@ function Backup() {
               try {
                 const backup = JSON.parse(await arquivo.text())
                 if (backup.app !== 'MeUsMe') throw new Error('Este arquivo não é um backup do MeUsMe.')
-                if (!confirm('Substituir TODOS os dados deste aparelho pelo backup?')) return
+                // Valida tudo antes de gravar qualquer coisa: um arquivo pela metade não pode deixar dados pela metade.
+                const validos = CHAVES_BACKUP.filter((k) => typeof backup.dados?.[k] === 'string')
+                if (validos.length === 0) throw new Error('O backup está vazio.')
+                for (const k of validos) {
+                  const conteudo = JSON.parse(backup.dados[k]) as { state?: unknown }
+                  if (!conteudo || typeof conteudo.state !== 'object') throw new Error('O backup está danificado. Nada foi alterado.')
+                }
+                const sincronizando = ['ociosa', 'sincronizando', 'erro'].includes(useStatusSync.getState().situacao)
+                const aviso = sincronizando
+                  ? 'Substituir TODOS os dados pelo backup? A sincronização está ligada: o conteúdo do backup também vai substituir o que está nos seus outros aparelhos.'
+                  : 'Substituir TODOS os dados deste aparelho pelo backup?'
+                if (!confirm(aviso)) return
                 for (const k of CHAVES_BACKUP) {
                   const v = backup.dados?.[k]
                   if (typeof v === 'string') localStorage.setItem(k, v)
                 }
                 location.reload()
               } catch (x) {
-                setMensagem((x as Error).message)
+                setMensagem(x instanceof SyntaxError ? 'O arquivo não é um backup válido. Nada foi alterado.' : (x as Error).message)
               }
             }}
           />
@@ -353,6 +378,7 @@ export function Ajustes() {
       <Notificacoes />
       <Google />
       <Backup />
+      <Sobre />
     </section>
   )
 }

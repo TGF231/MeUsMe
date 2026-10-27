@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Remota } from './planejar'
 
 /**
@@ -7,10 +7,13 @@ import type { Remota } from './planejar'
  * Servidor embutido no build (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) ou servidor próprio
  * salvo neste aparelho, que tem precedência.
  * A chave anon é pública por design; o isolamento entre usuários vem do RLS (supabase/esquema.sql).
+ *
+ * A biblioteca é carregada sob demanda (import dinâmico): quem não entrou na sincronização não a baixa.
  */
 
 const CHAVE = 'meusme-sync-config'
 const TABELA = 'registros'
+const CHAVE_SESSAO = 'meusme-sync-sessao'
 
 export interface ConfigSync {
   url: string
@@ -62,21 +65,30 @@ export function lerCodigoDeConfiguracao(codigo: string): ConfigSync | null {
   }
 }
 
-let cliente: SupabaseClient | null = null
+let cliente: Promise<SupabaseClient> | null = null
 
-export function obterCliente() {
+/** Há uma sessão gravada neste aparelho (sem carregar a biblioteca). */
+const temSessaoSalva = () => localStorage.getItem(CHAVE_SESSAO) !== null
+
+export function obterCliente(): Promise<SupabaseClient> | null {
   const cfg = lerConfigSync()
   if (!cfg) return null
-  cliente ??= createClient(cfg.url, cfg.chave, {
-    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'meusme-sync-sessao' },
-  })
+  cliente ??= import('@supabase/supabase-js').then(({ createClient }) =>
+    createClient(cfg.url, cfg.chave, { auth: { persistSession: true, autoRefreshToken: true, storageKey: CHAVE_SESSAO } }),
+  )
+  // Falha ao baixar o arquivo (sem rede): a próxima chamada tenta de novo.
+  cliente.catch(() => (cliente = null))
   return cliente
 }
 
-function exigirCliente() {
+async function exigirCliente() {
   const c = obterCliente()
   if (!c) throw new Error('Sincronização não configurada.')
-  return c
+  try {
+    return await c
+  } catch {
+    throw new Error('Sem conexão com o servidor agora. Confira a internet; nada do que está neste aparelho se perde.')
+  }
 }
 
 /** Converte erros do Supabase em mensagens para o usuário. */
@@ -95,31 +107,30 @@ function explicar(erro: { message?: string; code?: string } | null): Error {
 }
 
 export async function usuarioAtual() {
-  const c = obterCliente()
-  if (!c) return null
-  const { data } = await c.auth.getSession()
+  if (!lerConfigSync() || !temSessaoSalva()) return null
+  const { data } = await (await exigirCliente()).auth.getSession()
   const u = data.session?.user
   return u ? { id: u.id, email: u.email ?? '' } : null
 }
 
 /** Login por OTP de e-mail (cria a conta no primeiro acesso). Não depende de deep links. */
 export async function enviarCodigo(email: string) {
-  const { error } = await exigirCliente().auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
+  const { error } = await (await exigirCliente()).auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
   if (error) throw explicar(error)
 }
 
 export async function confirmarCodigo(email: string, codigo: string) {
-  const { error } = await exigirCliente().auth.verifyOtp({ email, token: codigo.replace(/\D/g, ''), type: 'email' })
+  const { error } = await (await exigirCliente()).auth.verifyOtp({ email, token: codigo.replace(/\D/g, ''), type: 'email' })
   if (error) throw explicar(error)
 }
 
 export async function sair() {
-  await obterCliente()?.auth.signOut()
+  if (temSessaoSalva()) await (await exigirCliente()).auth.signOut()
 }
 
 /** Remove a conta e os dados no servidor (RPC apagar_minha_conta). Os dados locais permanecem. */
 export async function apagarConta() {
-  const c = exigirCliente()
+  const c = await exigirCliente()
   const { error } = await c.rpc('apagar_minha_conta')
   if (error) throw explicar(error)
   await c.auth.signOut()
@@ -127,10 +138,18 @@ export async function apagarConta() {
 
 /** Emite o id do usuário a cada evento de auth, inclusive renovação de token. */
 export function aoMudarLogin(ouvinte: (usuario: string | null) => void) {
-  const c = obterCliente()
-  if (!c) return () => {}
-  const { data } = c.auth.onAuthStateChange((_evento, sessao) => ouvinte(sessao?.user.id ?? null))
-  return () => data.subscription.unsubscribe()
+  if (!temSessaoSalva()) return () => {}
+  let cancelar = () => {}
+  let ativo = true
+  void obterCliente()?.then((c) => {
+    if (!ativo) return
+    const { data } = c.auth.onAuthStateChange((_evento, sessao) => ouvinte(sessao?.user.id ?? null))
+    cancelar = () => data.subscription.unsubscribe()
+  }, () => {})
+  return () => {
+    ativo = false
+    cancelar()
+  }
 }
 
 export interface LinhaServidor extends Remota {
@@ -139,7 +158,7 @@ export interface LinhaServidor extends Remota {
 
 /** Linhas alteradas desde `desde` (ISO), paginadas de 1000 em 1000. */
 export async function baixar(desde: string | null): Promise<LinhaServidor[]> {
-  const c = exigirCliente()
+  const c = await exigirCliente()
   const linhas: LinhaServidor[] = []
   for (let de = 0; ; de += 1000) {
     let q = c.from(TABELA).select('colecao,id,dados,apagado,atualizado_em').order('atualizado_em').range(de, de + 999)
@@ -153,7 +172,7 @@ export async function baixar(desde: string | null): Promise<LinhaServidor[]> {
 
 /** Upsert em lotes; retorna o maior atualizado_em gravado. */
 export async function enviar(usuario: string, registros: Remota[]): Promise<string | null> {
-  const c = exigirCliente()
+  const c = await exigirCliente()
   let maior: string | null = null
   for (let i = 0; i < registros.length; i += 500) {
     const lote = registros.slice(i, i + 500).map((r) => ({ usuario, colecao: r.colecao, id: r.id, dados: r.apagado ? null : r.dados, apagado: r.apagado }))
@@ -166,11 +185,18 @@ export async function enviar(usuario: string, registros: Remota[]): Promise<stri
 
 /** Assinatura do Realtime para mudanças do usuário. */
 export function ouvirServidor(usuario: string, ouvinte: () => void) {
-  const c = obterCliente()
-  if (!c) return () => {}
-  const canal = c
-    .channel(`registros-${usuario}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: TABELA, filter: `usuario=eq.${usuario}` }, () => ouvinte())
-    .subscribe()
-  return () => void c.removeChannel(canal)
+  let cancelar = () => {}
+  let ativo = true
+  void obterCliente()?.then((c) => {
+    if (!ativo) return
+    const canal = c
+      .channel(`registros-${usuario}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABELA, filter: `usuario=eq.${usuario}` }, () => ouvinte())
+      .subscribe()
+    cancelar = () => void c.removeChannel(canal)
+  }, () => {})
+  return () => {
+    ativo = false
+    cancelar()
+  }
 }

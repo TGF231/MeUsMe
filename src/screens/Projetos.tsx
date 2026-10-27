@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { PassoForm } from '../components/PassoForm'
+import { BarraProgresso } from '../components/Progresso'
 import { PontosEditaveis } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
+import { useNavegacao } from '../navegacao'
 import { minutosDoPasso, pendentes, useStore } from '../store'
 import { duracao } from '../util'
 
@@ -60,6 +62,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
             <p className="chegada">
               Linha de chegada: <i>{projeto.chegada}</i>
             </p>
+            <BarraProgresso passos={s.passos} projetoId={id} />
             {tempoTotal >= 1 && <p className="motivo">Tempo investido até agora: {duracao(tempoTotal)}</p>}
             {!projeto.concluidoEm && (
               <div className="linha">
@@ -154,7 +157,8 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
 
 export function Projetos() {
   const s = useStore()
-  const [aberto, setAberto] = useState<string | null>(null)
+  // Outra tela pode pedir um projeto aberto (ex.: revisão semanal).
+  const [aberto, setAberto] = useState<string | null>(() => useNavegacao.getState().projetoAberto)
   const [criando, setCriando] = useState(false)
 
   if (aberto) return <Detalhe id={aberto} onVoltar={() => setAberto(null)} />
@@ -190,9 +194,11 @@ export function Projetos() {
                 {p.titulo}
               </span>
               <span className="passo pequeno">{proximo ? `→ ${proximo.texto}` : 'Sem próximo passo definido'}</span>
-              <span className="motivo">
-                {feitos} passo{feitos === 1 ? '' : 's'} já feito{feitos === 1 ? '' : 's'}
-              </span>
+              {feitos + pendentes(s.passos, p.id).length > 0 ? (
+                <BarraProgresso passos={s.passos} projetoId={p.id} />
+              ) : (
+                <span className="motivo">Nenhum passo ainda</span>
+              )}
             </button>
           )
         })}

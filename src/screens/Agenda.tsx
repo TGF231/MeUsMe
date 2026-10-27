@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { EventoForm } from '../components/EventoForm'
 import { LembreteForm } from '../components/LembreteForm'
 import { conectarGoogle, ErroGoogle, removerDoGoogle, sincronizarGoogle, temToken } from '../google'
+import { useAgora } from '../hooks'
 import { useStore } from '../store'
 import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
 import type { Evento } from '../types'
@@ -11,13 +12,9 @@ const REPETIR = { nunca: '', diario: 'todo dia', semanal: 'toda semana', mensal:
 
 export function SituacaoAgora() {
   const eventos = useAgenda((s) => s.eventos)
-  const [agora, setAgora] = useState(() => Date.now())
-  useEffect(() => {
-    const t = setInterval(() => setAgora(Date.now()), 30_000)
-    return () => clearInterval(t)
-  }, [])
+  const agora = useAgora(30_000)
   const { atual, proximo } = situacaoAgora(eventos, agora)
-  const fimDoDia = inicioDoDia() + 86_400_000
+  const fimDoDia = inicioDoDia(agora) + 86_400_000
 
   if (atual)
     return (
@@ -81,11 +78,10 @@ function BarraGoogle() {
   )
 }
 
-function LinhaEvento({ e }: { e: Evento }) {
+function LinhaEvento({ e, agora }: { e: Evento; agora: number }) {
   const remover = useAgenda((s) => s.removerEvento)
   const passo = useStore((s) => (e.passoId ? s.passos.find((p) => p.id === e.passoId) : undefined))
   const [erro, setErro] = useState('')
-  const agora = Date.now()
   const passou = e.fim < agora
 
   return (
@@ -122,21 +118,21 @@ function ListaDoDia({ dia }: { dia: number }) {
   const doDia = eventosDoDia(eventos, dia)
   const diaInteiro = doDia.filter((e) => e.diaInteiro)
   const comHora = doDia.filter((e) => !e.diaInteiro)
-  const agora = Date.now()
+  const agora = useAgora(60_000)
 
   return (
     <>
       {doDia.length === 0 && <p className="motivo">Dia livre.</p>}
       {diaInteiro.map((e) => (
-        <LinhaEvento key={e.id} e={e} />
+        <LinhaEvento key={e.id} e={e} agora={agora} />
       ))}
       {comHora.map((e, i) => {
-        const anterior = i > 0 ? comHora[i - 1].fim : dia === inicioDoDia() ? agora : null
+        const anterior = i > 0 ? comHora[i - 1].fim : dia === inicioDoDia(agora) ? agora : null
         const livre = anterior !== null ? (e.inicio - anterior) / 60_000 : 0
         return (
           <div key={e.id}>
             {livre >= 20 && <p className="livre">livre {duracao(livre)}</p>}
-            <LinhaEvento e={e} />
+            <LinhaEvento e={e} agora={agora} />
           </div>
         )
       })}
@@ -147,8 +143,8 @@ function ListaDoDia({ dia }: { dia: number }) {
 /** Eventos e lembretes restantes do dia (coluna lateral de Agora). */
 export function RestoDoDia() {
   const agenda = useAgenda()
-  const agora = Date.now()
-  const fimDoDia = inicioDoDia() + 86_400_000
+  const agora = useAgora(30_000)
+  const fimDoDia = inicioDoDia(agora) + 86_400_000
   const eventos = agenda.eventos.filter((e) => e.fim > agora && e.inicio < fimDoDia).sort((a, b) => a.inicio - b.inicio)
   const lembretes = agenda.lembretes.filter((l) => !l.concluido && l.quando > agora && l.quando < fimDoDia)
   const itens = [
@@ -176,11 +172,11 @@ export function RestoDoDia() {
 
 export function Agenda() {
   const agenda = useAgenda()
-  const [dia, setDia] = useState(inicioDoDia())
+  const agora = useAgora(60_000)
+  const [dia, setDia] = useState(() => inicioDoDia())
   const [criando, setCriando] = useState<'evento' | 'lembrete' | null>(null)
-  const dias = Array.from({ length: 7 }, (_, i) => inicioDoDia(Date.now() + i * 86_400_000))
+  const dias = Array.from({ length: 7 }, (_, i) => inicioDoDia(agora + i * 86_400_000))
   const lembretes = agenda.lembretes.filter((l) => !l.concluido).sort((a, b) => a.quando - b.quando)
-  const agora = Date.now()
 
   return (
     <section className="tela">
@@ -208,7 +204,7 @@ export function Agenda() {
       {/* Telas largas: semana inteira. */}
       <div className="visao-semana">
         {dias.map((d) => (
-          <div key={d} className={`cartao dia-semana ${d === inicioDoDia() ? 'hoje' : ''}`}>
+          <div key={d} className={`cartao dia-semana ${d === inicioDoDia(agora) ? 'hoje' : ''}`}>
             <p className="rotulo">{nomeDoDia(dataISO(d))}</p>
             <ListaDoDia dia={d} />
           </div>

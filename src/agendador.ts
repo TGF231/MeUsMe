@@ -6,6 +6,7 @@ import { useAgenda } from './stores/agenda'
 import { useConfig } from './stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from './stores/financas'
 import type { Lembrete } from './types'
+import { inicioDaSemana } from './calculos'
 import { dataISO, duracao, hora, inicioDoDia, juntarDataHora, mesISO, reais } from './util'
 
 const MIN = 60_000
@@ -90,6 +91,31 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
         quando: juntarDataHora(iso, cfg.horaCheckIn),
         valeAte: fimDoDia,
       })
+  }
+
+  // Revisão semanal: no dia escolhido, às 10h, se a desta semana ainda não foi feita.
+  if (cfg.diaRevisao >= 0)
+    for (let dia = inicioDoDia(de); dia < ate; dia += DIA) {
+      if (new Date(dia).getDay() !== cfg.diaRevisao || cfg.revisaoFeitaEm >= inicioDaSemana(dia, cfg.diaRevisao)) continue
+      avisos.push({
+        chave: `revisao:${dataISO(dia)}`,
+        titulo: 'Revisão da semana',
+        corpo: '5 minutos: esvaziar a Caixa, escolher o foco e olhar os próximos dias.',
+        quando: juntarDataHora(dataISO(dia), '10:00'),
+        valeAte: dia + DIA,
+      })
+    }
+
+  // Lista de espera: pergunta de novo quando o prazo da compra passa.
+  for (const d of fin.desejos) {
+    if (d.decisao) continue
+    avisos.push({
+      chave: `desejo:${d.id}`,
+      titulo: 'Ainda quer comprar?',
+      corpo: `${d.texto}${d.valor ? ` (${reais(d.valor)})` : ''}. A espera acabou; decida em Finanças → Antes de comprar.`,
+      quando: d.decidirEm,
+      valeAte: d.decidirEm + 3 * DIA,
+    })
   }
 
   // Sessão de foco: aviso de pausa e limite de 90 min

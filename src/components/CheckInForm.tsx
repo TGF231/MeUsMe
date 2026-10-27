@@ -1,15 +1,8 @@
 import { useState } from 'react'
+import { HUMORES } from '../rotulos'
 import { hoje, useStore } from '../store'
 import type { CheckIn, Energia } from '../types'
 import { SeletorEnergia } from './SeletorEnergia'
-
-export const HUMORES: Record<CheckIn['humor'], string> = {
-  1: 'Péssimo',
-  2: 'Ruim',
-  3: 'Ok',
-  4: 'Bem',
-  5: 'Ótimo',
-}
 
 export function CheckInForm({ onPronto }: { onPronto?: () => void }) {
   const existente = useStore((s) => s.checkins.find((c) => c.dia === hoje()))
