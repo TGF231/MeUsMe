@@ -148,7 +148,7 @@ export function Caixa() {
           >
             <label className="rotulo">Tire da cabeça. Organizar fica para depois.</label>
             <div className="linha">
-              <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Qualquer coisa…" />
+              <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Qualquer coisa…" aria-label="Capturar na Caixa" />
               <button type="submit" className="primario">
                 Guardar
               </button>

@@ -73,6 +73,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={(e) => e.key === 'Escape' && onFechar()}
           placeholder="Escreva e aperte Enter"
+          aria-label="O que está na sua cabeça?"
         />
         <button type="submit" className="primario">
           Guardar na caixa

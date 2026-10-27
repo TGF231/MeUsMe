@@ -130,7 +130,7 @@ export const ACENTOS_PRONTOS: { id: string; nome: string; acento: Acento }[] = [
 /** Cores de estado (claro, escuro) que o acento não deve imitar. */
 const SEMANTICAS = {
   erro: ['#D92D20', '#FF8A8A'],
-  aviso: ['#A16207', '#FBBF24'],
+  aviso: ['#854D0E', '#FBBF24'],
   ok: ['#15803D', '#4ADE80'],
 } as const
 
