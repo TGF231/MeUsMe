@@ -166,7 +166,9 @@ Pista: `await import('@supabase/supabase-js')` faz o Vite separar a biblioteca n
 
 **Na revisão:** a biblioteca é carregada num lugar só; uma falha de rede ao baixar o arquivo não trava o app.
 
-### 2.3 Teste de estresse da sincronização
+### 2.3 Teste de estresse da sincronização · feito
+
+> Feito em `testes/estresse-sincronizacao.test.ts` (3 aparelhos, 300 operações, 200 sementes; falha se os apagados vindos do servidor forem ignorados). Como estudo: responda a pergunta da revisão, por que duas voltas no fim e não uma.
 
 Trilha 8 · energia pesada · 3 passos · faça antes o exercício da trilha 8 (três aparelhos).
 
@@ -180,9 +182,9 @@ Em [testes/sincronizacao.test.ts](../testes/sincronizacao.test.ts), as classes `
 
 **Na revisão:** por que "mais duas vezes" no fim, e não uma; o teste todo roda em menos de 2 segundos.
 
-### 2.4 Backup confiável · parcial
+### 2.4 Backup confiável · feito
 
-> Já feito: validação antes de gravar, mensagem clara para arquivo inválido, aviso quando a sincronização vai espalhar o backup e o texto do cartão. Falta: levar a lógica para `src/backup.ts` com testes.
+> Feito em `src/backup.ts` com `testes/backup.test.ts`: validação completa antes de gravar, recusa de backup de versão mais nova e aviso quando a sincronização vai espalhar o backup. Falta só o teste à mão num aparelho limpo.
 
 Trilha 5 · energia média · 2 passos
 

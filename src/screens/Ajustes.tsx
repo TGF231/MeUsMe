@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { lerBackup, montarBackup } from '../backup'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
 import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows } from '../nativo/desktop'
 import { Sincronizacao } from '../components/Sincronizacao'
@@ -12,7 +13,6 @@ import { ACENTOS_PRONTOS, pareceSemantica, resolverAcento } from '../tema/cores'
 import { temaEfetivo } from '../tema/aplicar'
 import { baixarArquivo, hoje } from '../util'
 
-const CHAVES_BACKUP = ['meusme', 'meusme-financas', 'meusme-agenda', 'meusme-config']
 
 function Notificacoes() {
   const cfg = useConfig()
@@ -323,8 +323,7 @@ function Backup() {
       <div className="linha">
         <button
           onClick={() => {
-            const dados = Object.fromEntries(CHAVES_BACKUP.map((k) => [k, localStorage.getItem(k)]))
-            baixarArquivo(`meusme-backup-${hoje()}.json`, JSON.stringify({ app: 'MeUsMe', versao: 1, dados }, null, 2))
+            baixarArquivo(`meusme-backup-${hoje()}.json`, montarBackup((k) => localStorage.getItem(k)))
           }}
         >
           Exportar backup
@@ -338,27 +337,16 @@ function Backup() {
               const arquivo = e.target.files?.[0]
               if (!arquivo) return
               try {
-                const backup = JSON.parse(await arquivo.text())
-                if (backup.app !== 'MeUsMe') throw new Error('Este arquivo não é um backup do MeUsMe.')
-                // Valida tudo antes de gravar qualquer coisa: um arquivo pela metade não pode deixar dados pela metade.
-                const validos = CHAVES_BACKUP.filter((k) => typeof backup.dados?.[k] === 'string')
-                if (validos.length === 0) throw new Error('O backup está vazio.')
-                for (const k of validos) {
-                  const conteudo = JSON.parse(backup.dados[k]) as { state?: unknown }
-                  if (!conteudo || typeof conteudo.state !== 'object') throw new Error('O backup está danificado. Nada foi alterado.')
-                }
+                const dados = lerBackup(await arquivo.text())
                 const sincronizando = ['ociosa', 'sincronizando', 'erro'].includes(useStatusSync.getState().situacao)
                 const aviso = sincronizando
                   ? 'Substituir TODOS os dados pelo backup? A sincronização está ligada: o conteúdo do backup também vai substituir o que está nos seus outros aparelhos.'
                   : 'Substituir TODOS os dados deste aparelho pelo backup?'
                 if (!confirm(aviso)) return
-                for (const k of CHAVES_BACKUP) {
-                  const v = backup.dados?.[k]
-                  if (typeof v === 'string') localStorage.setItem(k, v)
-                }
+                for (const [k, v] of Object.entries(dados)) localStorage.setItem(k, v)
                 location.reload()
               } catch (x) {
-                setMensagem(x instanceof SyntaxError ? 'O arquivo não é um backup válido. Nada foi alterado.' : (x as Error).message)
+                setMensagem((x as Error).message)
               }
             }}
           />

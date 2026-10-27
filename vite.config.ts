@@ -16,7 +16,7 @@ export default defineConfig({
       injectRegister: null,
       includeAssets: ['icone.svg'],
       // Páginas estáticas (política de privacidade) não podem cair no fallback do app.
-      workbox: { navigateFallbackDenylist: [/privacidade\.html$/] },
+      workbox: { navigateFallbackDenylist: [/(privacidade|termos)\.html$/] },
       manifest: {
         name: 'MeUsMe',
         short_name: 'MeUsMe',

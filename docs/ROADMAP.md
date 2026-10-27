@@ -84,7 +84,7 @@ Objetivo: tirar tudo da coluna "nunca testado com o serviço real".
 - **IndexedDB** no lugar do localStorage (a persistência do zustand aceita outro armazenamento), com migração automática dos dados atuais.
 - **Relatório de erros** sem enviar conteúdo pessoal, só o erro. Parte local feita (tela de erro e registro no aparelho); falta enviar ao servidor.
 - **Testes de tela** com Vitest + Testing Library para os fluxos centrais (concluir passo, registrar gasto, capturar), e **testes de ponta a ponta** com Playwright para o primeiro uso e a sincronização.
-- Teste de estresse da sincronização: dois aparelhos offline editando, depois sincronizando.
+- ~~Teste de estresse da sincronização~~: feito com três aparelhos e 200 sementes.
 - Restaurar um backup exportado num aparelho limpo (teste de recuperação). A restauração já valida o arquivo antes de gravar e avisa quando a sincronização vai espalhar o backup.
 - ~~Carregar o Supabase só quando a sincronização for usada.~~ Feito.
 - Revisão de acessibilidade (leitor de tela, contraste, tamanho de toque).
@@ -103,7 +103,7 @@ Objetivo: tirar tudo da coluna "nunca testado com o serviço real".
 ### Fase 4: Jurídico e presença
 
 - Domínio próprio e um site simples com o app web, a política de privacidade, os termos de uso e a página "como apagar sua conta" (exigida pelo Google Play).
-- ~~Política de privacidade cobrindo LGPD~~: escrita em [public/privacidade.html](../public/privacidade.html), com a seção de exclusão de conta. Falta publicar num endereço fixo e revisar com quem entende de LGPD.
+- ~~Política de privacidade cobrindo LGPD~~: escrita em [public/privacidade.html](../public/privacidade.html), com a seção de exclusão de conta. Os termos de uso estão em [public/termos.html](../public/termos.html). Falta publicar os dois num endereço fixo e revisar com quem entende de LGPD.
 - E-mail de suporte.
 - ~~Link para a política dentro do app (Ajustes).~~ Feito (Ajustes → Sobre).
 

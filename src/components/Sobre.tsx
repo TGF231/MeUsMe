@@ -56,9 +56,14 @@ export function Sobre() {
         </ul>
         {/* Nos apps, o arquivo local não abre num navegador externo; o texto completo fica no site. */}
         {!ehNativo() && !ehDesktop() && (
-          <a href="privacidade.html" target="_blank" rel="noreferrer">
-            Política de privacidade completa
-          </a>
+          <p className="linha">
+            <a href="privacidade.html" target="_blank" rel="noreferrer">
+              Política de privacidade completa
+            </a>
+            <a href="termos.html" target="_blank" rel="noreferrer">
+              Termos de uso
+            </a>
+          </p>
         )}
       </details>
 
