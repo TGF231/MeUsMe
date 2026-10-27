@@ -56,7 +56,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
   useEffect(() => ref.current?.focus(), [])
 
   return (
-    <div className="fundo" onClick={onFechar}>
+    <div className="fundo" role="dialog" aria-modal="true" aria-label="Captura rápida" onClick={onFechar}>
       <form
         className="modal"
         onClick={(e) => e.stopPropagation()}
