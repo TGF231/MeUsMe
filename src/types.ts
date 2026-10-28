@@ -30,6 +30,15 @@ export interface Passo {
   estimativaMin?: number
 }
 
+/** Projeto reaproveitável: nome, chegada e passos, criados de uma vez com um toque. */
+export interface Modelo {
+  id: string
+  titulo: string
+  chegada: string
+  passos: { texto: string; energia: Energia }[]
+  criadoEm: number
+}
+
 export interface Ideia {
   id: string
   texto: string

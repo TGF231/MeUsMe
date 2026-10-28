@@ -37,6 +37,7 @@ const COLECOES: Colecao[] = [
   { nome: 'nucleo.passos', loja: useStore, campo: 'passos', tipo: 'lista' },
   { nome: 'nucleo.ideias', loja: useStore, campo: 'ideias', tipo: 'lista', ordenar: maisNovoPrimeiro },
   { nome: 'nucleo.sessoes', loja: useStore, campo: 'sessoes', tipo: 'lista' },
+  { nome: 'nucleo.modelos', loja: useStore, campo: 'modelos', tipo: 'lista' },
   { nome: 'nucleo.checkins', loja: useStore, campo: 'checkins', tipo: 'lista', chave: (c) => c.dia as string },
   { nome: 'nucleo.focoId', loja: useStore, campo: 'focoId', tipo: 'valor' },
 

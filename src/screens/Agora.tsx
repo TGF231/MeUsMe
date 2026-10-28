@@ -195,6 +195,7 @@ export function Agora() {
               </div>
               <PassoForm
                 pergunta="Ainda não? Qual é o próximo movimento concreto?"
+                projetoId={projeto.id}
                 onSalvar={(t, e) => {
                   s.criarPasso(projeto.id, t, e)
                   setCelebrar(null)
@@ -357,6 +358,7 @@ export function Agora() {
               <PassoForm
                 pergunta="Qual é o menor pedaço disso que dá para fazer em 2 minutos?"
                 rotuloBotao="Fazer este primeiro"
+                sugerir={false}
                 energiaInicial={1}
                 onSalvar={(t, e) => {
                   s.criarPasso(escolha.passo.projetoId, t, e, escolha.passo.id)

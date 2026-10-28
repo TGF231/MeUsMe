@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { calibracao, diasDesde, explicarFator, inicioDaSemana, progresso, revisaoPendente, ultimaAtividade } from '../src/calculos.ts'
+import {
+  calibracao,
+  diasDesde,
+  explicarFator,
+  inicioDaSemana,
+  passosParaModelo,
+  progresso,
+  revisaoPendente,
+  sugestoesDePasso,
+  ultimaAtividade,
+} from '../src/calculos.ts'
 import type { Passo, Sessao } from '../src/types.ts'
 
 const MIN = 60_000
@@ -57,4 +67,41 @@ test('início da semana respeita o dia escolhido', () => {
   assert.equal(inicioDaSemana(segunda, 0), new Date(2026, 9, 25).getTime()) // domingo
   assert.equal(inicioDaSemana(segunda, 1), new Date(2026, 9, 26).getTime()) // a própria segunda
   assert.equal(inicioDaSemana(segunda, 5), new Date(2026, 9, 23).getTime()) // sexta anterior
+})
+
+test('sugestões: sem busca, os mais repetidos primeiro, preferindo o próprio projeto', () => {
+  const passos = [
+    passo('1', { texto: 'Ligar para a Ana', projetoId: null, feitoEm: 10 }),
+    passo('2', { texto: 'ligar para a ana', projetoId: null, feitoEm: 20 }),
+    passo('3', { texto: 'Pagar a luz', projetoId: null, feitoEm: 30 }),
+    passo('4', { texto: 'Separar a roupa', projetoId: 'casa', feitoEm: 5, energia: 1 }),
+  ]
+  assert.deepEqual(
+    sugestoesDePasso(passos, '', 'casa').map((s) => s.texto),
+    ['Separar a roupa', 'ligar para a ana', 'Pagar a luz'],
+  )
+  assert.deepEqual(sugestoesDePasso(passos, '', 'casa')[0], { texto: 'Separar a roupa', energia: 1 })
+})
+
+test('sugestões: a busca ignora acento e caixa e não repete o que já está escrito', () => {
+  const passos = [passo('1', { texto: 'Pagar a conta de água', feitoEm: 1 }), passo('2', { texto: 'Abrir o e-mail', feitoEm: 2 })]
+  assert.deepEqual(sugestoesDePasso(passos, 'AGUA', 'p').map((s) => s.texto), ['Pagar a conta de água'])
+  assert.deepEqual(sugestoesDePasso(passos, 'Abrir o e-mail', 'p'), [])
+})
+
+test('sugestões: o que já está na fila do projeto não aparece', () => {
+  const passos = [passo('1', { texto: 'Lavar a louça', feitoEm: 1 }), passo('2', { texto: 'Lavar a louça' })]
+  assert.deepEqual(sugestoesDePasso(passos, '', 'p'), [])
+  assert.equal(sugestoesDePasso(passos, '', 'outro').length, 1)
+})
+
+test('modelo: passos feitos na ordem em que foram feitos, depois a fila, sem repetidos', () => {
+  const passos = [
+    passo('b', { texto: 'Estender', feitoEm: 20 }),
+    passo('a', { texto: 'Separar', feitoEm: 10 }),
+    passo('c', { texto: 'Dobrar', ordem: 2 }),
+    passo('d', { texto: 'separar', ordem: 3 }),
+    passo('x', { texto: 'Outro', projetoId: 'outro' }),
+  ]
+  assert.deepEqual(passosParaModelo(passos, 'p').map((s) => s.texto), ['Separar', 'Estender', 'Dobrar'])
 })

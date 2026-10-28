@@ -38,6 +38,7 @@ function Processar({ captura }: { captura: Captura }) {
     return (
       <PassoForm
         inicial={captura.texto}
+        projetoId={modo.projetoId}
         onSalvar={(t, e) => {
           s.criarPasso(modo.projetoId, t, e)
           s.descartarCaptura(captura.id)

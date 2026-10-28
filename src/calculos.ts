@@ -77,3 +77,49 @@ export function inicioDaSemana(t: number, diaInicio: number) {
   d.setDate(d.getDate() - ((d.getDay() - diaInicio + 7) % 7))
   return d.getTime()
 }
+
+/** Texto comparável: sem acento, minúsculo e com espaços simples. */
+export const normalizar = (texto: string) =>
+  texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim()
+
+export interface Sugestao {
+  texto: string
+  energia: Passo['energia']
+}
+
+/**
+ * Passos já escritos antes, para reaproveitar sem digitar.
+ * Com `busca` vazia, devolve os mais repetidos e recentes; com busca, os que contêm o trecho.
+ * Pula o que já está na fila do mesmo projeto e dá preferência aos passos do próprio projeto.
+ */
+export function sugestoesDePasso(passos: Passo[], busca: string, projetoId: string | null, limite = 4): Sugestao[] {
+  const trecho = normalizar(busca)
+  const naFila = new Set(pendentes(passos, projetoId).map((p) => normalizar(p.texto)))
+  const grupos = new Map<string, { sugestao: Sugestao; vezes: number; ultimo: number; doProjeto: boolean }>()
+  for (const p of passos) {
+    const chave = normalizar(p.texto)
+    if (!chave || naFila.has(chave) || chave === trecho || !chave.includes(trecho)) continue
+    const quando = p.feitoEm ?? p.criadoEm
+    const g = grupos.get(chave)
+    if (!g) grupos.set(chave, { sugestao: { texto: p.texto, energia: p.energia }, vezes: 1, ultimo: quando, doProjeto: p.projetoId === projetoId })
+    else {
+      g.vezes++
+      g.doProjeto ||= p.projetoId === projetoId
+      // O texto e a energia vêm da vez mais recente.
+      if (quando > g.ultimo) Object.assign(g, { sugestao: { texto: p.texto, energia: p.energia }, ultimo: quando })
+    }
+  }
+  return [...grupos.values()]
+    .sort((a, b) => Number(b.doProjeto) - Number(a.doProjeto) || b.vezes - a.vezes || b.ultimo - a.ultimo)
+    .slice(0, limite)
+    .map((g) => g.sugestao)
+}
+
+/** Passos de um projeto na ordem em que foram (ou serão) feitos, sem repetidos, para virar modelo. */
+export function passosParaModelo(passos: Passo[], projetoId: string): Sugestao[] {
+  const feitos = passos.filter((p) => p.projetoId === projetoId && p.feitoEm).sort((a, b) => a.feitoEm! - b.feitoEm!)
+  const vistos = new Set<string>()
+  return [...feitos, ...pendentes(passos, projetoId)]
+    .filter((p) => !vistos.has(normalizar(p.texto)) && vistos.add(normalizar(p.texto)))
+    .map((p) => ({ texto: p.texto, energia: p.energia }))
+}

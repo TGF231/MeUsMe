@@ -1,6 +1,7 @@
 import { calibracao, explicarFator } from '../calculos'
 import { CheckInForm } from '../components/CheckInForm'
 import { Pontos } from '../components/SeletorEnergia'
+import { DeNovo } from '../components/DeNovo'
 import { TempoGasto } from '../components/TempoGasto'
 import { UsoDoComputador } from '../components/UsoDoComputador'
 import { useAgora } from '../hooks'
@@ -149,6 +150,7 @@ export function Historico() {
                       <span className="motivo"> · {projetoDe(p.projetoId)?.titulo ?? 'tarefa solta'} · {hora(p.feitoEm!)}</span>
                     </span>
                     <TempoGasto passo={p} />
+                    <DeNovo passo={p} />
                   </div>
                 ))}
                 {trabalhados.map(({ passo, minutos }) => (
