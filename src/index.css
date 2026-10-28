@@ -1470,3 +1470,21 @@ button.perigo:hover {
   position: absolute;
   inset: -7px 0;
 }
+
+/* Passo já escrito antes, para tocar em vez de digitar: textos longos não quebram a fileira. */
+.chips .sugestao {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Aviso do ditado: quebra para a linha de baixo do campo. */
+.aviso-voz {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.recado {
+  width: 100%;
+}

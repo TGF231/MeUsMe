@@ -4,6 +4,8 @@ export interface Captura {
   id: string
   texto: string
   criadoEm: number
+  /** Recado de voz: o áudio fica em src/audios.ts, com o id da captura, só neste aparelho. */
+  audio?: { segundos: number }
 }
 
 export interface Projeto {
@@ -28,6 +30,15 @@ export interface Passo {
   minutosManuais?: number
   /** Palpite de duração feito antes ou durante o passo; comparado com o real no Histórico. */
   estimativaMin?: number
+}
+
+/** Projeto reaproveitável: nome, chegada e passos, criados de uma vez com um toque. */
+export interface Modelo {
+  id: string
+  titulo: string
+  chegada: string
+  passos: { texto: string; energia: Energia }[]
+  criadoEm: number
 }
 
 export interface Ideia {

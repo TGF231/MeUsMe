@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { DeNovo } from '../components/DeNovo'
 import { PassoForm } from '../components/PassoForm'
 import { BarraProgresso } from '../components/Progresso'
 import { PontosEditaveis } from '../components/SeletorEnergia'
@@ -93,6 +94,41 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   )
 }
 
+/** Modelos salvos: um toque cria o projeto com todos os passos. */
+function Modelos({ onCriado }: { onCriado: (id: string) => void }) {
+  const s = useStore()
+  if (s.modelos.length === 0) return null
+  return (
+    <div className="cartao">
+      <p className="rotulo">Começar de um modelo</p>
+      <div className="chips">
+        {s.modelos.map((m) => (
+          <button
+            key={m.id}
+            onClick={() => {
+              const pid = s.usarModelo(m.id)
+              if (pid) onCriado(pid)
+            }}
+          >
+            {m.titulo} · {m.passos.length} passo{m.passos.length === 1 ? '' : 's'}
+          </button>
+        ))}
+      </div>
+      <details>
+        <summary>Apagar um modelo</summary>
+        {s.modelos.map((m) => (
+          <div key={m.id} className="linha entre item">
+            <span>{m.titulo}</span>
+            <button className="discreto" onClick={() => confirm(`Apagar o modelo "${m.titulo}"? Os projetos já criados com ele continuam.`) && s.removerModelo(m.id)}>
+              Apagar
+            </button>
+          </div>
+        ))}
+      </details>
+    </div>
+  )
+}
+
 function EditarProjeto({ projeto, onPronto, onApagado }: { projeto: Projeto; onPronto: () => void; onApagado: () => void }) {
   const s = useStore()
   const [titulo, setTitulo] = useState(projeto.titulo)
@@ -138,6 +174,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
   const s = useStore()
   const [verTodos, setVerTodos] = useState(false)
   const [editando, setEditando] = useState(false)
+  const [salvoComoModelo, setSalvoComoModelo] = useState(false)
   const projeto = s.projetos.find((p) => p.id === id)
   if (!projeto) return null
 
@@ -186,7 +223,21 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                   <button className="discreto" onClick={() => setEditando(true)}>
                     Editar
                   </button>
+                  <button
+                    className="discreto"
+                    onClick={() => {
+                      s.salvarModelo(id)
+                      setSalvoComoModelo(true)
+                    }}
+                  >
+                    Salvar como modelo
+                  </button>
                 </div>
+                {salvoComoModelo && (
+                  <p className="motivo" role="status">
+                    ✓ Modelo salvo. Em Projetos, “{projeto.titulo}” aparece para começar de novo com um toque.
+                  </p>
+                )}
               </>
             )}
           </div>
@@ -221,7 +272,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
 
           {!projeto.concluidoEm && (
             <div className="cartao">
-              <PassoForm onSalvar={(t, e) => s.criarPasso(id, t, e)} />
+              <PassoForm projetoId={id} onSalvar={(t, e) => s.criarPasso(id, t, e)} />
             </div>
           )}
         </div>
@@ -234,6 +285,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                   <div key={p.id} className="registro">
                     <span className="flex feito">✓ {p.texto}</span>
                     <TempoGasto passo={p} />
+                    {!projeto.concluidoEm && <DeNovo passo={p} />}
                   </div>
                 ))}
               </div>
@@ -287,6 +339,7 @@ export function Projetos() {
           Novo projeto
         </button>
       )}
+      {!criando && <Modelos onCriado={setAberto} />}
 
       <div className="grade-cartoes">
         {ativos.map((p) => {
