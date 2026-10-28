@@ -5,13 +5,13 @@ import { useConfig } from '../stores/config'
 
 const PRINCIPIOS: [string, string][] = [
   ['Uma coisa por vez', 'Escolher entre muitas opções gasta a energia que seria do começo. A tela Agora decide a ordem; você só decide se começa.'],
-  ['Tudo fora da cabeça', 'Memória de trabalho é limitada. Captura em um toque, e a ideia que surge no meio do foco fica estacionada, sem desviar.'],
-  ['Tempo visível', 'Estimar o tempo é mais difícil com TDAH. Anel do bloco, aviso antes dos compromissos e palpite × real no Histórico.'],
+  ['Tudo fora da cabeça', 'Guardar tudo de cabeça cansa. Captura em um toque, e a ideia que surge no meio do foco fica estacionada, sem desviar.'],
+  ['Tempo visível', 'Saber quanto as coisas demoram não é fácil. Anel do bloco, aviso antes dos compromissos e palpite × real no Histórico.'],
   ['Começo pequeno', 'Combinado de 5 minutos, passos de 2 minutos e o alerta de ideia vaga reduzem a barreira para começar.'],
   ['Fim que dá para ver', 'Linha de chegada definida no início e barra de progresso: perto do fim a meta não foge.'],
   ['Recompensa agora', 'Recompensas distantes pesam menos. Cada passo feito é comemorado na hora, não só o projeto.'],
   ['Sem culpa', 'Nada de vermelho por atraso nem sequência quebrada. Voltar depois de dias sumido é recebido, não cobrado.'],
-  ['Plano da semana', 'Revisar a semana com calendário e lista é um dos pilares da terapia cognitivo-comportamental para TDAH.'],
+  ['Plano da semana', 'Olhar a semana inteira de uma vez, com agenda e lista lado a lado, mostra o que vem primeiro e evita surpresas.'],
   ['Freio no impulso', 'Compras esperam um prazo antes da decisão, e as contas fixas avisam na véspera.'],
 ]
 
@@ -41,8 +41,7 @@ export function Sobre() {
           ))}
         </dl>
         <p className="motivo">
-          Baseado em pesquisas sobre funções executivas e TDAH em adultos. A evidência sobre apps para TDAH ainda é limitada: o MeUsMe é uma
-          ferramenta de organização, não um tratamento, e não substitui acompanhamento profissional.
+          O MeUsMe é um programa de organização de tarefas.
         </p>
       </details>
 

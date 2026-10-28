@@ -1,6 +1,6 @@
 # MeUsMe
 
-Uma coisa de cada vez. App para decidir o próximo passo, chegar ao fim do que começou e manter tempo e dinheiro à vista, pensado para quem tem TDAH. Cada função segue um achado de pesquisa: ver [docs/PESQUISA-TDAH.md](docs/PESQUISA-TDAH.md).
+Uma coisa de cada vez. Programa de organização de tarefas para decidir o próximo passo, chegar ao fim do que começou e manter tempo e dinheiro à vista.
 
 No primeiro uso, uma introdução de quatro telas oferece um projeto de exemplo.
 
