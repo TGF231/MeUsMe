@@ -43,7 +43,7 @@ export async function ditar(): Promise<string | null> {
     if (speechRecognition !== 'granted') ({ speechRecognition } = await SpeechRecognition.requestPermissions())
     if (speechRecognition !== 'granted')
       throw new ErroDeVoz('Sem permissão para o microfone. Dá para liberar em Configurações → Apps → MeUsMe → Permissões.')
-    const { matches } = await SpeechRecognition.start({ language: 'pt-BR', maxResults: 1, popup: true, partialResults: false, prompt: 'Fale o passo' })
+    const { matches } = await SpeechRecognition.start({ language: 'pt-BR', maxResults: 1, popup: true, partialResults: false, prompt: 'Pode falar' })
     return matches?.[0]?.trim() || null
   }
 
