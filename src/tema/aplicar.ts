@@ -3,7 +3,7 @@ import { SystemBars, SystemBarsStyle } from '@capacitor/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { ehDesktop, ehNativo } from '../nativo/plataforma'
 import { useConfig } from '../stores/config'
-import { resolverAcento } from './cores'
+import { ASSINATURA, resolverAcento } from './cores'
 
 const sistemaEscuro = () => window.matchMedia('(prefers-color-scheme: dark)').matches
 
@@ -23,15 +23,16 @@ export function aplicarTema() {
   if (tema === 'auto') delete raiz.dataset.tema
   else raiz.dataset.tema = tema
 
+  const escuro = temaEfetivo() === 'escuro'
+  // A assinatura é o próprio megui.css; outro acento sobrescreve só as variáveis do acento, para o tema em uso.
   const a = resolverAcento(acento)
-  for (const [modo, v] of [['claro', a.claro], ['escuro', a.escuro]] as const) {
-    raiz.style.setProperty(`--acento-${modo}`, v.acento)
-    raiz.style.setProperty(`--acento-hover-${modo}`, v.hover)
-    raiz.style.setProperty(`--acento-leve-${modo}`, v.suave)
-    raiz.style.setProperty(`--acento-texto-${modo}`, v.texto)
+  const v = a === ASSINATURA ? null : escuro ? a.escuro : a.claro
+  const variaveis = { accent: v?.acento, 'accent-hover': v?.hover, 'accent-linha': v?.linha, 'accent-soft': v?.suave, 'on-accent': v?.texto }
+  for (const [nome, valor] of Object.entries(variaveis)) {
+    if (valor) raiz.style.setProperty(`--megui-${nome}`, valor)
+    else raiz.style.removeProperty(`--megui-${nome}`)
   }
 
-  const escuro = temaEfetivo() === 'escuro'
   // theme-color acompanha o fundo do tema.
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(raiz).getPropertyValue('--fundo').trim())
   if (ehNativo()) void SystemBars.setStyle({ style: escuro ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(() => {})

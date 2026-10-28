@@ -1,16 +1,18 @@
 /**
  * Cálculo de cores do tema (sem dependências; testes em testes/cores.test.ts).
  *
- * Paleta base compartilhada com os apps desktop (PySide6); só o acento varia. Variantes:
+ * Paleta base do MegUI (src/tema/megui.css); só o acento varia. Como no MegUI, o preenchimento
+ * é o mesmo nos dois temas e cada tema tem a sua linha. Variantes:
  * - hover: mais escuro no tema claro, mais claro no escuro;
+ * - linha: marca sem texto (seleção, foco, progresso), com contraste >= 3:1 sobre a superfície;
  * - suave: acento misturado à superfície (fundo de seleção);
- * - texto: branco ou escuro, o que tiver contraste >= 4,5:1;
- * - versão escura: clareada e levemente dessaturada até contraste >= 3:1 com o fundo.
+ * - texto: branco ou escuro, o que tiver contraste >= 4,5:1 sobre o preenchimento.
  */
 
 export interface VariantesAcento {
   acento: string
   hover: string
+  linha: string
   suave: string
   texto: string
 }
@@ -20,12 +22,12 @@ export interface Acento {
   escuro: VariantesAcento
 }
 
-/** Valores da paleta usados nos cálculos de contraste e mistura. */
-const SUPERFICIE_CLARO = '#FFFFFF'
-const SUPERFICIE_ESCURO = '#18212C'
-const FUNDO_ESCURO = '#0F1620'
-const TEXTO_CLARO = '#16202A'
-const TEXTO_ESCURO = '#0F1620'
+/** Valores do megui.css usados nos cálculos (testes/cores.test.ts confere que batem). */
+export const PALETA = {
+  superficieClaro: '#FFFFFF',
+  superficieEscuro: '#18212C',
+  textoClaro: '#16202A',
+} as const
 
 type Rgb = [number, number, number]
 
@@ -85,37 +87,43 @@ export function ajustarLuz(hex: string, delta: number, saturacao = 1) {
   return rgbParaHex(hslParaRgb([h, Math.min(1, s * saturacao), Math.min(1, Math.max(0, l + delta))]))
 }
 
-const textoSobre = (acento: string, escuro: string) => (contraste('#FFFFFF', acento) >= 4.5 ? '#FFFFFF' : escuro)
+const textoSobre = (acento: string) => (contraste('#FFFFFF', acento) >= 4.5 ? '#FFFFFF' : PALETA.textoClaro)
 
-/** Variante para o tema escuro: clareia e dessatura até contraste >= 3,2:1 com o fundo. */
-export function acentoParaEscuro(claro: string) {
-  let cor = claro
-  for (let i = 0; i < 40 && contraste(cor, FUNDO_ESCURO) < 3.2; i++) cor = ajustarLuz(cor, 0.02, 0.98)
-  return cor
+/** Escurece (passo < 0) ou clareia (passo > 0) até contraste >= 3,2:1 com a superfície. */
+function linhaSobre(cor: string, superficie: string, passo: number) {
+  for (let i = 0; i < 40 && contraste(cor, superficie) < 3.2; i++) cor = ajustarLuz(cor, passo, 0.98)
+  return cor.toUpperCase()
 }
 
-/** Deriva as variantes de uma cor (opcionalmente com a versão escura já definida). */
-export function derivarAcento(claro: string, escuro = acentoParaEscuro(claro)): Acento {
+/** Linha para o tema escuro: clareia e dessatura até aparecer sobre a superfície. */
+export const linhaParaEscuro = (cor: string) => linhaSobre(cor, PALETA.superficieEscuro, 0.02)
+
+/** Deriva as variantes de uma cor (opcionalmente com a linha do tema escuro já definida). */
+export function derivarAcento(base: string, linhaEscura = linhaParaEscuro(base)): Acento {
+  const acento = base.toUpperCase()
+  const texto = textoSobre(base)
   return {
     claro: {
-      acento: claro.toUpperCase(),
-      hover: ajustarLuz(claro, -0.07),
-      suave: misturar(claro, SUPERFICIE_CLARO, 0.09),
-      texto: textoSobre(claro, TEXTO_CLARO),
+      acento,
+      hover: ajustarLuz(base, -0.07),
+      linha: linhaSobre(base, PALETA.superficieClaro, -0.02),
+      suave: misturar(base, PALETA.superficieClaro, 0.09),
+      texto,
     },
     escuro: {
-      acento: escuro.toUpperCase(),
-      hover: ajustarLuz(escuro, 0.07),
-      suave: misturar(escuro, SUPERFICIE_ESCURO, 0.14),
-      texto: textoSobre(escuro, TEXTO_ESCURO),
+      acento,
+      hover: ajustarLuz(base, 0.07),
+      linha: linhaEscura.toUpperCase(),
+      suave: misturar(base, PALETA.superficieEscuro, 0.2),
+      texto,
     },
   }
 }
 
-/** Acento padrão (mesmos valores da paleta desktop). */
+/** Acento padrão: os valores do megui.css, que o app usa sem sobrescrever nada. */
 export const ASSINATURA: Acento = {
-  claro: { acento: '#7D0E0E', hover: '#5C0A0A', suave: '#F6E7E6', texto: '#FFFFFF' },
-  escuro: { acento: '#C4302A', hover: '#DC4A42', suave: '#2E1616', texto: '#FFFFFF' },
+  claro: { acento: '#7D0E0E', hover: '#5C0A0A', linha: '#7D0E0E', suave: '#F3E8E3', texto: '#FFFFFF' },
+  escuro: { acento: '#7D0E0E', hover: '#9B1616', linha: '#DC4A42', suave: '#2E1A16', texto: '#FFFFFF' },
 }
 
 /** Acentos predefinidos, distantes das cores de estado. */
@@ -127,21 +135,22 @@ export const ACENTOS_PRONTOS: { id: string; nome: string; acento: Acento }[] = [
   { id: 'grafite', nome: 'Grafite', acento: derivarAcento('#37474F', '#90A4AE') },
 ]
 
-/** Cores de estado (claro, escuro) que o acento não deve imitar. */
-const SEMANTICAS = {
+/** Cores de estado (claro, escuro) do megui.css que o acento não deve imitar. */
+export const SEMANTICAS = {
   erro: ['#D92D20', '#FF8A8A'],
-  aviso: ['#854D0E', '#FBBF24'],
+  aviso: ['#A16207', '#FBBF24'],
   ok: ['#15803D', '#4ADE80'],
 } as const
 
 /**
  * Indica se o acento se confunde com uma cor de estado (matiz e luminosidade próximos).
+ * Compara a linha, que é a cor que aparece como marca em cada tema.
  * O acento padrão passa porque difere do erro em luminosidade.
  */
 export function pareceSemantica(a: Acento): keyof typeof SEMANTICAS | null {
   for (const [nome, cores] of Object.entries(SEMANTICAS) as [keyof typeof SEMANTICAS, readonly string[]][]) {
     for (const [i, cor] of cores.entries()) {
-      const [h1, s1, l1] = rgbParaHsl(hexParaRgb(i === 0 ? a.claro.acento : a.escuro.acento))
+      const [h1, s1, l1] = rgbParaHsl(hexParaRgb(i === 0 ? a.claro.linha : a.escuro.linha))
       const [h2, , l2] = rgbParaHsl(hexParaRgb(cor))
       const distancia = Math.min(Math.abs(h1 - h2), 360 - Math.abs(h1 - h2))
       if (s1 > 0.3 && distancia < 18 && Math.abs(l1 - l2) < 0.12) return nome

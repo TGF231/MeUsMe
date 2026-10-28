@@ -16,7 +16,8 @@ export default defineConfig({
       injectRegister: null,
       includeAssets: ['icone.svg'],
       // Páginas estáticas (política de privacidade) não podem cair no fallback do app.
-      workbox: { navigateFallbackDenylist: [/(privacidade|termos)\.html$/] },
+      // woff2: as fontes do MegUI vão no pacote e precisam funcionar offline.
+      workbox: { globPatterns: ['**/*.{js,css,html,woff2}'], navigateFallbackDenylist: [/(privacidade|termos)\.html$/] },
       manifest: {
         name: 'MeUsMe',
         short_name: 'MeUsMe',

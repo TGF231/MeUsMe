@@ -4,31 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MeUsMe · Termos de uso</title>
+    <!-- Mesmo megui.css gerado de src/tema/ (testes/cores.test.ts confere que as cópias batem). -->
+    <link rel="stylesheet" href="megui.css" />
     <style>
       :root {
-        --fundo: #f4f6f8;
-        --superficie: #ffffff;
-        --texto: #1b2530;
-        --suave: #52606d;
-        --acento: #7d0e0e;
-        --borda: #d9e0e7;
+        --fundo: var(--megui-bg);
+        --superficie: var(--megui-surface);
+        --texto: var(--megui-ink);
+        --suave: var(--megui-ink2);
+        --link: var(--megui-info);
+        --borda: var(--megui-border);
         color-scheme: light dark;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --fundo: #0f1620;
-          --superficie: #17212c;
-          --texto: #e6ebf0;
-          --suave: #a3b0bd;
-          --acento: #e0625b;
-          --borda: #2a3846;
-        }
       }
       body {
         margin: 0;
         background: var(--fundo);
         color: var(--texto);
-        font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        font-family: var(--megui-fonte-ui);
+        line-height: 1.6;
       }
       main {
         max-width: 720px;
@@ -38,7 +31,7 @@
       section {
         background: var(--superficie);
         border: 1px solid var(--borda);
-        border-radius: 8px;
+        border-radius: var(--megui-raio);
         padding: 4px 20px;
         margin: 16px 0;
       }
@@ -51,7 +44,7 @@
         margin: 16px 0 8px;
       }
       a {
-        color: var(--acento);
+        color: var(--link);
       }
       .suave {
         color: var(--suave);
