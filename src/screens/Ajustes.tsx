@@ -70,7 +70,7 @@ function Notificacoes() {
 
       <label className="rotulo">Lembrete do check-in diário</label>
       <div className="linha">
-        <input className="flex" type="time" value={cfg.horaCheckIn} onChange={(e) => cfg.ajustar({ horaCheckIn: e.target.value })} />
+        <input className="flex" type="time" aria-label="Hora do check-in diário" value={cfg.horaCheckIn} onChange={(e) => cfg.ajustar({ horaCheckIn: e.target.value })} />
         <button onClick={() => cfg.ajustar({ horaCheckIn: '' })} disabled={!cfg.horaCheckIn}>
           Desligar
         </button>
@@ -78,7 +78,7 @@ function Notificacoes() {
 
       <label className="rotulo">Aviso de contas a pagar (véspera e dia)</label>
       <div className="linha">
-        <input className="flex" type="time" value={cfg.horaContas} onChange={(e) => cfg.ajustar({ horaContas: e.target.value })} />
+        <input className="flex" type="time" aria-label="Hora do aviso de contas" value={cfg.horaContas} onChange={(e) => cfg.ajustar({ horaContas: e.target.value })} />
         <button onClick={() => cfg.ajustar({ horaContas: '' })} disabled={!cfg.horaContas}>
           Desligar
         </button>
@@ -177,6 +177,7 @@ function GoogleNavegador() {
               value={clientId}
               onChange={(e) => setClientId(e.target.value.trim())}
               placeholder="xxxxxxxx.apps.googleusercontent.com"
+              aria-label="Client ID do Google"
               spellCheck={false}
             />
             <button disabled={!clientId.endsWith('.apps.googleusercontent.com')} onClick={() => conectar(clientId)}>

@@ -31,7 +31,7 @@ export function CheckInForm({ onPronto }: { onPronto?: () => void }) {
       <label className="rotulo">Energia</label>
       <SeletorEnergia valor={energia} onChange={setEnergia} />
       <label className="rotulo">Uma frase sobre agora (opcional)</label>
-      <input value={frase} onChange={(e) => setFrase(e.target.value)} placeholder="O que está na sua cabeça?" />
+      <input value={frase} onChange={(e) => setFrase(e.target.value)} placeholder="O que está na sua cabeça?" aria-label="Uma frase sobre agora" />
       <button type="submit" className="primario">
         {existente ? 'Atualizar' : 'Salvar check-in'}
       </button>

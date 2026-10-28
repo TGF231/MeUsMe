@@ -87,7 +87,7 @@ function ServidorProprio({ aoMudar }: { aoMudar: () => void }) {
       </button>
       <label className="rotulo">Ou cole o código de outro aparelho:</label>
       <div className="linha">
-        <input className="flex" value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Código de configuração" spellCheck={false} />
+        <input className="flex" value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Código de configuração" aria-label="Código de configuração" spellCheck={false} />
         <button
           disabled={!codigo.trim()}
           onClick={() => {

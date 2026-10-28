@@ -56,7 +56,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
   useEffect(() => ref.current?.focus(), [])
 
   return (
-    <div className="fundo" onClick={onFechar}>
+    <div className="fundo" role="dialog" aria-modal="true" aria-label="Captura rápida" onClick={onFechar}>
       <form
         className="modal"
         onClick={(e) => e.stopPropagation()}
@@ -73,6 +73,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={(e) => e.key === 'Escape' && onFechar()}
           placeholder="Escreva e aperte Enter"
+          aria-label="O que está na sua cabeça?"
         />
         <button type="submit" className="primario">
           Guardar na caixa

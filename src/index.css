@@ -26,7 +26,7 @@
   --borda-2: #bac5d0;
   /* Cores de estado, independentes do acento. */
   --ok: #15803d;
-  --aviso: #a16207;
+  --aviso: #854d0e;
   --erro: #d92d20;
   --info: #1565c0;
   --sombra: rgb(22 32 42 / 0.18);
@@ -191,7 +191,8 @@ button.discreto {
 
 .icone-botao {
   padding: 8px;
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .icone-botao.ativo {
@@ -523,7 +524,7 @@ input[type='file'] {
 
 .chips button {
   padding: 6px 12px;
-  min-height: 36px;
+  min-height: 44px;
   font-size: 0.85rem;
   border-radius: var(--raio-controle);
 }
@@ -532,7 +533,7 @@ select.mini,
 input.mini {
   width: auto;
   max-width: 150px;
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 10px;
   font-size: 0.85rem;
 }
@@ -559,7 +560,7 @@ input.mini {
   flex-shrink: 0;
   border-radius: var(--raio-controle);
   padding: 6px 14px;
-  min-height: 38px;
+  min-height: 44px;
   font-size: 0.9rem;
   white-space: nowrap;
 }
@@ -583,7 +584,7 @@ input.mini {
 }
 
 .pendencias button {
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 12px;
   flex-shrink: 0;
 }
@@ -741,7 +742,7 @@ details summary {
   cursor: pointer;
   color: var(--info);
   font-weight: 600;
-  padding: 6px 0;
+  padding: 12px 0;
 }
 
 .passos-guia {
@@ -1222,7 +1223,7 @@ span.tempo {
 }
 
 .status-bancos button {
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 12px;
   flex-shrink: 0;
 }
@@ -1302,7 +1303,7 @@ kbd.tecla {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid var(--borda-2);
   border-radius: var(--raio-controle);
   background: var(--superficie);
@@ -1484,4 +1485,23 @@ button.perigo:hover {
   background: var(--rebaixado);
   max-height: 240px;
   overflow: auto;
+}
+
+/* Botões compactos das linhas: o desenho fica pequeno, mas a área de toque chega a 44 px. */
+.tempo,
+.mini-botao,
+.mini-segmentado button,
+.transacao button,
+.evento button {
+  position: relative;
+}
+
+.tempo::after,
+.mini-botao::after,
+.mini-segmentado button::after,
+.transacao button::after,
+.evento button::after {
+  content: '';
+  position: absolute;
+  inset: -7px 0;
 }
