@@ -1,0 +1,97 @@
+/* GERADO por gerar/gerar_tema.py — não editar à mão. */
+
+:root {
+  --megui-bg: #F4F6F8;
+  --megui-surface: #FFFFFF;
+  --megui-surface2: #E9EDF1;
+  --megui-sunken: #FBFCFD;
+  --megui-linha-alt: #F7F9FB;
+  --megui-somente-leitura: #EFF2F5;
+  --megui-ink: #16202A;
+  --megui-ink2: #4A5A6A;
+  --megui-ink3: #5B6974;
+  --megui-border: #D2DAE2;
+  --megui-border2: #BAC5D0;
+  --megui-accent: #7D0E0E;
+  --megui-accent-hover: #5C0A0A;
+  --megui-accent-linha: #7D0E0E;
+  --megui-accent-soft: #F3E8E3;
+  --megui-on-accent: #FFFFFF;
+  --megui-ok: #15803D;
+  --megui-warn: #A16207;
+  --megui-bad: #D92D20;
+  --megui-info: #1565C0;
+  --megui-fonte-ui: "Atkinson Hyperlegible Next", sans-serif;
+  --megui-fonte-mono: "IBM Plex Mono", monospace;
+  --megui-esp-1: 4px;
+  --megui-esp-2: 8px;
+  --megui-esp-3: 12px;
+  --megui-esp-4: 16px;
+  --megui-esp-6: 24px;
+  --megui-esp-8: 32px;
+  --megui-esp-12: 48px;
+  --megui-esp-meio: 2px;
+  --megui-tipo-dica: 11px;
+  --megui-tipo-dica-peso: 400;
+  --megui-tipo-corpo: 13px;
+  --megui-tipo-corpo-peso: 400;
+  --megui-tipo-titulo: 17px;
+  --megui-tipo-titulo-peso: 700;
+  --megui-tipo-destaque: 22px;
+  --megui-tipo-destaque-peso: 700;
+  --megui-raio: 4px;
+  --megui-mov-feedback: 120ms;
+  --megui-mov-painel: 180ms;
+}
+
+[data-tema="escuro"] {
+  --megui-bg: #0F1620;
+  --megui-surface: #18212C;
+  --megui-surface2: #212C39;
+  --megui-sunken: #131C25;
+  --megui-linha-alt: #1C2632;
+  --megui-somente-leitura: #222C38;
+  --megui-ink: #E3E9EF;
+  --megui-ink2: #94A4B5;
+  --megui-ink3: #8796A9;
+  --megui-border: #2B3745;
+  --megui-border2: #3A4857;
+  --megui-accent: #7D0E0E;
+  --megui-accent-hover: #9B1616;
+  --megui-accent-linha: #DC4A42;
+  --megui-accent-soft: #2E1A16;
+  --megui-on-accent: #FFFFFF;
+  --megui-ok: #4ADE80;
+  --megui-warn: #FBBF24;
+  --megui-bad: #FF8A8A;
+  --megui-info: #60A5FA;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema]) {
+    --megui-bg: #0F1620;
+    --megui-surface: #18212C;
+    --megui-surface2: #212C39;
+    --megui-sunken: #131C25;
+    --megui-linha-alt: #1C2632;
+    --megui-somente-leitura: #222C38;
+    --megui-ink: #E3E9EF;
+    --megui-ink2: #94A4B5;
+    --megui-ink3: #8796A9;
+    --megui-border: #2B3745;
+    --megui-border2: #3A4857;
+    --megui-accent: #7D0E0E;
+    --megui-accent-hover: #9B1616;
+    --megui-accent-linha: #DC4A42;
+    --megui-accent-soft: #2E1A16;
+    --megui-on-accent: #FFFFFF;
+    --megui-ok: #4ADE80;
+    --megui-warn: #FBBF24;
+    --megui-bad: #FF8A8A;
+    --megui-info: #60A5FA;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --megui-mov-feedback: 0ms; --megui-mov-painel: 0ms; }
+}
