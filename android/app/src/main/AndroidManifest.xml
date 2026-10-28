@@ -49,6 +49,9 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- O Capacitor só libera o microfone para a página (recado de voz) se esta também estiver declarada.
+         É permissão normal: concedida na instalação, sem pergunta. RECORD_AUDIO vem do plugin de ditado. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <!-- Visibilidade de apps com launcher, para exibir o nome dos candidatos à captura. -->
     <queries>
