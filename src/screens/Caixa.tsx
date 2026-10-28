@@ -158,7 +158,13 @@ export function Caixa() {
             <label className="rotulo">Tire da cabeça. Organizar fica para depois.</label>
             <div className="linha">
               <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Qualquer coisa…" aria-label="Capturar na Caixa" />
-              <BotaoVoz onTexto={setTexto} />
+              {/* Falou, guardou: o ditado vira captura na hora, junto do que já estava escrito. */}
+              <BotaoVoz
+                onTexto={(falado) => {
+                  s.capturar([texto.trim(), falado].filter(Boolean).join(' '))
+                  setTexto('')
+                }}
+              />
               <button type="submit" className="primario">
                 Guardar
               </button>

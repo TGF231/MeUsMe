@@ -77,7 +77,13 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
             placeholder="Escreva e aperte Enter"
             aria-label="O que está na sua cabeça?"
           />
-          <BotaoVoz onTexto={setTexto} />
+          {/* Falou, guardou: o ditado vai direto para a Caixa, junto do que já estava escrito. */}
+          <BotaoVoz
+            onTexto={(falado) => {
+              capturar([texto.trim(), falado].filter(Boolean).join(' '))
+              onFechar()
+            }}
+          />
         </div>
         <button type="submit" className="primario">
           Guardar na caixa
