@@ -101,7 +101,7 @@ function Notificacoes() {
           </button>
         ))}
       </div>
-      <p className="motivo">Com 1h30 no mesmo passo, o app sempre avisa: é a proteção contra hiperfoco.</p>
+      <p className="motivo">Com 1h30 no mesmo passo, o app sempre avisa, para o tempo não passar sem você perceber.</p>
 
       <label className="rotulo">Revisão da semana (aviso às 10h)</label>
       <div className="chips">

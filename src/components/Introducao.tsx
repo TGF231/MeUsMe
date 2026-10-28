@@ -61,9 +61,7 @@ export function Introducao() {
               </button>
               <button onClick={concluir}>Começar vazio</button>
             </div>
-            <p className="motivo">
-              O MeUsMe é uma ferramenta de organização. Não é tratamento e não substitui acompanhamento profissional.
-            </p>
+            <p className="motivo">O MeUsMe é um programa de organização de tarefas.</p>
           </>
         ) : (
           <div className="linha centralizada">

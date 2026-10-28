@@ -5,7 +5,8 @@ O que a pesquisa diz, o que isso muda no MeUsMe e até onde a evidência vai. Re
 ## Antes de tudo: o tamanho da evidência
 
 - Revisões de 2024 e 2025 concluem que apps para TDAH **podem ajudar como complemento**, mas a evidência é de baixa qualidade, curta e quase toda em crianças. Não há ensaio clínico que prove um app comercial para adultos ([revisão sistemática, 2025](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11904913/); [revisão guarda-chuva, BMC Psychiatry 2025](https://doaj.org/article/789ef3c13fd143468097858bb49f61e5); [relatório para adultos no Reino Unido, 2024](https://strathprints.strath.ac.uk/89559/)).
-- Por isso o MeUsMe **não promete tratar nada**. Ele aplica princípios com boa base (funções executivas, TCC para adultos) num formato de ferramenta. O aviso aparece na introdução, em Ajustes → Sobre e na política de privacidade.
+- Por isso o MeUsMe **não promete tratar nada**. Ele aplica princípios com boa base (funções executivas, TCC para adultos) num formato de ferramenta.
+- **Este documento é interno.** O app, as páginas públicas e as lojas apresentam o MeUsMe só como um programa de organização de tarefas: sem TDAH, diagnóstico, tratamento ou outros termos médicos. Isso só muda depois de uma revisão jurídica.
 
 ## Os achados que guiam o app
 

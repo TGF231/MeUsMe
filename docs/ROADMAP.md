@@ -93,7 +93,7 @@ Objetivo: tirar tudo da coluna "nunca testado com o serviço real".
 
 ### Fase 3: Produto para outras pessoas
 
-- ~~**Primeiro uso guiado:** 3 telas curtas (Agora, Caixa, Linha de chegada) e um projeto de exemplo que dá para apagar.~~ Feito (4 telas, com o aviso de que não é tratamento).
+- ~~**Primeiro uso guiado:** 3 telas curtas (Agora, Caixa, Linha de chegada) e um projeto de exemplo que dá para apagar.~~ Feito (4 telas).
 - **Decisão sobre Open Finance:** plano comercial da Pluggy (servidor próprio para o segredo, Edge Function) **ou** ficar só com notificações de banco + importação de extrato. A segunda opção é bem mais barata.
 - **Decisão sobre Google Agenda:** passar pela verificação do Google **ou** trocar por assinatura do "endereço secreto iCal" da agenda. A pessoa cola um link, o app só lê e não precisa de verificação; criar eventos no Google deixa de existir.
 - Textos de ajuda onde as pessoas travarem (anotados na fase 1).
