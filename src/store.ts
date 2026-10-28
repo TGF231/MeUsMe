@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { apagarAudio } from './audios'
 import { passosParaModelo } from './calculos'
 import type { Captura, CheckIn, Energia, Ideia, Modelo, Passo, Projeto, Sessao } from './types'
 import { hoje, novoId as id } from './util'
@@ -17,6 +18,8 @@ interface Estado {
   focoId: string | null
 
   capturar: (texto: string) => void
+  /** Registra um recado de voz cujo áudio já foi guardado com este id. */
+  capturarAudio: (id: string, segundos: number) => void
   descartarCaptura: (id: string) => void
 
   criarProjeto: (titulo: string, chegada: string) => string
@@ -67,7 +70,13 @@ export const useStore = create<Estado>()(
 
       capturar: (texto) =>
         set((s) => ({ capturas: [{ id: id(), texto, criadoEm: Date.now() }, ...s.capturas] })),
-      descartarCaptura: (cid) => set((s) => ({ capturas: s.capturas.filter((c) => c.id !== cid) })),
+      capturarAudio: (cid, segundos) =>
+        set((s) => ({ capturas: [{ id: cid, texto: 'Recado de voz', criadoEm: Date.now(), audio: { segundos } }, ...s.capturas] })),
+      descartarCaptura: (cid) =>
+        set((s) => {
+          if (s.capturas.some((c) => c.id === cid && c.audio)) void apagarAudio(cid).catch(() => {})
+          return { capturas: s.capturas.filter((c) => c.id !== cid) }
+        }),
 
       criarProjeto: (titulo, chegada) => {
         const pid = id()

@@ -1484,3 +1484,7 @@ button.perigo:hover {
   flex-basis: 100%;
   margin: 0;
 }
+
+.recado {
+  width: 100%;
+}

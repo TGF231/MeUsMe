@@ -4,6 +4,8 @@ export interface Captura {
   id: string
   texto: string
   criadoEm: number
+  /** Recado de voz: o áudio fica em src/audios.ts, com o id da captura, só neste aparelho. */
+  audio?: { segundos: number }
 }
 
 export interface Projeto {

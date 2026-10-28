@@ -32,7 +32,8 @@ const maisNovoPrimeiro = (a: Registro, b: Registro) => (b.criadoEm as number) - 
  * estado da conexão com o Google e eventos encerrados na tela Agora.
  */
 const COLECOES: Colecao[] = [
-  { nome: 'nucleo.capturas', loja: useStore, campo: 'capturas', tipo: 'lista', ordenar: maisNovoPrimeiro },
+  // Recados de voz ficam fora: o áudio só existe no aparelho que gravou.
+  { nome: 'nucleo.capturas', loja: useStore, campo: 'capturas', tipo: 'lista', ordenar: maisNovoPrimeiro, incluir: (c) => !c.audio },
   { nome: 'nucleo.projetos', loja: useStore, campo: 'projetos', tipo: 'lista' },
   { nome: 'nucleo.passos', loja: useStore, campo: 'passos', tipo: 'lista' },
   { nome: 'nucleo.ideias', loja: useStore, campo: 'ideias', tipo: 'lista', ordenar: maisNovoPrimeiro },
