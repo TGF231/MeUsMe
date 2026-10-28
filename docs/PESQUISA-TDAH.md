@@ -45,12 +45,15 @@ O que a pesquisa diz, o que isso muda no MeUsMe e até onde a evidência vai. Re
 
 - **Mantida:** captura em um toque, por atalho global no Windows e pelas notificações de banco no Android (8). "Organizar fica para depois" separa capturar de decidir.
 - **Nova:** "Quero comprar: esperar 48h" manda a vontade para a lista de espera (4, 10).
+- **Nova:** captura sem digitar: microfone para ditar e recado de voz gravado direto na Caixa (8). Escrever é atrito na hora em que a ideia aparece; o recado tira da cabeça em um toque e deixa o organizar para depois.
 
 ### Projetos
 
 - **Mantida:** linha de chegada obrigatória, definida enquanto há energia (11).
 - **Mantida:** só o próximo passo aparece; os demais ficam recolhidos.
 - **Nova:** barra de progresso nos cartões e no detalhe (11).
+- **Nova:** modelos: um projeto que se repete (lavar roupa, mercado) volta inteiro com um toque, com os passos já quebrados (2, 8). Quebrar em passos é a parte que pede energia; refazer isso toda vez é a demanda que o apoio externo deve tirar.
+- **Nova:** passos já feitos voltam com "De novo" (no projeto e no Histórico), e o formulário sugere passos anteriores e verbos concretos para começar a frase (2, 8). Os verbos também evitam o passo vago, que é o que trava na hora de começar.
 
 ### Revisão da semana (nova)
 
