@@ -18,6 +18,7 @@ import { Projetos } from './screens/Projetos'
 import { useStore } from './store'
 import { useAvisos, useConfig } from './stores/config'
 import { useSincronizacao } from './sync/motor'
+import { BotaoVoz } from './components/BotaoVoz'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -67,14 +68,17 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
         }}
       >
         <label className="rotulo">O que está na sua cabeça?</label>
-        <input
-          ref={ref}
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          onKeyDown={(e) => e.key === 'Escape' && onFechar()}
-          placeholder="Escreva e aperte Enter"
-          aria-label="O que está na sua cabeça?"
-        />
+        <div className="linha">
+          <input
+            ref={ref}
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            onKeyDown={(e) => e.key === 'Escape' && onFechar()}
+            placeholder="Escreva e aperte Enter"
+            aria-label="O que está na sua cabeça?"
+          />
+          <BotaoVoz onTexto={setTexto} />
+        </div>
         <button type="submit" className="primario">
           Guardar na caixa
         </button>

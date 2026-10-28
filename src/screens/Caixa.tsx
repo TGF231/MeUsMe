@@ -8,6 +8,7 @@ import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
 import type { Captura } from '../types'
 import { lerGasto, reais } from '../util'
+import { BotaoVoz } from '../components/BotaoVoz'
 
 type Modo =
   | { tipo: 'passo'; projetoId: string | null }
@@ -150,6 +151,7 @@ export function Caixa() {
             <label className="rotulo">Tire da cabeça. Organizar fica para depois.</label>
             <div className="linha">
               <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Qualquer coisa…" aria-label="Capturar na Caixa" />
+              <BotaoVoz onTexto={setTexto} />
               <button type="submit" className="primario">
                 Guardar
               </button>

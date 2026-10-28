@@ -1478,3 +1478,9 @@ button.perigo:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Aviso do ditado: quebra para a linha de baixo do campo. */
+.aviso-voz {
+  flex-basis: 100%;
+  margin: 0;
+}

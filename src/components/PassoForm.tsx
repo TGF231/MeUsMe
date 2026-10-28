@@ -3,6 +3,7 @@ import { sugestoesDePasso } from '../calculos'
 import { useStore } from '../store'
 import type { Energia } from '../types'
 import { SeletorEnergia } from './SeletorEnergia'
+import { BotaoVoz } from './BotaoVoz'
 
 // Verbos que indicam intenção vaga em vez de ação concreta.
 const VAGOS = /\b(pensar|ver|resolver|organizar|decidir|melhorar|estudar|planejar|cuidar|arrumar|tentar|trabalhar|focar|entender)\b/i
@@ -54,14 +55,17 @@ export function PassoForm({
       <label className="rotulo" htmlFor={idCampo}>
         {pergunta}
       </label>
-      <input
-        id={idCampo}
-        ref={campo}
-        autoFocus
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        placeholder="Comece com um verbo: abrir, escrever, enviar, ligar…"
-      />
+      <div className="linha">
+        <input
+          id={idCampo}
+          ref={campo}
+          autoFocus
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          placeholder="Comece com um verbo: abrir, escrever, enviar, ligar…"
+        />
+        <BotaoVoz onTexto={setTexto} />
+      </div>
       {sugerir && !texto.trim() && (
         <div className="chips" aria-label="Começar com um verbo">
           {VERBOS.map((v) => (
