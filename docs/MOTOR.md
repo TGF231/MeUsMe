@@ -37,6 +37,7 @@ Por que essas quatro:
 - **O aviso diz o porquê**: *"Compromisso: Dentista · hoje às 13:00 · por causa de **13:00** · Desfazer"*. O trecho que disparou a regra aparece em negrito. Quando foi a rede, o aviso diz *"Parece um passo"*, nunca "por causa de".
 - **O exemplo do campo** alterna entre as regras: *"dentista 13:00"*, *"-35 almoço"*, *"lembrar de… sexta"*.
 - **Sem R$.** Digitar "R$" no teclado do celular exige trocar de teclado duas vezes. O sinal fica no mesmo teclado dos números, então ele sozinho marca o dinheiro.
+- **"Experimente", na última tela do tutorial:** você escreve e vê, ao vivo, o que o app faria ("→ Compromisso: Dentista · amanhã às 15:00 · por causa de 15h"), com os seus ajustes, a memória e os projetos de agora. Nada é criado ali.
 - **Um `?` ao lado do campo de captura** abre o tutorial de novo, e ele também fica em Ajustes → *Como escrever rápido*.
 - Quando um valor vai para a Caixa por falta de sinal, o cartão lembra a regra: *"Use + ou - na frente para o app lançar sozinho."*
 
