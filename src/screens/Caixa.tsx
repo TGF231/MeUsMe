@@ -4,12 +4,13 @@ import { EventoForm } from '../components/EventoForm'
 import { LancamentoForm } from '../components/LancamentoForm'
 import { LembreteForm } from '../components/LembreteForm'
 import { PassoForm } from '../components/PassoForm'
+import { lerDinheiro } from '../motor/extratores'
 import { GravarRecado, OuvirRecado } from '../components/Recado'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
 import type { Captura } from '../types'
-import { lerGasto, reais } from '../util'
+import { reais } from '../util'
 
 type Modo =
   | { tipo: 'passo'; projetoId: string | null }
@@ -27,14 +28,25 @@ function Processar({ captura }: { captura: Captura }) {
   const texto = captura.audio ? '' : captura.texto
   const [titulo, setTitulo] = useState(texto)
   const ativos = s.projetos.filter((p) => !p.concluidoEm)
-  const gasto = lerGasto(texto)
+  // Só é dinheiro com R$, "reais" ou vírgula de centavos (docs/MOTOR.md, regra 2).
+  const dinheiro = lerDinheiro(texto)
   const resolver = () => s.descartarCaptura(captura.id)
   const adiarCompra = useFinancas((f) => f.adiarCompra)
   const horasDeEspera = useConfig((c) => c.horasDeEspera)
   const cancelar = () => setModo(null)
 
   if (modo?.tipo === 'gasto')
-    return <LancamentoForm inicial={gasto ?? { descricao: texto }} onPronto={resolver} onCancelar={cancelar} />
+    return (
+      <LancamentoForm
+        inicial={
+          dinheiro
+            ? { valor: dinheiro.valor, descricao: dinheiro.descricao, tipo: dinheiro.direcao === 'entrada' ? 'receita' : 'gasto' }
+            : { descricao: texto }
+        }
+        onPronto={resolver}
+        onCancelar={cancelar}
+      />
+    )
   if (modo?.tipo === 'lembrete') return <LembreteForm inicial={texto} onPronto={resolver} onCancelar={cancelar} />
   if (modo?.tipo === 'evento') return <EventoForm inicial={{ titulo: texto }} onPronto={resolver} onCancelar={cancelar} />
 
@@ -86,9 +98,9 @@ function Processar({ captura }: { captura: Captura }) {
 
   return (
     <div className="linha acoes">
-      {gasto && (
+      {dinheiro && (
         <button className="primario" onClick={() => setModo({ tipo: 'gasto' })}>
-          Registrar gasto de {reais(gasto.valor)}
+          Registrar {dinheiro.direcao === 'entrada' ? 'entrada' : 'gasto'} de {reais(dinheiro.valor)}
         </button>
       )}
       <button onClick={() => setModo({ tipo: 'passo', projetoId: null })}>Tarefa solta</button>
@@ -106,11 +118,11 @@ function Processar({ captura }: { captura: Captura }) {
         </select>
       )}
       <button onClick={() => setModo({ tipo: 'projeto' })}>Virar projeto</button>
-      {!gasto && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
+      {!dinheiro && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
       {!captura.audio && (
         <button
           onClick={() => {
-            adiarCompra(gasto?.descricao ?? captura.texto, gasto?.valor, horasDeEspera)
+            adiarCompra(dinheiro?.descricao || captura.texto, dinheiro?.valor, horasDeEspera)
             resolver()
           }}
           title={`Vai para Finanças → Antes de comprar, e o app pergunta de novo em ${horasDeEspera}h`}
