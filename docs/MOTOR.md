@@ -111,6 +111,7 @@ Testadas em `testes/motor-regras.test.ts`, mas fora do tutorial:
 | `não esquecer de pagar a luz sexta`, `nao esquece o guarda chuva` | o mesmo que "lembrar de" ("lembrei" e "lembrança" não contam) |
 | `lembra de passar protetor`, mas não `bot que lembra de beber água` | "lembra" e "lembre" só são pedido no começo; no meio, descrevem. "lembrar" e "lembrete" valem em qualquer lugar |
 | `15hrs`, `das 14h` | hora |
+| `à uma da tarde`, `às duas`, `às oito da noite`, `às três e meia`, `às 3 e meia` | hora por extenso, como o ditado às vezes escreve (sem período, de uma a sete é à tarde) |
 | `reunião das 14h às 16h`, `15h-17h`, `aula 15h às 17` | compromisso com início e fim (`22h às 6h` termina no dia seguinte) |
 | `fim de semana`, `próxima semana`, `daqui a 3 dias`, `em 2 semanas` | data |
 | `lembrar de… amanhã de manhã` / `à tarde` / `à noite` / `cedo` | lembrete às 9h / 14h / 19h / 8h (período sem hora só vale em lembrete) |
