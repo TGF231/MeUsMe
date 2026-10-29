@@ -271,3 +271,9 @@ for (const [texto, esperado] of horasFaladas) {
     assert.deepEqual(h && [h.h, h.m], esperado)
   })
 }
+
+test('"meio-dia e meia" e "meia-noite e meia"', () => {
+  assert.deepEqual([lerHora('almoço ao meio-dia e meia')?.h, lerHora('almoço ao meio-dia e meia')?.m], [12, 30])
+  assert.deepEqual([lerHora('meia-noite e meia')?.h, lerHora('meia-noite e meia')?.m], [0, 30])
+  assert.equal(aplicarRegras('almoço com a Bia ao meio-dia e meia', AGORA)?.titulo, 'Almoço com a Bia')
+})

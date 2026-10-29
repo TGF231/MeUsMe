@@ -149,7 +149,7 @@ export interface Hora extends Trecho {
 const PERIODO = String.raw`(?:\s+(da\s+manh[ãa]|da\s+tarde|da\s+noite))?`
 const HORAS = [
   // meio-dia, meia-noite
-  new RegExp(String.raw`${ANTES}(?:[àa]o?\s+)?(meio[- ]dia|meia[- ]noite)${DEPOIS}`, 'i'),
+  new RegExp(String.raw`${ANTES}(?:[àa]o?\s+)?(meio[- ]dia|meia[- ]noite)(\s+e\s+meia)?${DEPOIS}`, 'i'),
   // 13:00 · às 13:00 · das 13:00 · 13:00h
   new RegExp(String.raw`${ANTES}(?:[àa]s\s+|das\s+)?([01]?\d|2[0-3]):([0-5]\d)(?:\s*h(?:rs?|s|oras?)?)?${PERIODO}${DEPOIS}`, 'i'),
   // 13h · 13h30 · 13hrs · 13 horas · às 3h da tarde · das 14h
@@ -184,7 +184,7 @@ export function lerHora(texto: string): Hora | null {
   for (const [i, re] of HORAS.entries()) {
     const m = primeiro(texto, re)
     if (!m) continue
-    if (i === 0) return { ...trechoDe(m), h: /meio/i.test(m[1]) ? 12 : 0, m: 0 }
+    if (i === 0) return { ...trechoDe(m), h: /meio/i.test(m[1]) ? 12 : 0, m: minutos(m[2]) }
     const h = i === 4 ? HORAS_POR_EXTENSO.indexOf(semAcento(m[1])) + 1 : Number(m[1])
     const periodo = m[3]?.toLowerCase() ?? ''
     if (ehDuracao(i, m, h, periodo)) continue
