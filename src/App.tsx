@@ -86,38 +86,41 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
   useEffect(() => ref.current?.focus(), [])
 
   return (
-    <div className="fundo" role="dialog" aria-modal="true" aria-label="Captura rápida" onClick={onFechar}>
-      <form
-        className="modal"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={(e) => {
-          e.preventDefault()
-          void organizar(texto)
-          onFechar()
-        }}
-      >
-        <label className="rotulo">O que está na sua cabeça?</label>
-        <div className="linha">
-          <input
-            ref={ref}
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            onKeyDown={(e) => e.key === 'Escape' && onFechar()}
-            placeholder={`Ex.: ${exemplo}`}
-            aria-label="O que está na sua cabeça?"
-          />
-          {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
-          <BotaoVoz
-            onTexto={(falado) => {
-              void organizar([texto.trim(), falado].filter(Boolean).join(' '))
-              onFechar()
-            }}
-          />
-        </div>
-        <button type="submit" className="primario">
-          Guardar na caixa
-        </button>
-      </form>
+    <div className="fundo">
+      {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, como no tutorial (ComoEscrever). */}
+      <button type="button" className="fundo-fechar" aria-label="Fechar a captura rápida" onClick={onFechar} />
+      <dialog open className="modal" aria-modal="true" aria-label="Captura rápida">
+        <form
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void organizar(texto)
+            onFechar()
+          }}
+        >
+          <label className="rotulo">O que está na sua cabeça?</label>
+          <div className="linha">
+            <input
+              ref={ref}
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              onKeyDown={(e) => e.key === 'Escape' && onFechar()}
+              placeholder={`Ex.: ${exemplo}`}
+              aria-label="O que está na sua cabeça?"
+            />
+            {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
+            <BotaoVoz
+              onTexto={(falado) => {
+                void organizar([texto.trim(), falado].filter(Boolean).join(' '))
+                onFechar()
+              }}
+            />
+          </div>
+          <button type="submit" className="primario">
+            Guardar na caixa
+          </button>
+        </form>
+      </dialog>
     </div>
   )
 }
