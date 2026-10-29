@@ -48,7 +48,9 @@ const SOLTO_FIM = new RegExp(String.raw`(?<=\s)${SINAL}(${NUMERO})${MIL}$`, 'i')
 const VERBOS = /\b(vendi|recebi|ganhei|paguei|comprei|gastei)\b/gi
 const ENTRADA = /\b(vendi|recebi|ganhei|entrou|caiu|sal[aá]rio|reembolso)\b/i
 const SAIDA = /\b(paguei|comprei|gastei|conta de|mensalidade)\b/i
-const CONECTOR_INICIAL = /^(?:de|do|da|dos|das|no|na|em|com|pelo|pela|pra|para|o|a)\s+/i
+const CONECTOR_INICIAL = /^(?:de|do|da|dos|das|no|na|em|com|pelo|pela|pra|para|por|o|a|um|uma)\s+/i
+// "Comprei um tênis por R$ 250": o "por" que sobra no fim da descrição.
+const CONECTOR_FINAL = /\s+(?:de|do|da|no|na|em|com|pelo|pela|pra|para|por)$/i
 
 interface Achado {
   inicio: number
@@ -93,6 +95,7 @@ function limparDescricao(texto: string) {
   let t = texto.replace(VERBOS, ' ').replace(/\s+/g, ' ').trim()
   t = t.replace(/^[\s,;:.–-]+|[\s,;:.–-]+$/g, '')
   while (CONECTOR_INICIAL.test(t)) t = t.replace(CONECTOR_INICIAL, '')
+  while (CONECTOR_FINAL.test(t)) t = t.replace(CONECTOR_FINAL, '')
   return t
 }
 
@@ -152,7 +155,9 @@ const HORAS = [
   new RegExp(String.raw`${ANTES}(?:[àa]s\s+|das\s+)?([01]?\d|2[0-3])\s*(?:h|hs|hrs?|horas?)(?:\s*([0-5]\d))?${PERIODO}${DEPOIS}`, 'i'),
   // às 3 · às 3 da tarde. Sem acento ("as 3"), só com o período: "comprar as 3 camisas" não é hora.
   // O grupo vazio () ocupa o lugar dos minutos, para o período ficar no grupo 3 como nos outros.
-  new RegExp(String.raw`${ANTES}(?:às|as(?=\s+\d{1,2}\s+da\s+(?:manh|tarde|noite)))\s+([01]?\d|2[0-3])()${PERIODO}(?![\wÀ-ÿ:,.])`, 'i'),
+  // Logo depois do número não pode vir ":", algarismo, nem "," ou "." seguidos de algarismo ("às 3:00", "às 3,5");
+  // um ponto final pode ("Reunião às 8 da noite." é às 20h, não às 8h).
+  new RegExp(String.raw`${ANTES}(?:às|as(?=\s+\d{1,2}\s+da\s+(?:manh|tarde|noite)))\s+([01]?\d|2[0-3])(?![\d:]|[,.]\d)()${PERIODO}${DEPOIS}`, 'i'),
 ]
 
 /** "estudar 2h" é duração, não hora: "Nh" de 1 a 4, sem "às", "das", minutos nem período. */

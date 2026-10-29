@@ -118,6 +118,8 @@ Testadas em `testes/motor-regras.test.ts`, mas fora do tutorial:
 | `-35 almoço ontem`, `+200 freela anteontem` | lançamento com a data de ontem / anteontem |
 | `site: arrumar o rodapé`, `Site - arrumar o rodapé` | passo do projeto aberto "Site" (nome inteiro no começo, seguido de ":" ou " - "; só quando nenhuma regra se aplica: `site: reunião 15h` é compromisso) |
 
+**Ditado.** O reconhecedor do Google devolve maiúscula no começo, ponto final e "sexta-feira" por extenso. Testes com frases nesse formato acharam dois bugs: "Jantar às 8 da noite." virava 8h (o ponto final impedia ler "da noite") e "Comprei um tênis por R$ 250." virava "um tênis por".
+
 **Repetição vira lembrete, mesmo sem "lembrar".** `academia toda segunda 7h` tem hora, mas compromissos ainda não se repetem, e criar só a próxima segunda perderia o que a pessoa disse. A ordem fica: "lembrar" → dinheiro → repetição → hora. Dinheiro vem antes: `-50 academia todo mês` é um gasto.
 
 ### Título
