@@ -11,7 +11,7 @@ import { CLASSES, gerarExemplos, type ExemploBruto } from '../dados/motor/modelo
 import { caracteristicas, fnv1a, VERSAO_CARACTERISTICAS } from '../src/motor/caracteristicas.ts'
 import { geradorComSemente, gravar, novaRede, prever, treinar, type Exemplo, type OpcoesTreino } from '../src/motor/rede.ts'
 
-export const OPCOES: OpcoesTreino = { epocas: 25, lote: 16, taxa: 0.005, l2: 1e-4, dropout: 0.2, semente: 42 }
+export const OPCOES: OpcoesTreino = { epocas: 25, lote: 16, taxa: 0.005, l2: 1e-4, dropout: 0.2, suavizar: 0.1, semente: 42 }
 export const POR_CLASSE = 250
 /** Frases por classe guardadas em pesos.json para o retreino no aparelho (src/motor/pessoal.ts). */
 export const REVISAO_POR_CLASSE = 15

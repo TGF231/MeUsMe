@@ -38,6 +38,27 @@ test('checagem de gradiente: retropropagação bate com a diferença numérica',
     for (let j = 0; j < ESCONDIDA; j += 11) conferir(rede.w1, linha * ESCONDIDA + j, g.w1.get(linha)![j], `w1[${linha}][${j}]`)
 })
 
+test('checagem de gradiente com suavização de rótulos', () => {
+  const rede = novaRede(CLASSES, geradorComSemente(11))
+  const ex: Exemplo = { x: caracteristicas('quero um fone novo'), y: 2 }
+  const suavizar = 0.1
+  const g = gradientes(rede, ex, undefined, suavizar)
+  const perdaSuave = () => {
+    const p = prever(rede, ex.x)
+    return -p.reduce((s, v, k) => s + (k === ex.y ? 1 - suavizar : suavizar / 2) * Math.log(v), 0)
+  }
+  const h = 1e-2
+  for (let k = 0; k < CLASSES.length; k++) {
+    const original = rede.b2[k]
+    rede.b2[k] = original + h
+    const mais = perdaSuave()
+    rede.b2[k] = original - h
+    const menos = perdaSuave()
+    rede.b2[k] = original
+    assert.ok(Math.abs((mais - menos) / (2 * h) - g.b2[k]) < 1e-3, `b2[${k}]`)
+  }
+})
+
 test('treino separa classes simples', () => {
   const dados: [string, number][] = [
     ['ligar para o banco', 0], ['mandar email pro chefe', 0], ['lavar a louça', 0], ['pagar a conta de luz', 0],

@@ -93,17 +93,19 @@ export interface Gradientes {
 
 /**
  * Retropropagação de um exemplo, com perda de entropia cruzada. `mascara` é o dropout da camada
- * escondida (0 desliga o neurônio, 1/(1-p) mantém): sem ela, é o gradiente exato.
+ * escondida (0 desliga o neurônio, 1/(1-p) mantém): sem ela, é o gradiente exato. `suavizar` é
+ * a suavização de rótulos: a classe certa vale 1 - suavizar e o resto se divide entre as outras,
+ * para a rede não empurrar tudo para 99% de certeza.
  */
-export function gradientes(rede: Rede, ex: Exemplo, mascara?: Float32Array): Gradientes {
+export function gradientes(rede: Rede, ex: Exemplo, mascara?: Float32Array, suavizar = 0): Gradientes {
   const c = rede.classes.length
   const h = escondida(rede, ex.x)
   if (mascara) for (let j = 0; j < ESCONDIDA; j++) h[j] *= mascara[j]
   const p = softmax(saida(rede, h))
 
-  // dPerda/dz = p - y (softmax + entropia cruzada)
-  const dz = Float32Array.from(p)
-  dz[ex.y] -= 1
+  // dPerda/dz = p - alvo (softmax + entropia cruzada); sem suavizar, o alvo é 1 na classe certa.
+  const alvo = Float32Array.from({ length: c }, (_, k) => (k === ex.y ? 1 - suavizar : suavizar / (c - 1)))
+  const dz = p.map((v, k) => v - alvo[k])
 
   const w2 = new Float32Array(ESCONDIDA * c)
   const dh = new Float32Array(ESCONDIDA)
@@ -123,7 +125,8 @@ export function gradientes(rede: Rede, ex: Exemplo, mascara?: Float32Array): Gra
     for (let j = 0; j < ESCONDIDA; j++) linha[j] += ex.x.valores[k] * dh[j]
     w1.set(ex.x.indices[k], linha)
   }
-  return { w1, b1: dh, w2, b2: dz, perda: -Math.log(Math.max(p[ex.y], 1e-12)) }
+  const perda = -alvo.reduce((s, a, k) => s + (a ? a * Math.log(Math.max(p[k], 1e-12)) : 0), 0)
+  return { w1, b1: dh, w2, b2: dz, perda }
 }
 
 export interface OpcoesTreino {
@@ -133,6 +136,8 @@ export interface OpcoesTreino {
   /** Decaimento de peso (L2 desacoplado, como no AdamW). */
   l2: number
   dropout: number
+  /** Suavização de rótulos (0 desliga). */
+  suavizar?: number
   semente: number
   /** Treina só W2 e b2 (aprendizado com as correções, fase 3). */
   soUltimaCamada?: boolean
@@ -178,7 +183,7 @@ export function treinar(rede: Rede, exemplos: Exemplo[], o: OpcoesTreino) {
       const soma = { w1: new Map<number, Float32Array>(), b1: new Float32Array(ESCONDIDA), w2: new Float32Array(rede.w2.length), b2: new Float32Array(rede.b2.length) }
       for (const i of lote) {
         const mascara = o.dropout > 0 ? Float32Array.from({ length: ESCONDIDA }, () => (sortear() < o.dropout ? 0 : 1 / (1 - o.dropout))) : undefined
-        const g = gradientes(rede, exemplos[i], mascara)
+        const g = gradientes(rede, exemplos[i], mascara, o.suavizar)
         perdaTotal += g.perda
         for (const [linha, gl] of g.w1) {
           const acc = soma.w1.get(linha) ?? new Float32Array(ESCONDIDA)

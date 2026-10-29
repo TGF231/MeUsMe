@@ -163,8 +163,9 @@ Cada pedaço cai em uma de 4.096 posições (hash FNV-1a). O vetor é normalizad
 ### Treino
 
 - `npm run motor:treinar` (`scripts/motor-treinar.ts`) roda no Node em ~7 s: separa 1/4 das frases escritas à mão para conferir, mostra o acerto e a matriz de confusão, e depois treina com tudo e grava os pesos.
-- Primeiro treino: 174 frases à mão + 1.750 geradas; na conferência, 37 de 39 frases à mão fora do treino (95%). É um número otimista: as frases de conferência foram escritas pela mesma pessoa que escreveu as de treino.
-- Entropia cruzada, Adam, regularização L2 e dropout na camada escondida; semente fixa, para o mesmo dado dar sempre os mesmos pesos.
+- Treino atual: 264 frases à mão (90 delas nos casos de fronteira: lista de mercado é tarefa, "site com as fotos" é ideia, "comprar presente" é tarefa e não compra) + 1.750 geradas. Na conferência, 56 de 61 frases à mão fora do treino (92%). Ainda é um número otimista: quem escreveu as frases de conferência também escreveu as de treino.
+- **Suavização de rótulos (0,1):** no treino, a classe certa vale 90% e o resto se divide entre as outras. Sem ela, a rede errava com 98% ou 99% de certeza ("mudar o layout do quarto" como tarefa); com ela, os erros caem para perto de 30% e os acertos ficam em torno de 81%. Das sugestões com 50% ou mais, 48 acertam e 2 erram. É o que dá sentido à trava: a certeza precisa dizer a verdade para um limiar de 2% de erro valer alguma coisa.
+- Entropia cruzada com suavização de rótulos, Adam, regularização L2 e dropout na camada escondida; semente fixa, para o mesmo dado dar sempre os mesmos pesos.
 - Saída: `src/motor/pesos.json`, gerado e versionado, com o hash dos dados de treino e a versão das características. Um teste falha se os dados mudarem e os pesos não forem retreinados.
 - Um teste de **checagem de gradiente** compara o gradiente calculado com o numérico em uma rede pequena. É a forma padrão de provar que a retropropagação está certa.
 
@@ -172,7 +173,7 @@ Cada pedaço cai em uma de 4.096 posições (hash FNV-1a). O vetor é normalizad
 
 Em `dados/motor/`:
 
-- `exemplos.jsonl`: frases escritas à mão (174 no primeiro treino), uma por linha, com a classe. Começa por variações reais de como se escreve com pressa: sem acento, abreviado, com erro.
+- `exemplos.jsonl`: frases escritas à mão (264), uma por linha, com a classe. Começa por variações reais de como se escreve com pressa: sem acento, abreviado, com erro.
 - `modelos.ts`: geradores de variação (`{coisa} {hora}`, `lembrar de {ação} {dia}`, `R$ {valor} {lugar}`…), para cobrir combinações sem escrever todas.
 - `avaliacao.jsonl`: **capturas reais suas**, que nunca entram no treino. É o que mede a rede de verdade. Ficam no repositório (que é privado); dá para trocar nomes de pessoas antes de colar. Como montar: `dados/motor/LEIA-ME.md`.
 

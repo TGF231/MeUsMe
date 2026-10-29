@@ -172,3 +172,93 @@
 {"texto":"quero um tablet pra desenhar","classe":"compra"}
 {"texto":"teclado mecanico","classe":"compra"}
 {"texto":"quero trocar o sofa","classe":"compra"}
+{"texto":"mercado: leite, pão e café","classe":"passo"}
+{"texto":"farmacia pegar o remedio da mae","classe":"passo"}
+{"texto":"banco: ver o extrato de setembro","classe":"passo"}
+{"texto":"renovar o seguro do carro","classe":"passo"}
+{"texto":"pagar o ipva","classe":"passo"}
+{"texto":"comprar presente pra Ana","classe":"passo"}
+{"texto":"lista: detergente, esponja, sabão em pó","classe":"passo"}
+{"texto":"ver com o Pedro sobre o freela","classe":"passo"}
+{"texto":"checar se o boleto compensou","classe":"passo"}
+{"texto":"tirar foto 3x4","classe":"passo"}
+{"texto":"responder email da escola","classe":"passo"}
+{"texto":"marcar revisão da bike","classe":"passo"}
+{"texto":"descongelar o frango","classe":"passo"}
+{"texto":"assinar o contrato do apto","classe":"passo"}
+{"texto":"fzr o pix do aluguel","classe":"passo"}
+{"texto":"ver qnto custa o conserto da tv","classe":"passo"}
+{"texto":"trocar o oleo do carro","classe":"passo"}
+{"texto":"mandar audio pro Lucas","classe":"passo"}
+{"texto":"baixar a fatura do cartão","classe":"passo"}
+{"texto":"reservar o restaurante","classe":"passo"}
+{"texto":"aplicativo pra dividir contas entre amigos","classe":"ideia"}
+{"texto":"série de vídeos sobre café","classe":"ideia"}
+{"texto":"camiseta com estampa de gato","classe":"ideia"}
+{"texto":"site com receitas da vó","classe":"ideia"}
+{"texto":"pintar um quadro pro corredor","classe":"ideia"}
+{"texto":"vender as fotos da viagem online","classe":"ideia"}
+{"texto":"talvez fazer mestrado","classe":"ideia"}
+{"texto":"bot que lembra de beber água","classe":"ideia"}
+{"texto":"festa temática anos 80","classe":"ideia"}
+{"texto":"mudar o layout do quarto","classe":"ideia"}
+{"texto":"canal no youtube de jogos antigos","classe":"ideia"}
+{"texto":"e se a gente fosse pra praia no feriado","classe":"ideia"}
+{"texto":"tatuagem de onda no braço","classe":"ideia"}
+{"texto":"escrever um conto sobre o bairro","classe":"ideia"}
+{"texto":"projeto de compostagem no prédio","classe":"ideia"}
+{"texto":"jantar surpresa de aniversario de namoro","classe":"ideia"}
+{"texto":"quero um fone com cancelamento de ruido","classe":"compra"}
+{"texto":"tênis da nike que vi no insta","classe":"compra"}
+{"texto":"queria muito um pc novo","classe":"compra"}
+{"texto":"cama nova king","classe":"compra"}
+{"texto":"bota de couro","classe":"compra"}
+{"texto":"vontade de pedir um ipad","classe":"compra"}
+{"texto":"quero trocar a tv da sala","classe":"compra"}
+{"texto":"óculos de sol novo","classe":"compra"}
+{"texto":"ver preço do iphone","classe":"compra"}
+{"texto":"queria um drone","classe":"compra"}
+{"texto":"bicicleta elétrica","classe":"compra"}
+{"texto":"quero um perfume novo","classe":"compra"}
+{"texto":"jogo novo do zelda","classe":"compra"}
+{"texto":"cadeira de escritorio boa","classe":"compra"}
+{"texto":"reunião com o contador","classe":"compromisso"}
+{"texto":"consulta dermato dia 12","classe":"compromisso"}
+{"texto":"aula de natação sabado cedo","classe":"compromisso"}
+{"texto":"entrevista na empresa X segunda","classe":"compromisso"}
+{"texto":"formatura do Leo dia 18","classe":"compromisso"}
+{"texto":"visita da sogra domingo","classe":"compromisso"}
+{"texto":"exame de vista amanha","classe":"compromisso"}
+{"texto":"call com fornecedor quinta","classe":"compromisso"}
+{"texto":"ensaio da banda sexta a noite","classe":"compromisso"}
+{"texto":"audiencia no forum dia 4","classe":"compromisso"}
+{"texto":"lembrar de pagar o condominio","classe":"lembrete"}
+{"texto":"nao deixar de ligar pro seguro","classe":"lembrete"}
+{"texto":"lembrete renovar passaporte","classe":"lembrete"}
+{"texto":"lembrar a Ana do livro","classe":"lembrete"}
+{"texto":"nao esquecer o remédio do cachorro","classe":"lembrete"}
+{"texto":"lembrar de desligar o forno","classe":"lembrete"}
+{"texto":"me lembra de alongar","classe":"lembrete"}
+{"texto":"nao esquecer de votar","classe":"lembrete"}
+{"texto":"lembrar de levar a marmita amanhã","classe":"lembrete"}
+{"texto":"lembrar de mandar parabens pro Rafa","classe":"lembrete"}
+{"texto":"padaria 12,50","classe":"despesa"}
+{"texto":"gastei 80 com uber essa semana","classe":"despesa"}
+{"texto":"R$ 230 conserto da maquina","classe":"despesa"}
+{"texto":"almoço com o time 45 reais","classe":"despesa"}
+{"texto":"-60 presente da Ana","classe":"despesa"}
+{"texto":"multa 195,23","classe":"despesa"}
+{"texto":"veterinario 150","classe":"despesa"}
+{"texto":"paguei o IPTU 320,00","classe":"despesa"}
+{"texto":"cerveja 38 reais","classe":"despesa"}
+{"texto":"-18 estacionamento shopping","classe":"despesa"}
+{"texto":"recebi 500 do freela de design","classe":"receita"}
+{"texto":"+120 venda de roupa no brechó","classe":"receita"}
+{"texto":"pix do cliente 1.500","classe":"receita"}
+{"texto":"vendi o violao 600 reais","classe":"receita"}
+{"texto":"salário caiu 4.100,00","classe":"receita"}
+{"texto":"+45 rifa","classe":"receita"}
+{"texto":"reembolso do uber 32,90","classe":"receita"}
+{"texto":"me pagaram a aposta 50","classe":"receita"}
+{"texto":"dividendos 23,40","classe":"receita"}
+{"texto":"+700 mesada dos meus pais","classe":"receita"}
