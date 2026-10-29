@@ -203,6 +203,8 @@ se a rede tem certeza ≥ limiar
 senão                                   → Caixa com sugestão
 ```
 
+Nas 289 frases rotuladas à mão, as regras criam 48 itens sozinhas, todos com o tipo certo; um teste em `testes/motor-invariantes.test.ts` mantém isso.
+
 Regras primeiro, sempre. A rede decide só o que as regras deixam em aberto: frases sem hora, sem "lembrar" e sem valor com sinal, e valores sem sinal (`R$ 35 almoço`). Um teste garante que os exemplos do tutorial dão o mesmo resultado com e sem a rede.
 
 Na Caixa, a sugestão da rede aparece só com certeza de 50% ou mais; abaixo disso, a captura fica sem sugestão.
