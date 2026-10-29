@@ -31,6 +31,23 @@ const comMoeda: [string, Partial<Dinheiro> | null][] = [
   ['menos 35 reais almoço', { valor: 3500, direcao: 'saida', descricao: 'almoço' }],
   ['mais 2 mil reais tv', { valor: 200000, direcao: 'entrada', descricao: 'tv' }],
 
+  // O sinal colado no número basta: sem R$, que é lento no teclado do celular.
+  ['-35 almoço', { valor: 3500, direcao: 'saida', descricao: 'almoço' }],
+  ['+1000 tv', { valor: 100000, direcao: 'entrada', descricao: 'tv' }],
+  ['almoço -35', { valor: 3500, direcao: 'saida', descricao: 'almoço' }],
+  ['-12.90 padaria', { valor: 1290, direcao: 'saida', descricao: 'padaria' }],
+  ['+2 mil tv', { valor: 200000, direcao: 'entrada', descricao: 'tv' }],
+  ['-1.234,56 aluguel', { valor: 123456, direcao: 'saida', descricao: 'aluguel' }],
+  // ...mas não quando o sinal é outra coisa.
+  ['- 2 pães', null],
+  ['ligar +55 11 98765-4321', null],
+  ['ligar 99999-1234', null],
+  ['plantão 13-15h', null],
+  ['-5 kg de arroz', null],
+  ['correr +2 km', null],
+  ['desconto de -10%', null],
+  ['ficar +2 dias', null],
+
   // Sem sinal, palavras decidem; sem nenhuma das duas, a direção fica em aberto.
   ['R$ 1000 tv', { direcao: null }],
   ['vendi tv R$ 1.000', { valor: 100000, direcao: 'entrada', descricao: 'tv' }],

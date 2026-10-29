@@ -1,3 +1,5 @@
+import type { Classe } from './motor/regras'
+
 export type Energia = 1 | 2 | 3 // 1 = baixa, 2 = média, 3 = alta
 
 export interface Captura {
@@ -6,6 +8,8 @@ export interface Captura {
   criadoEm: number
   /** Recado de voz: o áudio fica em src/audios.ts, com o id da captura, só neste aparelho. */
   audio?: { segundos: number }
+  /** Tipo provável segundo o motor (docs/MOTOR.md), mostrado primeiro na Caixa. */
+  sugestao?: Classe
 }
 
 export interface Projeto {

@@ -19,7 +19,7 @@ interface Estado {
   /** Substitui o cache do Google no intervalo [de, ate). */
   substituirGoogle: (eventos: Omit<Evento, 'id'>[], de: number, ate: number) => void
 
-  criarLembrete: (l: Omit<Lembrete, 'id'>) => void
+  criarLembrete: (l: Omit<Lembrete, 'id'>) => string
   concluirLembrete: (id: string) => void
   avancarLembrete: (id: string) => void
   removerLembrete: (id: string) => void
@@ -75,7 +75,11 @@ export const useAgenda = create<Estado>()(
           }
         }),
 
-      criarLembrete: (l) => set((s) => ({ lembretes: [...s.lembretes, { ...l, id: novoId() }] })),
+      criarLembrete: (l) => {
+        const id = novoId()
+        set((s) => ({ lembretes: [...s.lembretes, { ...l, id }] }))
+        return id
+      },
       concluirLembrete: (id) =>
         set((s) => ({
           lembretes: s.lembretes.map((l) =>

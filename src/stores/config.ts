@@ -22,6 +22,10 @@ interface Estado {
   revisaoFeitaEm: number
   /** Horas de espera antes de decidir uma compra da lista de espera. Sincroniza. */
   horasDeEspera: number
+  /** O motor cria compromissos, lembretes e lançamentos sozinho (docs/MOTOR.md). Sincroniza. */
+  organizarSozinho: boolean
+  /** Tutorial "Como escrever rápido" visto neste aparelho. Não sincroniza. */
+  tutorialCapturaVisto: boolean
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -43,6 +47,8 @@ export const useConfig = create<Estado>()(
       diaRevisao: 0,
       revisaoFeitaEm: 0,
       horasDeEspera: 48,
+      organizarSozinho: true,
+      tutorialCapturaVisto: false,
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>
@@ -58,18 +64,25 @@ export const useConfig = create<Estado>()(
 )
 
 /** Avisos exibidos dentro do app. Não persistidos. */
-interface Aviso {
+interface Aviso extends OpcoesAviso {
   id: number
   titulo: string
   corpo: string
 }
 
-export const useAvisos = create<{ avisos: Aviso[]; mostrar: (t: string, c: string) => void; fechar: (id: number) => void }>()(
+export interface OpcoesAviso {
+  /** Trecho do corpo mostrado em negrito (o motivo de uma regra do motor). */
+  destaque?: string
+  /** Um botão no aviso, como Desfazer. Tocar fecha o aviso. */
+  acao?: { rotulo: string; fazer: () => void }
+}
+
+export const useAvisos = create<{ avisos: Aviso[]; mostrar: (t: string, c: string, o?: OpcoesAviso) => void; fechar: (id: number) => void }>()(
   (set) => ({
     avisos: [],
-    mostrar: (titulo, corpo) => {
+    mostrar: (titulo, corpo, opcoes) => {
       const id = Date.now() + Math.random()
-      set((s) => ({ avisos: [...s.avisos, { id, titulo, corpo }] }))
+      set((s) => ({ avisos: [...s.avisos, { id, titulo, corpo, ...opcoes }] }))
       setTimeout(() => set((s) => ({ avisos: s.avisos.filter((a) => a.id !== id) })), 12_000)
     },
     fechar: (id) => set((s) => ({ avisos: s.avisos.filter((a) => a.id !== id) })),

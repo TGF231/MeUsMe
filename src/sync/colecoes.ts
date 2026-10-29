@@ -62,6 +62,7 @@ const COLECOES: Colecao[] = [
   { nome: 'config.diaRevisao', loja: useConfig, campo: 'diaRevisao', tipo: 'valor' },
   { nome: 'config.revisaoFeitaEm', loja: useConfig, campo: 'revisaoFeitaEm', tipo: 'valor' },
   { nome: 'config.horasDeEspera', loja: useConfig, campo: 'horasDeEspera', tipo: 'valor' },
+  { nome: 'config.organizarSozinho', loja: useConfig, campo: 'organizarSozinho', tipo: 'valor' },
   // Evita disparar o mesmo aviso em dois aparelhos.
   { nome: 'config.disparados', loja: useConfig, campo: 'disparados', tipo: 'mapa' },
 ]

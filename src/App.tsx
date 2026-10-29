@@ -4,6 +4,8 @@ import { useAgendador } from './agendador'
 import { Icone } from './components/Icone'
 import { Introducao } from './components/Introducao'
 import { usoDoArmazenamento } from './erros'
+import { organizar } from './motor/executar'
+import { EXEMPLOS_DE_CAMPO } from './motor/tutorial'
 import { useNavegacao, type Aba } from './navegacao'
 import { Captura, processarCapturas } from './nativo/captura'
 import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
@@ -29,6 +31,19 @@ const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'historico', nome: 'Histórico' },
 ]
 
+/** O corpo do aviso com o trecho que disparou a regra em negrito. */
+function ComDestaque({ texto, destaque }: { texto: string; destaque?: string }) {
+  const i = destaque ? texto.indexOf(destaque) : -1
+  if (!destaque || i < 0) return <>{texto}</>
+  return (
+    <>
+      {texto.slice(0, i)}
+      <b>{destaque}</b>
+      {texto.slice(i + destaque.length)}
+    </>
+  )
+}
+
 function Avisos() {
   const { avisos, fechar } = useAvisos()
   if (avisos.length === 0) return null
@@ -39,7 +54,21 @@ function Avisos() {
           <span>
             <b>{a.titulo}</b>
             <br />
-            {a.corpo}
+            <ComDestaque texto={a.corpo} destaque={a.destaque} />
+            {a.acao && (
+              <>
+                <br />
+                <button
+                  className="mini-botao"
+                  onClick={() => {
+                    a.acao!.fazer()
+                    fechar(a.id)
+                  }}
+                >
+                  {a.acao.rotulo}
+                </button>
+              </>
+            )}
           </span>
           <button className="discreto" onClick={() => fechar(a.id)} aria-label="Fechar aviso">
             ×
@@ -51,8 +80,8 @@ function Avisos() {
 }
 
 function CapturaRapida({ onFechar }: { onFechar: () => void }) {
-  const capturar = useStore((s) => s.capturar)
   const [texto, setTexto] = useState('')
+  const [exemplo] = useState(() => EXEMPLOS_DE_CAMPO[Math.floor(Math.random() * EXEMPLOS_DE_CAMPO.length)])
   const ref = useRef<HTMLInputElement>(null)
   useEffect(() => ref.current?.focus(), [])
 
@@ -63,7 +92,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
-          if (texto.trim()) capturar(texto.trim())
+          organizar(texto)
           onFechar()
         }}
       >
@@ -74,13 +103,13 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             onKeyDown={(e) => e.key === 'Escape' && onFechar()}
-            placeholder="Escreva e aperte Enter"
+            placeholder={`Ex.: ${exemplo}`}
             aria-label="O que está na sua cabeça?"
           />
-          {/* Falou, guardou: o ditado vai direto para a Caixa, junto do que já estava escrito. */}
+          {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
           <BotaoVoz
             onTexto={(falado) => {
-              capturar([texto.trim(), falado].filter(Boolean).join(' '))
+              organizar([texto.trim(), falado].filter(Boolean).join(' '))
               onFechar()
             }}
           />
