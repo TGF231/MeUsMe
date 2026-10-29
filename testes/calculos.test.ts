@@ -7,6 +7,7 @@ import {
   inicioDaSemana,
   passosParaModelo,
   progresso,
+  proximaOcorrencia,
   revisaoPendente,
   sugestoesDePasso,
   ultimaAtividade,
@@ -104,4 +105,29 @@ test('modelo: passos feitos na ordem em que foram feitos, depois a fila, sem rep
     passo('x', { texto: 'Outro', projetoId: 'outro' }),
   ]
   assert.deepEqual(passosParaModelo(passos, 'p').map((s) => s.texto), ['Separar', 'Estender', 'Dobrar'])
+})
+
+test('lembrete mensal no dia 31 cai no último dia dos meses curtos e volta ao 31', () => {
+  const em = (a: number, m: number, d: number) => new Date(a, m, d, 9).getTime()
+  let quando = em(2026, 9, 31)
+  const vistos: string[] = []
+  for (let i = 0; i < 5; i++) {
+    quando = proximaOcorrencia({ quando, repetir: 'mensal', dia: 31 }, quando)
+    const d = new Date(quando)
+    vistos.push(`${d.getDate()}/${d.getMonth() + 1}`)
+  }
+  assert.deepEqual(vistos, ['30/11', '31/12', '31/1', '28/2', '31/3'])
+})
+
+test('lembrete mensal antigo, sem dia guardado, usa o dia da data', () => {
+  const quando = new Date(2026, 0, 15, 9).getTime()
+  assert.equal(new Date(proximaOcorrencia({ quando, repetir: 'mensal' }, quando)).getDate(), 15)
+})
+
+test('lembrete diário e semanal pulam o que já passou', () => {
+  const quando = new Date(2026, 9, 20, 9).getTime()
+  const agora = new Date(2026, 9, 28, 10).getTime()
+  assert.equal(proximaOcorrencia({ quando, repetir: 'diario' }, agora), new Date(2026, 9, 29, 9).getTime())
+  assert.equal(proximaOcorrencia({ quando, repetir: 'semanal' }, agora), new Date(2026, 10, 3, 9).getTime())
+  assert.equal(proximaOcorrencia({ quando, repetir: 'nunca' }, agora), quando)
 })

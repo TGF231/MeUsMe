@@ -147,5 +147,7 @@ export interface Lembrete {
   texto: string
   quando: number
   repetir: 'nunca' | 'diario' | 'semanal' | 'mensal'
+  /** Mensal: o dia do mês pretendido. "Todo dia 31" cai no último dia dos meses curtos e volta ao 31 depois. */
+  dia?: number
   concluido?: boolean
 }
