@@ -23,7 +23,10 @@ const NUMERO = String.raw`\d(?:[\d.,]*\d)?`
 const SINAL = String.raw`(?:([+-])\s*|\b(mais|menos)\s+)?`
 const MIL = String.raw`(\s+mil\b)?`
 
-// Regra do tutorial: na captura livre, só é dinheiro o que tem marca de moeda.
+// Unidades que tiram o número do dinheiro: "-5 kg", "+2 min", "-10%".
+const UNIDADE = String.raw`\s*(?:kg|g|mg|km|m|cm|mm|ml|l|min|h|hs|horas?|dias?|%|°|x)(?![\wÀ-ÿ])`
+
+// Regra do tutorial: na captura livre, só é dinheiro o que tem sinal ou marca de moeda.
 const COM_MOEDA = [
   // R$ 35 · -R$ 35 · menos R$ 35 · R$ 2 mil
   new RegExp(String.raw`${SINAL}r\$\s*(${NUMERO})${MIL}`, 'gi'),
@@ -31,6 +34,11 @@ const COM_MOEDA = [
   new RegExp(String.raw`${SINAL}\b(${NUMERO})${MIL}\s*(?:reais|real)\b`, 'gi'),
   // 35,00 · -12,90 (vírgula com dois dígitos de centavos)
   new RegExp(String.raw`${SINAL}(?<![\d.,])(\d+(?:\.\d{3})*,\d{2})(?![\d,])`, 'gi'),
+  // -35 · +1000 · +2 mil: o sinal colado no número basta, e fica no mesmo teclado dos números.
+  // Não vale grudado em outra palavra ou número (99999-1234, 13-15h), solto como marcador de lista
+  // ("- 2 pães"), com unidade (-5 kg) nem seguido de outro número (+55 11 98765-4321).
+  // O grupo vazio () ocupa o lugar do "mais/menos" dos outros padrões.
+  new RegExp(String.raw`(?<![\wÀ-ÿ])([+-])()(${NUMERO})${MIL}(?!${UNIDADE})(?!\s+\d)(?![\wÀ-ÿ])`, 'gi'),
 ]
 
 // Onde o campo já é de valor (lista de espera): número solto no começo ou no fim.

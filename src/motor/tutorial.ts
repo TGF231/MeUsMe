@@ -26,11 +26,11 @@ export const TUTORIAL: TelaTutorial[] = [
     exemplos: [{ texto: 'lembrar de pagar a luz sexta', resultado: 'Lembrete na sexta, às 9h', espera: { classe: 'lembrete', titulo: 'Pagar a luz' } }],
   },
   {
-    titulo: 'Dinheiro tem R$ e sinal',
-    texto: 'Menos para o que saiu, mais para o que entrou. Falando: “menos 35 reais almoço”.',
+    titulo: 'Dinheiro começa com - ou +',
+    texto: 'Menos para o que saiu, mais para o que entrou, colado no número. Não precisa de R$. Falando: “menos 35 reais almoço”.',
     exemplos: [
-      { texto: '-R$ 35 almoço', resultado: 'Gasto de R$ 35,00', espera: { classe: 'despesa', titulo: 'almoço', valor: -3500 } },
-      { texto: '+R$ 1000 tv', resultado: 'Entrada de R$ 1.000,00', espera: { classe: 'receita', titulo: 'tv', valor: 100000 } },
+      { texto: '-35 almoço', resultado: 'Gasto de R$ 35,00', espera: { classe: 'despesa', titulo: 'almoço', valor: -3500 } },
+      { texto: '+1000 tv', resultado: 'Entrada de R$ 1.000,00', espera: { classe: 'receita', titulo: 'tv', valor: 100000 } },
     ],
   },
   {

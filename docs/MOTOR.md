@@ -1,6 +1,6 @@
 # Motor local: organizar capturas sem revisar tudo
 
-Desenho do motor que lê o que você digita ou dita ("dentista 13:00", "R$ 35 almoço", "lembrar de pagar a luz sexta") e já cria o compromisso, o gasto, o lembrete ou o passo. Tudo roda no aparelho: sem servidor, sem internet, sem mandar texto para ninguém.
+Desenho do motor que lê o que você digita ou dita ("dentista 13:00", "-35 almoço", "lembrar de pagar a luz sexta") e já cria o compromisso, o gasto, o lembrete ou o passo. Tudo roda no aparelho: sem servidor, sem internet, sem mandar texto para ninguém.
 
 Estado: **fases 0 e 1 feitas** (regra do valor; as quatro regras, o tutorial e o aviso com Desfazer). Fases 2 e 3 planejadas.
 
@@ -19,7 +19,7 @@ O motor é construído em volta de **quatro regras que cabem num tutorial de qua
 | # | Regra | Exemplos | Vira |
 |---|---|---|---|
 | 1 | **"Lembrar" vira lembrete** | `lembrar de pagar a luz sexta` | lembrete na sexta |
-| 2 | **Dinheiro tem R$ e sinal** | `-R$ 35 almoço`, `+R$ 1000 tv`; falando: "menos 35 reais almoço" | saída de R$ 35, entrada de R$ 1.000 |
+| 2 | **Dinheiro começa com - ou +** | `-35 almoço`, `+1000 tv`; falando: "menos 35 reais almoço" | saída de R$ 35, entrada de R$ 1.000 |
 | 3 | **Hora vira compromisso** | `dentista 13:00`, `reunião amanhã 15h` | compromisso no horário |
 | 4 | **O resto, a Caixa guarda** | `ver aquele negócio do carro` | captura na Caixa (com a rede: o app tenta entender e, sem certeza, guarda) |
 
@@ -35,7 +35,8 @@ Por que essas quatro:
 ### O app ensina enquanto é usado
 
 - **O aviso diz o porquê**: *"Compromisso: Dentista · hoje às 13:00 · por causa de **13:00** · Desfazer"*. O trecho que disparou a regra aparece em negrito. Quando foi a rede, o aviso diz *"Parece um passo"*, nunca "por causa de".
-- **O exemplo do campo** alterna entre as regras: *"dentista 13:00"*, *"-R$ 35 almoço"*, *"lembrar de… sexta"*.
+- **O exemplo do campo** alterna entre as regras: *"dentista 13:00"*, *"-35 almoço"*, *"lembrar de… sexta"*.
+- **Sem R$.** Digitar "R$" no teclado do celular exige trocar de teclado duas vezes. O sinal fica no mesmo teclado dos números, então ele sozinho marca o dinheiro.
 - **Um `?` ao lado do campo de captura** abre o tutorial de novo, e ele também fica em Ajustes → *Como escrever rápido*.
 - Quando um valor vai para a Caixa por falta de sinal, o cartão lembra a regra: *"Use + ou - na frente para o app lançar sozinho."*
 
@@ -62,15 +63,17 @@ Funções puras em `src/motor/extratores.ts`, cada uma devolvendo o valor e o tr
 
 ### Valor (regra nova)
 
-Na captura livre, **só é dinheiro o que tem marca de moeda**:
+Na captura livre, **só é dinheiro o que tem sinal colado no número ou marca de moeda**:
 
 | Texto | Valor |
 |---|---|
+| `-35 almoço`, `+1000 tv` (sinal colado no número) | R$ 35,00 (saída), R$ 1.000,00 (entrada) |
 | `R$ 35 almoço`, `r$35 almoço` | R$ 35,00 |
 | `35 reais almoço`, `almoço 35 reais` | R$ 35,00 |
 | `35,00 almoço`, `almoço 12,90` | R$ 35,00 / R$ 12,90 |
 | `35 almoço` | nenhum: é só texto |
 | `dentista 13:00` | nenhum: é hora |
+| `- 2 pães`, `-5 kg de arroz`, `+55 11 98765-4321`, `99999-1234` | nenhum: sinal solto, com unidade, telefone |
 
 - Onde o campo já é de valor (lista de espera, formulário de gasto), o número solto continua valendo. `lerDinheiro` (`src/motor/extratores.ts`) substituiu o antigo `lerGasto`, com a opção `exigirMoeda`: ligada na Caixa e no motor, desligada na lista de espera.
 - Com dois valores no texto (`R$ 35 almoço e R$ 10 café`), nenhum é lido: o motor não escolhe por você.
@@ -221,8 +224,8 @@ testes/
 
 | Fase | Entrega | Já resolve |
 |---|---|---|
-| 0 · feita | Extrator de valor: moeda obrigatória, sinal, palavras de direção | "dentista 13:00" e "35 almoço" deixam de virar dinheiro; "+R$ 1000 tv" abre como entrada |
-| 1 · feita | Extratores, as quatro regras, tutorial, aviso com Desfazer e "por causa de", sugestão na Caixa | "dentista 13:00", "paguei R$ 35 almoço", "+1000 reais tv", "lembrar de… sexta"; "R$ 35 almoço" vai para a Caixa com Saída · Entrada |
+| 0 · feita | Extrator de valor: marca obrigatória, sinal, palavras de direção | "dentista 13:00" e "35 almoço" deixam de virar dinheiro; "+1000 tv" abre como entrada |
+| 1 · feita | Extratores, as quatro regras, tutorial, aviso com Desfazer e "por causa de", sugestão na Caixa | "dentista 13:00", "-35 almoço", "+1000 tv", "lembrar de… sexta"; "R$ 35 almoço" vai para a Caixa com Saída · Entrada |
 | 2 | Dados, treino, avaliação, rede no lugar das regras de classe | frases sem palavra-chave: "pagar a luz", "ideia: app de receitas", "R$ 35 almoço" como despesa |
 | 3 | Aprender com as correções | o seu jeito de escrever |
 

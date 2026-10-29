@@ -40,7 +40,7 @@ export function aplicarRegras(texto: string, agora: Date, horaLembrete = 9): Int
     }
   }
 
-  // Regra 2. Dinheiro tem R$ (ou "reais", ou centavos) e sinal.
+  // Regra 2. Dinheiro começa com - ou + ("-35 almoço"); R$, "reais" e centavos também valem.
   const dinheiro = lerDinheiro(t)
   if (dinheiro) {
     const entrada = dinheiro.direcao === 'entrada'
