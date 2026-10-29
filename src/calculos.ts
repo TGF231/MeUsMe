@@ -1,8 +1,28 @@
-import type { Passo, Sessao } from './types'
+import type { Lembrete, Passo, Sessao } from './types'
 
 /** Cálculos puros usados pelas telas (testados em testes/calculos.test.ts). */
 
 const DIA = 86_400_000
+
+/**
+ * Próxima vez de um lembrete que se repete, depois de `agora`. O mensal mantém o dia pretendido:
+ * "todo dia 31" cai em 30/11 e 28/02, e volta a 31/12 e 31/03, em vez de escorregar para o dia 1.
+ */
+export function proximaOcorrencia(l: Pick<Lembrete, 'quando' | 'repetir' | 'dia'>, agora = Date.now()) {
+  const d = new Date(l.quando)
+  const dia = l.dia ?? d.getDate()
+  do {
+    if (l.repetir === 'diario') d.setDate(d.getDate() + 1)
+    else if (l.repetir === 'semanal') d.setDate(d.getDate() + 7)
+    else if (l.repetir === 'mensal') {
+      const proximoMes = d.getMonth() + 1
+      d.setDate(1)
+      d.setMonth(proximoMes)
+      d.setDate(Math.min(dia, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()))
+    } else break
+  } while (d.getTime() <= agora)
+  return d.getTime()
+}
 
 /** Passos pendentes de um projeto (ou soltos, com null), ordenados. */
 export const pendentes = (passos: Passo[], projetoId: string | null) =>

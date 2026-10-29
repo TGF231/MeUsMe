@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { proximaOcorrencia } from '../calculos'
 import type { Evento, Lembrete } from '../types'
 import { novoId } from '../util'
 
@@ -34,18 +35,6 @@ export const chaveEvento = (e: Evento) => `${e.googleId ?? e.id}:${e.inicio}`
 /** Eventos do Google usam id derivado do googleId, igual em todos os aparelhos. */
 const idDoEvento = (e: Omit<Evento, 'id'>) => (e.googleId ? `google:${e.googleId}` : novoId())
 
-export function proximaOcorrencia(l: Lembrete) {
-  const d = new Date(l.quando)
-  const agora = Date.now()
-  do {
-    if (l.repetir === 'diario') d.setDate(d.getDate() + 1)
-    else if (l.repetir === 'semanal') d.setDate(d.getDate() + 7)
-    else if (l.repetir === 'mensal') d.setMonth(d.getMonth() + 1)
-    else break
-  } while (d.getTime() <= agora)
-  return d.getTime()
-}
-
 export const useAgenda = create<Estado>()(
   persist(
     (set) => ({
@@ -77,7 +66,9 @@ export const useAgenda = create<Estado>()(
 
       criarLembrete: (l) => {
         const id = novoId()
-        set((s) => ({ lembretes: [...s.lembretes, { ...l, id }] }))
+        // Mensal guarda o dia pretendido, para "todo dia 31" não escorregar para o dia 1 (calculos.ts).
+        const dia = l.repetir === 'mensal' && l.dia === undefined ? { dia: new Date(l.quando).getDate() } : {}
+        set((s) => ({ lembretes: [...s.lembretes, { ...l, ...dia, id }] }))
         return id
       },
       concluirLembrete: (id) =>
