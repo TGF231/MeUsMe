@@ -206,3 +206,13 @@ test('compromisso sem hora: o formulário abre com título limpo e o dia', async
   assert.deepEqual(prepararCompromisso('jantar com a Bia sexta', AGORA), { titulo: 'Jantar com a Bia', data: new Date(2026, 9, 30) })
   assert.deepEqual(prepararCompromisso('consulta no oftalmo', AGORA), { titulo: 'Consulta no oftalmo' })
 })
+
+test('"não esquecer de" vale como "lembrar de"', () => {
+  const r = aplicarRegras('não esquecer de pagar a luz sexta', AGORA)
+  assert.ok(r && r.classe === 'lembrete' && r.titulo === 'Pagar a luz' && r.quando === em(30, 9))
+  const s = aplicarRegras('nao esquece o guarda chuva', AGORA)
+  assert.ok(s && s.classe === 'lembrete' && s.titulo === 'Guarda chuva' && s.falta === 'quando')
+  // "lembrei" (passado) e "lembrança" não são lembrete.
+  assert.equal(aplicarRegras('lembrei de comprar pão', AGORA), null)
+  assert.equal(aplicarRegras('comprar lembrança da viagem', AGORA), null)
+})

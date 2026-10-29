@@ -74,7 +74,7 @@ Na captura livre, **só é dinheiro o que tem sinal colado no número ou marca d
 | `35,00 almoço`, `almoço 12,90` | R$ 35,00 / R$ 12,90 |
 | `35 almoço` | nenhum: é só texto |
 | `dentista 13:00` | nenhum: é hora |
-| `- 2 pães`, `-5 kg de arroz`, `+55 11 98765-4321`, `99999-1234` | nenhum: sinal solto, com unidade, telefone |
+| `- 2 pães`, `-5 kg de arroz`, `jantar +2 pessoas`, `+3 caixas`, `+55 11 98765-4321`, `99999-1234` | nenhum: sinal solto, com unidade ou contagem, telefone |
 
 - Onde o campo já é de valor (lista de espera, formulário de gasto), o número solto continua valendo. `lerDinheiro` (`src/motor/extratores.ts`) substituiu o antigo `lerGasto`, com a opção `exigirMoeda`: ligada na Caixa e no motor, desligada na lista de espera.
 - Com dois valores no texto (`R$ 35 almoço e R$ 10 café`), nenhum é lido: o motor não escolhe por você.
@@ -108,6 +108,7 @@ Testadas em `testes/motor-regras.test.ts`, mas fora do tutorial:
 
 | Escrito | Vira |
 |---|---|
+| `não esquecer de pagar a luz sexta`, `nao esquece o guarda chuva` | o mesmo que "lembrar de" ("lembrei" e "lembrança" não contam) |
 | `15hrs`, `das 14h` | hora |
 | `reunião das 14h às 16h`, `15h-17h`, `aula 15h às 17` | compromisso com início e fim (`22h às 6h` termina no dia seguinte) |
 | `fim de semana`, `próxima semana`, `daqui a 3 dias`, `em 2 semanas` | data |

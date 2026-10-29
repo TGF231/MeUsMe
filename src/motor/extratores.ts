@@ -23,8 +23,8 @@ const NUMERO = String.raw`\d(?:[\d.,]*\d)?`
 const SINAL = String.raw`(?:([+-])\s*|\b(mais|menos)\s+)?`
 const MIL = String.raw`(\s+mil\b)?`
 
-// Unidades que tiram o número do dinheiro: "-5 kg", "+2 min", "-10%".
-const UNIDADE = String.raw`\s*(?:kg|g|mg|km|m|cm|mm|ml|l|min|h|hs|horas?|dias?|%|°|x)(?![\wÀ-ÿ])`
+// Unidades e contagens que tiram o número do dinheiro: "-5 kg", "+2 min", "-10%", "jantar +2 pessoas".
+const UNIDADE = String.raw`\s*(?:kg|g|mg|km|m|cm|mm|ml|l|min|h|hs|horas?|dias?|semanas?|meses|m[eê]s|anos?|%|°|x|pessoas?|convidad[oa]s?|vez|vezes|itens|item|unidades?|un|p[cç]s|pe[cç]as?|caixas?|pacotes?|litros?|quilos?|metros?)(?![\wÀ-ÿ])`
 
 // Regra do tutorial: na captura livre, só é dinheiro o que tem sinal ou marca de moeda.
 const COM_MOEDA = [
