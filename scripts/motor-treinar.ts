@@ -18,7 +18,8 @@ export const REVISAO_POR_CLASSE = 15
 
 /** Hash de tudo que muda os pesos: um teste compara com o gravado em pesos.json. */
 export function hashDosDados() {
-  const fontes = ['dados/motor/exemplos.jsonl', 'dados/motor/modelos.ts', 'src/motor/caracteristicas.ts', 'src/motor/rede.ts']
+  // extratores.ts entra porque as marcas da rede (tem hora, tem valor…) vêm dele.
+  const fontes = ['dados/motor/exemplos.jsonl', 'dados/motor/modelos.ts', 'src/motor/caracteristicas.ts', 'src/motor/extratores.ts', 'src/motor/rede.ts']
   const tudo = fontes.map((f) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n')).join('\0') + JSON.stringify({ OPCOES, POR_CLASSE, REVISAO_POR_CLASSE, VERSAO_CARACTERISTICAS })
   return fnv1a(tudo).toString(16).padStart(8, '0')
 }

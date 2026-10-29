@@ -146,10 +146,10 @@ const PERIODO = String.raw`(?:\s+(da\s+manh[ãa]|da\s+tarde|da\s+noite))?`
 const HORAS = [
   // meio-dia, meia-noite
   new RegExp(String.raw`${ANTES}(?:[àa]o?\s+)?(meio[- ]dia|meia[- ]noite)${DEPOIS}`, 'i'),
-  // 13:00 · às 13:00 · 13:00h
-  new RegExp(String.raw`${ANTES}(?:[àa]s\s+)?([01]?\d|2[0-3]):([0-5]\d)(?:\s*h(?:s|oras?)?)?${PERIODO}${DEPOIS}`, 'i'),
-  // 13h · 13h30 · 13 horas · às 3h da tarde
-  new RegExp(String.raw`${ANTES}(?:[àa]s\s+)?([01]?\d|2[0-3])\s*(?:h|hs|horas?)(?:\s*([0-5]\d))?${PERIODO}${DEPOIS}`, 'i'),
+  // 13:00 · às 13:00 · das 13:00 · 13:00h
+  new RegExp(String.raw`${ANTES}(?:[àa]s\s+|das\s+)?([01]?\d|2[0-3]):([0-5]\d)(?:\s*h(?:rs?|s|oras?)?)?${PERIODO}${DEPOIS}`, 'i'),
+  // 13h · 13h30 · 13hrs · 13 horas · às 3h da tarde · das 14h
+  new RegExp(String.raw`${ANTES}(?:[àa]s\s+|das\s+)?([01]?\d|2[0-3])\s*(?:h|hs|hrs?|horas?)(?:\s*([0-5]\d))?${PERIODO}${DEPOIS}`, 'i'),
   // às 3 · às 3 da tarde. Sem acento ("as 3"), só com o período: "comprar as 3 camisas" não é hora.
   // O grupo vazio () ocupa o lugar dos minutos, para o período ficar no grupo 3 como nos outros.
   new RegExp(String.raw`${ANTES}(?:às|as(?=\s+\d{1,2}\s+da\s+(?:manh|tarde|noite)))\s+([01]?\d|2[0-3])()${PERIODO}(?![\wÀ-ÿ:,.])`, 'i'),
@@ -164,14 +164,91 @@ export function lerHora(texto: string): Hora | null {
     let h = Number(m[1])
     const min = m[2] ? Number(m[2]) : 0
     const periodo = m[3]?.toLowerCase() ?? ''
-    // "estudar 2h" é duração, não hora. Com "às", minutos ou período, é hora.
-    if (i === 2 && !/^[àa]s\s/i.test(m[0]) && !m[2] && !periodo && h >= 1 && h <= 4) continue
+    // "estudar 2h" é duração, não hora. Com "às", "das", minutos ou período, é hora.
+    if (i === 2 && !/^(?:[àa]s|das)\s/i.test(m[0]) && !m[2] && !periodo && h >= 1 && h <= 4) continue
     if (/tarde|noite/.test(periodo) && h < 12) h += 12
     // "às 3" sem período: ninguém marca dentista às 3 da madrugada. "3h" e "3:00" valem como escritos.
     else if (i === 3 && !periodo && h >= 1 && h <= 7) h += 12
     return { ...trechoDe(m), h, m: min }
   }
   return null
+}
+
+const LIGA_HORAS = /^\s*(?:às|as|a|até|ate|-|–)\s*/i
+
+/** "das 14h às 16h", "15h-17h", "15:00 até 16:30": a hora de início e a de fim. */
+export function lerIntervalo(texto: string): { inicio: Hora; fim: Hora; trecho: Trecho } | null {
+  const inicio = lerHora(texto)
+  if (!inicio) return null
+  const resto = texto.slice(inicio.fim)
+  const liga = resto.match(LIGA_HORAS)
+  if (!liga) return null
+  const depois = resto.slice(liga[0].length)
+  // "15h às 17" também vale: sem "h", o número só é hora com "às" na frente.
+  const fim = lerHora(depois) ?? lerHora(`às ${depois}`)
+  const deslocamento = lerHora(depois) ? 0 : -3
+  if (!fim || fim.inicio !== 0) return null
+  const fimAbsoluto = inicio.fim + liga[0].length + fim.fim + deslocamento
+  return {
+    inicio,
+    fim: { ...fim, inicio: inicio.fim + liga[0].length, fim: fimAbsoluto },
+    trecho: { inicio: inicio.inicio, fim: fimAbsoluto, trecho: texto.slice(inicio.inicio, fimAbsoluto).trim() },
+  }
+}
+
+// Período sem hora: "amanhã de manhã", "hoje à noite", "sexta cedo". Só para lembrete.
+const PERIODOS: [RegExp, number][] = [
+  [new RegExp(String.raw`${ANTES}(?:de|pela|[àa]|na|nesta|nessa)\s+manh[ãa]${DEPOIS}`, 'i'), 9],
+  [new RegExp(String.raw`${ANTES}(?:de|pela|[àa]|na|nesta|nessa)\s+tarde${DEPOIS}`, 'i'), 14],
+  [new RegExp(String.raw`${ANTES}(?:de|pela|[àa]|na|nesta|nessa)\s+noite${DEPOIS}`, 'i'), 19],
+  [new RegExp(String.raw`${ANTES}cedo${DEPOIS}`, 'i'), 8],
+]
+
+/** "de manhã" vira 9h, "à tarde" 14h, "à noite" 19h, "cedo" 8h. Para lembretes sem hora exata. */
+export function lerPeriodo(texto: string): Hora | null {
+  for (const [re, h] of PERIODOS) {
+    const m = primeiro(texto, re)
+    if (m) return { ...trechoDe(m), h, m: 0 }
+  }
+  return null
+}
+
+export type Repetir = 'diario' | 'semanal' | 'mensal'
+
+export interface Repeticao extends Trecho {
+  repetir: Repetir
+  /** "todas as segundas": o dia da semana (0 = domingo), para achar a primeira vez. */
+  diaDaSemana?: number
+}
+
+const SEMANA = String.raw`(segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo)`
+const REPETICOES: [RegExp, Repetir][] = [
+  [new RegExp(String.raw`${ANTES}(?:todo\s+dia\s+\d{1,2}(?:\s+d[eo]\s+(?:cada\s+)?m[eê]s)?|todo\s+m[eê]s|todos\s+os\s+meses|mensalmente|uma\s+vez\s+por\s+m[eê]s)${DEPOIS}`, 'i'), 'mensal'],
+  [new RegExp(String.raw`${ANTES}(?:tod[ao]s?\s+(?:as\s+|os\s+)?${SEMANA}s?(?:[- ]feiras?)?|toda\s+semana|todas\s+as\s+semanas|semanalmente|uma\s+vez\s+por\s+semana)${DEPOIS}`, 'i'), 'semanal'],
+  [new RegExp(String.raw`${ANTES}(?:todo\s+(?:santo\s+)?dia|todos\s+os\s+dias|diariamente)${DEPOIS}`, 'i'), 'diario'],
+]
+
+/** "todo dia", "toda segunda", "todas as sextas", "todo dia 10", "todo mês". */
+export function lerRepeticao(texto: string): Repeticao | null {
+  for (const [re, repetir] of REPETICOES) {
+    const m = primeiro(texto, re)
+    if (!m) continue
+    const dia = repetir === 'semanal' ? m[1] : undefined
+    return { ...trechoDe(m), repetir, ...(dia && { diaDaSemana: DIAS_DA_SEMANA.indexOf(semAcento(dia)) }) }
+  }
+  return null
+}
+
+/** Meia-noite da próxima vez que cai neste dia da semana (hoje, se for hoje). */
+export function proximoDiaDaSemana(diaDaSemana: number, agora: Date): Data {
+  const hoje = somarDias(agora, 0)
+  return { inicio: 0, fim: 0, trecho: '', dia: somarDias(hoje, (diaDaSemana - hoje.getDay() + 7) % 7), semanal: true }
+}
+
+/** "ontem" e "anteontem", para lançamentos que já aconteceram. */
+export function lerDataPassada(texto: string, agora: Date): (Trecho & { dia: Date }) | null {
+  const m = primeiro(texto, new RegExp(String.raw`${ANTES}(ante)?ontem${DEPOIS}`, 'i'))
+  return m ? { ...trechoDe(m), dia: somarDias(agora, m[1] ? -2 : -1) } : null
 }
 
 const DIAS_DA_SEMANA = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado']
@@ -188,7 +265,18 @@ const DATAS: [RegExp, (m: RegExpMatchArray, hoje: Date) => Date | null, boolean]
   [new RegExp(String.raw`${ANTES}depois\s+de\s+amanh[ãa]${DEPOIS}`, 'i'), (_, h) => somarDias(h, 2), false],
   [new RegExp(String.raw`${ANTES}amanh[ãa]${DEPOIS}`, 'i'), (_, h) => somarDias(h, 1), false],
   [new RegExp(String.raw`${ANTES}hoje${DEPOIS}`, 'i'), (_, h) => h, false],
-  [new RegExp(String.raw`${ANTES}(?:na\s+)?semana\s+que\s+vem${DEPOIS}`, 'i'), (_, h) => somarDias(h, (8 - h.getDay()) % 7 || 7), false],
+  [new RegExp(String.raw`${ANTES}(?:na\s+)?(?:semana\s+que\s+vem|pr[óo]xima\s+semana)${DEPOIS}`, 'i'), (_, h) => somarDias(h, (8 - h.getDay()) % 7 || 7), false],
+  // "fim de semana": o próximo sábado (hoje, se for sábado)
+  [new RegExp(String.raw`${ANTES}(?:n[oe]\s+|neste\s+|nesse\s+)?fi(?:m|nal)\s+de\s+semana${DEPOIS}`, 'i'), (_, h) => somarDias(h, (6 - h.getDay() + 7) % 7), false],
+  // "daqui a 3 dias", "em 2 dias", "daqui a uma semana"
+  [
+    new RegExp(String.raw`${ANTES}(?:daqui\s+a|em)\s+(\d{1,2}|um|uma|dois|duas|tr[eê]s)\s+(dias?|semanas?)${DEPOIS}`, 'i'),
+    (m, h) => {
+      const n = { um: 1, uma: 1, dois: 2, duas: 2, tres: 3, três: 3 }[m[1].toLowerCase() as 'um'] ?? Number(m[1])
+      return somarDias(h, n * (/semana/i.test(m[2]) ? 7 : 1))
+    },
+    false,
+  ],
   [
     new RegExp(
       String.raw`${ANTES}(?:(?:n[ao]|nest[ae]|ness[ae]|est[ae]|ess[ae]|pr[óo]xim[ao])\s+)?(segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo)(?:[- ]feira)?${DEPOIS}`,
@@ -197,7 +285,8 @@ const DATAS: [RegExp, (m: RegExpMatchArray, hoje: Date) => Date | null, boolean]
     (m, h) => somarDias(h, (DIAS_DA_SEMANA.indexOf(semAcento(m[1])) - h.getDay() + 7) % 7),
     true,
   ],
-  [new RegExp(String.raw`${ANTES}(?:n?o\s+)?dia\s+(\d{1,2})(?![\d/])`, 'i'), (m, h) => diaDoMes(Number(m[1]), h), false],
+  // "dia 15", mas não "dia 8h" ("tomar o remédio todo dia 8h": o 8 é a hora).
+  [new RegExp(String.raw`${ANTES}(?:n?o\s+)?dia\s+(\d{1,2})(?![\d/:])(?!\s*(?:h|hs|hrs?|horas?)${DEPOIS})`, 'i'), (m, h) => diaDoMes(Number(m[1]), h), false],
   [new RegExp(String.raw`(?<![\d/])(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?(?![\d/])`), (m, h) => diaEMes(m, h), false],
 ]
 
@@ -258,13 +347,20 @@ export function resolverQuando(data: Data | null, hora: Hora | null, agora: Date
   return dia.getTime() === somarDias(agora, 0).getTime() ? proximaHora.getTime() : t
 }
 
-const CONECTOR_NO_INICIO = /^(?:de|do|da|no|na|em|às|as|a|o|para|pra|que)\s+/i
-const CONECTOR_NO_FIM = /\s+(?:às|as|a|o|no|na|de|do|da|em|para|pra|dia|com|e)$/i
+const CONECTOR_NO_INICIO = /^(?:de|do|da|dos|das|no|na|em|às|as|a|o|para|pra|que)\s+/i
+const CONECTOR_NO_FIM = /\s+(?:às|as|a|o|no|na|de|do|da|dos|das|em|para|pra|dia|com|e)$/i
 
 /** O texto sem os trechos usados, sem conectores soltos nas pontas e com a primeira letra maiúscula. */
 export function limparTitulo(texto: string, usados: (Trecho | null)[]): string {
+  // Trechos sobrepostos ("todo dia 10" e "dia 10") viram um só antes de sair do texto.
+  const juntos: Trecho[] = []
+  for (const u of usados.filter((u): u is Trecho => !!u && u.fim > u.inicio).sort((a, b) => a.inicio - b.inicio)) {
+    const ultimo = juntos.at(-1)
+    if (ultimo && u.inicio <= ultimo.fim) ultimo.fim = Math.max(ultimo.fim, u.fim)
+    else juntos.push({ ...u })
+  }
   let t = texto
-  for (const u of [...usados].filter((u): u is Trecho => !!u).sort((a, b) => b.inicio - a.inicio)) t = t.slice(0, u.inicio) + ' ' + t.slice(u.fim)
+  for (const u of juntos.reverse()) t = t.slice(0, u.inicio) + ' ' + t.slice(u.fim)
   t = t.replace(/\s+/g, ' ').trim()
   for (let antes = ''; antes !== t; ) {
     antes = t

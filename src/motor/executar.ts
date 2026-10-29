@@ -29,11 +29,11 @@ export function quandoPorExtenso(t: number, agora = Date.now()) {
 function criar(r: Interpretacao): (() => void) | null {
   if (r.classe === 'compromisso' && r.quando) {
     const agenda = useAgenda.getState()
-    const id = agenda.criarEvento({ titulo: r.titulo, inicio: r.quando, fim: r.quando + DURACAO_COMPROMISSO, origem: 'local' })
+    const id = agenda.criarEvento({ titulo: r.titulo, inicio: r.quando, fim: r.fim ?? r.quando + DURACAO_COMPROMISSO, origem: 'local' })
     return () => useAgenda.getState().removerEvento(id)
   }
   if (r.classe === 'lembrete' && r.quando) {
-    const id = useAgenda.getState().criarLembrete({ texto: r.titulo, quando: r.quando, repetir: 'nunca' })
+    const id = useAgenda.getState().criarLembrete({ texto: r.titulo, quando: r.quando, repetir: r.repetir ?? 'nunca' })
     return () => useAgenda.getState().removerLembrete(id)
   }
   if (r.classe === 'passo') {
@@ -46,13 +46,15 @@ function criar(r: Interpretacao): (() => void) | null {
       contaId: f.contas[0].id,
       valor: r.valor,
       descricao: r.titulo,
-      data: dataISO(),
+      data: r.data ?? dataISO(),
       categoriaId: r.valor < 0 ? sugerirCategoria(r.titulo, f.transacoes, f.categorias) : null,
     })
     return () => useFinancas.getState().removerTransacao(id)
   }
   return null
 }
+
+const REPETE = { diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }
 
 const NOMES: Record<string, [regra: string, rede: string]> = {
   compromisso: ['Compromisso', 'Parece um compromisso'],
@@ -66,7 +68,13 @@ const NOMES: Record<string, [regra: string, rede: string]> = {
 function aviso(r: Interpretacao, origem: Origem): [string, string] {
   const nome = NOMES[r.classe][origem === 'rede' ? 1 : 0]
   const titulo = r.titulo ? `${nome}: ${r.titulo}` : nome
-  const detalhe = r.quando ? quandoPorExtenso(r.quando) : r.valor ? reais(Math.abs(r.valor)) : 'solta, energia média'
+  const detalhe = [
+    r.quando ? quandoPorExtenso(r.quando) + (r.fim ? ` até ${hora(r.fim)}` : '') : r.valor ? reais(Math.abs(r.valor)) : 'solta, energia média',
+    r.repetir && REPETE[r.repetir],
+    r.data && r.data !== dataISO() && (r.data === dataISO(Date.now() - DIA) ? 'ontem' : 'anteontem'),
+  ]
+    .filter(Boolean)
+    .join(' · ')
   if (origem === 'regra') return [titulo, `${detalhe} · por causa de ${r.motivo}`]
   if (origem === 'memoria') return [titulo, `${detalhe} · como você organizou da última vez`]
   return [titulo, detalhe]
