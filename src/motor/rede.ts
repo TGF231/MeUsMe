@@ -149,58 +149,83 @@ export interface OpcoesTreino {
   aoTerminarEpoca?: (epoca: number, perdaMedia: number) => void
 }
 
+interface Momentos {
+  m: Float32Array
+  v: Float32Array
+}
+
+const [BETA1, BETA2, EPS] = [0.9, 0.999, 1e-8]
+
+/**
+ * Um passo de Adam em `grad.length` parâmetros a partir de `deslocamento`, no passo `t` (para a
+ * correção de viés). `decai` aplica o L2, em direção à âncora se houver, senão em direção a zero.
+ */
+function passoAdam(param: Float32Array, mom: Momentos, deslocamento: number, grad: Float32Array, t: number, o: OpcoesTreino, decai: boolean, ancora?: Float32Array) {
+  const c1 = 1 - BETA1 ** t
+  const c2 = 1 - BETA2 ** t
+  for (let i = 0; i < grad.length; i++) {
+    const g = grad[i]
+    const k = deslocamento + i
+    mom.m[k] = BETA1 * mom.m[k] + (1 - BETA1) * g
+    mom.v[k] = BETA2 * mom.v[k] + (1 - BETA2) * g * g
+    param[k] -= o.taxa * (mom.m[k] / c1 / (Math.sqrt(mom.v[k] / c2) + EPS) + (decai ? o.l2 * (param[k] - (ancora?.[k] ?? 0)) : 0))
+  }
+}
+
+/** Embaralha (Fisher-Yates) com a semente. */
+function embaralhar(ordem: number[], sortear: () => number) {
+  for (let i = ordem.length - 1; i > 0; i--) {
+    const j = Math.floor(sortear() * (i + 1))
+    ;[ordem[i], ordem[j]] = [ordem[j], ordem[i]]
+  }
+}
+
+/** Soma `g / n` em `soma`; em W1, só as linhas que o exemplo usou. */
+function acumular(soma: Omit<Gradientes, 'perda'>, g: Gradientes, n: number) {
+  for (const [linha, gl] of g.w1) {
+    const acc = soma.w1.get(linha) ?? new Float32Array(ESCONDIDA)
+    for (let j = 0; j < ESCONDIDA; j++) acc[j] += gl[j] / n
+    soma.w1.set(linha, acc)
+  }
+  for (let j = 0; j < ESCONDIDA; j++) soma.b1[j] += g.b1[j] / n
+  for (let k = 0; k < g.w2.length; k++) soma.w2[k] += g.w2[k] / n
+  for (let k = 0; k < g.b2.length; k++) soma.b2[k] += g.b2[k] / n
+}
+
+/** Gradiente médio de um minilote, com uma máscara de dropout sorteada por exemplo. */
+function gradienteDoLote(rede: Rede, exemplos: Exemplo[], lote: number[], o: OpcoesTreino, sortear: () => number) {
+  const soma = { w1: new Map<number, Float32Array>(), b1: new Float32Array(ESCONDIDA), w2: new Float32Array(rede.w2.length), b2: new Float32Array(rede.b2.length) }
+  let perda = 0
+  for (const i of lote) {
+    const mascara = o.dropout > 0 ? Float32Array.from({ length: ESCONDIDA }, () => (sortear() < o.dropout ? 0 : 1 / (1 - o.dropout))) : undefined
+    const g = gradientes(rede, exemplos[i], mascara, o.suavizar)
+    perda += g.perda
+    acumular(soma, g, lote.length)
+  }
+  return { soma, perda }
+}
+
 /** Treino com Adam em minilotes. A primeira camada só atualiza as linhas usadas no lote. */
 export function treinar(rede: Rede, exemplos: Exemplo[], o: OpcoesTreino) {
   const sortear = geradorComSemente(o.semente)
-  const [beta1, beta2, eps] = [0.9, 0.999, 1e-8]
-  const momentos = (n: number) => ({ m: new Float32Array(n), v: new Float32Array(n) })
+  const momentos = (n: number): Momentos => ({ m: new Float32Array(n), v: new Float32Array(n) })
   const adam = { w1: momentos(rede.w1.length), b1: momentos(ESCONDIDA), w2: momentos(rede.w2.length), b2: momentos(rede.b2.length) }
   let t = 0
 
-  /** Adam em `grad.length` parâmetros a partir de `deslocamento`; `decai` aplica o L2 (em direção à âncora, se houver). */
-  const passo = (param: Float32Array, mom: { m: Float32Array; v: Float32Array }, deslocamento: number, grad: Float32Array, decai: boolean, ancora?: Float32Array) => {
-    const c1 = 1 - beta1 ** t
-    const c2 = 1 - beta2 ** t
-    for (let i = 0; i < grad.length; i++) {
-      const g = grad[i]
-      const k = deslocamento + i
-      mom.m[k] = beta1 * mom.m[k] + (1 - beta1) * g
-      mom.v[k] = beta2 * mom.v[k] + (1 - beta2) * g * g
-      param[k] -= o.taxa * (mom.m[k] / c1 / (Math.sqrt(mom.v[k] / c2) + eps) + (decai ? o.l2 * (param[k] - (ancora?.[k] ?? 0)) : 0))
-    }
-  }
-
   const ordem = exemplos.map((_, i) => i)
   for (let epoca = 0; epoca < o.epocas; epoca++) {
-    // Embaralha (Fisher-Yates) com a semente.
-    for (let i = ordem.length - 1; i > 0; i--) {
-      const j = Math.floor(sortear() * (i + 1))
-      ;[ordem[i], ordem[j]] = [ordem[j], ordem[i]]
-    }
+    embaralhar(ordem, sortear)
     let perdaTotal = 0
     for (let inicio = 0; inicio < ordem.length; inicio += o.lote) {
-      const lote = ordem.slice(inicio, inicio + o.lote)
-      const soma = { w1: new Map<number, Float32Array>(), b1: new Float32Array(ESCONDIDA), w2: new Float32Array(rede.w2.length), b2: new Float32Array(rede.b2.length) }
-      for (const i of lote) {
-        const mascara = o.dropout > 0 ? Float32Array.from({ length: ESCONDIDA }, () => (sortear() < o.dropout ? 0 : 1 / (1 - o.dropout))) : undefined
-        const g = gradientes(rede, exemplos[i], mascara, o.suavizar)
-        perdaTotal += g.perda
-        for (const [linha, gl] of g.w1) {
-          const acc = soma.w1.get(linha) ?? new Float32Array(ESCONDIDA)
-          for (let j = 0; j < ESCONDIDA; j++) acc[j] += gl[j] / lote.length
-          soma.w1.set(linha, acc)
-        }
-        for (let j = 0; j < ESCONDIDA; j++) soma.b1[j] += g.b1[j] / lote.length
-        for (let k = 0; k < g.w2.length; k++) soma.w2[k] += g.w2[k] / lote.length
-        for (let k = 0; k < g.b2.length; k++) soma.b2[k] += g.b2[k] / lote.length
-      }
+      const { soma, perda } = gradienteDoLote(rede, exemplos, ordem.slice(inicio, inicio + o.lote), o, sortear)
+      perdaTotal += perda
       t++
-      passo(rede.w2, adam.w2, 0, soma.w2, true, o.ancora?.w2)
-      passo(rede.b2, adam.b2, 0, soma.b2, !!o.ancora, o.ancora?.b2)
+      passoAdam(rede.w2, adam.w2, 0, soma.w2, t, o, true, o.ancora?.w2)
+      passoAdam(rede.b2, adam.b2, 0, soma.b2, t, o, !!o.ancora, o.ancora?.b2)
       if (o.soUltimaCamada) continue
-      passo(rede.b1, adam.b1, 0, soma.b1, false)
+      passoAdam(rede.b1, adam.b1, 0, soma.b1, t, o, false)
       // Atualização preguiçosa: só as linhas de W1 que o lote usou.
-      for (const [linha, gl] of soma.w1) passo(rede.w1, adam.w1, linha * ESCONDIDA, gl, true)
+      for (const [linha, gl] of soma.w1) passoAdam(rede.w1, adam.w1, linha * ESCONDIDA, gl, t, o, true)
     }
     o.aoTerminarEpoca?.(epoca, perdaTotal / exemplos.length)
   }
