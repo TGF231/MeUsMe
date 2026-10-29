@@ -74,8 +74,8 @@ function achados(texto: string, padroes: RegExp[]): Achado[] {
 
 function soltos(texto: string): Achado[] {
   for (const re of [SOLTO_INICIO, SOLTO_FIM]) {
-    const m = texto.match(re)
-    if (m?.index !== undefined) return [{ inicio: m.index, fim: m.index + m[0].length, sinal: m[1] ?? m[2], numero: m[3], mil: !!m[4] }]
+    const m = re.exec(texto)
+    if (m) return [{ inicio: m.index, fim: m.index + m[0].length, sinal: m[1] ?? m[2], numero: m[3], mil: !!m[4] }]
   }
   return []
 }
@@ -130,9 +130,9 @@ export interface Trecho {
 const ANTES = String.raw`(?<![\wÀ-ÿ])`
 const DEPOIS = String.raw`(?![\wÀ-ÿ])`
 
-function primeiro(texto: string, re: RegExp): (RegExpMatchArray & { index: number }) | null {
-  const m = texto.match(re)
-  return m && m.index !== undefined ? (m as RegExpMatchArray & { index: number }) : null
+/** Primeira ocorrência de uma expressão sem a flag g (exec, ao contrário de match, sempre traz o índice). */
+function primeiro(texto: string, re: RegExp): RegExpExecArray | null {
+  return re.exec(texto)
 }
 
 const trechoDe = (m: RegExpMatchArray & { index: number }): Trecho => ({ inicio: m.index, fim: m.index + m[0].length, trecho: m[0].trim() })
