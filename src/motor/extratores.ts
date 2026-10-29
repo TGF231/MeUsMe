@@ -155,21 +155,27 @@ const HORAS = [
   new RegExp(String.raw`${ANTES}(?:às|as(?=\s+\d{1,2}\s+da\s+(?:manh|tarde|noite)))\s+([01]?\d|2[0-3])()${PERIODO}(?![\wÀ-ÿ:,.])`, 'i'),
 ]
 
+/** "estudar 2h" é duração, não hora: "Nh" de 1 a 4, sem "às", "das", minutos nem período. */
+const ehDuracao = (padrao: number, m: RegExpExecArray, h: number, periodo: string) =>
+  padrao === 2 && !/^(?:[àa]s|das)\s/i.test(m[0]) && !m[2] && !periodo && h >= 1 && h <= 4
+
+/** Hora no relógio de 24h: "da tarde" soma 12; "às 3" sem período, de 1 a 7, também (ninguém marca dentista às 3 da madrugada). */
+function em24h(padrao: number, h: number, periodo: string) {
+  if (/tarde|noite/.test(periodo) && h < 12) return h + 12
+  if (padrao === 3 && !periodo && h >= 1 && h <= 7) return h + 12
+  return h
+}
+
 /** Lê uma hora: "13:00", "13h30", "às 3 da tarde", "meio-dia". */
 export function lerHora(texto: string): Hora | null {
   for (const [i, re] of HORAS.entries()) {
     const m = primeiro(texto, re)
     if (!m) continue
     if (i === 0) return { ...trechoDe(m), h: /meio/i.test(m[1]) ? 12 : 0, m: 0 }
-    let h = Number(m[1])
-    const min = m[2] ? Number(m[2]) : 0
+    const h = Number(m[1])
     const periodo = m[3]?.toLowerCase() ?? ''
-    // "estudar 2h" é duração, não hora. Com "às", "das", minutos ou período, é hora.
-    if (i === 2 && !/^(?:[àa]s|das)\s/i.test(m[0]) && !m[2] && !periodo && h >= 1 && h <= 4) continue
-    if (/tarde|noite/.test(periodo) && h < 12) h += 12
-    // "às 3" sem período: ninguém marca dentista às 3 da madrugada. "3h" e "3:00" valem como escritos.
-    else if (i === 3 && !periodo && h >= 1 && h <= 7) h += 12
-    return { ...trechoDe(m), h, m: min }
+    if (ehDuracao(i, m, h, periodo)) continue
+    return { ...trechoDe(m), h: em24h(i, h, periodo), m: m[2] ? Number(m[2]) : 0 }
   }
   return null
 }
