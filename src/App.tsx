@@ -92,7 +92,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
-          organizar(texto)
+          void organizar(texto)
           onFechar()
         }}
       >
@@ -109,7 +109,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
           {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
           <BotaoVoz
             onTexto={(falado) => {
-              organizar([texto.trim(), falado].filter(Boolean).join(' '))
+              void organizar([texto.trim(), falado].filter(Boolean).join(' '))
               onFechar()
             }}
           />

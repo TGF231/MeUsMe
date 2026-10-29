@@ -43,8 +43,8 @@ export const TUTORIAL: TelaTutorial[] = [
   },
   {
     titulo: 'O resto, a Caixa guarda',
-    texto: 'Sem essas marcas, vai para a Caixa, para organizar com calma depois.',
-    exemplos: [{ texto: 'ver aquele negócio do carro', resultado: 'Fica na Caixa', espera: null }],
+    texto: 'Sem essas marcas, o app tenta entender pelo jeito da frase. Sem certeza, guarda na Caixa, já com o tipo provável na frente.',
+    exemplos: [{ texto: 'ver aquele negócio do carro', resultado: 'Fica na Caixa, ou vira tarefa se o app tiver certeza', espera: null }],
   },
 ]
 

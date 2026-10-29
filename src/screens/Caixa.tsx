@@ -13,6 +13,7 @@ import { EXEMPLOS_DE_CAMPO } from '../motor/tutorial'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
+import type { Classe } from '../motor/regras'
 import type { Captura } from '../types'
 import { dataISO, reais } from '../util'
 
@@ -114,36 +115,57 @@ function Processar({ captura }: { captura: Captura }) {
     )
   }
 
+  const sugestao = captura.sugestao
   const semDirecao = dinheiro && !dinheiro.direcao
+  const tarefa = () => setModo({ tipo: 'passo', projetoId: null })
+  const comprar = () => {
+    adiarCompra(dinheiro?.descricao || captura.texto, dinheiro?.valor, horasDeEspera)
+    resolver()
+  }
+  const ideia = () => {
+    s.estacionarIdeia(captura.texto, null)
+    s.descartarCaptura(captura.id)
+  }
+
+  // O tipo provável (regras ou rede, docs/MOTOR.md) vem primeiro, e o botão comum dele some.
+  const SUGESTOES: Partial<Record<Classe, [string, () => void]>> = {
+    lembrete: ['Parece um lembrete', () => setModo({ tipo: 'lembrete' })],
+    compromisso: ['Parece um compromisso', () => setModo({ tipo: 'evento' })],
+    passo: ['Parece uma tarefa solta', tarefa],
+    ...(!captura.audio && { ideia: ['Parece uma ideia', ideia], compra: ['Parece vontade de comprar', comprar] }),
+    ...(!dinheiro && {
+      despesa: ['Parece um gasto', () => setModo({ tipo: 'gasto', receita: false })],
+      receita: ['Parece uma entrada', () => setModo({ tipo: 'gasto', receita: true })],
+    }),
+  }
+  const sugerido = sugestao && SUGESTOES[sugestao]
+  const saidaEntrada: [string, boolean][] = [
+    ['Saída', false],
+    ['Entrada', true],
+  ]
+  if (sugestao === 'receita') saidaEntrada.reverse()
+
   return (
     <>
       <div className="linha acoes">
-        {captura.sugestao === 'lembrete' && (
-          <button className="primario" onClick={() => setModo({ tipo: 'lembrete' })}>
-            Parece um lembrete
+        {sugerido && (
+          <button className="primario" onClick={sugerido[1]}>
+            {sugerido[0]}
           </button>
         )}
-        {captura.sugestao === 'compromisso' && (
-          <button className="primario" onClick={() => setModo({ tipo: 'evento' })}>
-            Parece um compromisso
-          </button>
-        )}
-        {dinheiro && semDirecao && (
-          <>
-            <button className="primario" onClick={() => setModo({ tipo: 'gasto', receita: false })}>
-              Saída de {reais(dinheiro.valor)}
+        {dinheiro &&
+          semDirecao &&
+          saidaEntrada.map(([rotulo, receita]) => (
+            <button key={rotulo} className="primario" onClick={() => setModo({ tipo: 'gasto', receita })}>
+              {rotulo} de {reais(dinheiro.valor)}
             </button>
-            <button className="primario" onClick={() => setModo({ tipo: 'gasto', receita: true })}>
-              Entrada de {reais(dinheiro.valor)}
-            </button>
-          </>
-        )}
+          ))}
         {dinheiro && !semDirecao && (
           <button className="primario" onClick={() => setModo({ tipo: 'gasto' })}>
             Registrar {dinheiro.direcao === 'entrada' ? 'entrada' : 'gasto'} de {reais(dinheiro.valor)}
           </button>
         )}
-        <button onClick={() => setModo({ tipo: 'passo', projetoId: null })}>Tarefa solta</button>
+        {sugestao !== 'passo' && <button onClick={tarefa}>Tarefa solta</button>}
         {ativos.length > 0 && (
           <select
             value=""
@@ -158,30 +180,15 @@ function Processar({ captura }: { captura: Captura }) {
           </select>
         )}
         <button onClick={() => setModo({ tipo: 'projeto' })}>Virar projeto</button>
-        {!dinheiro && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
-        {!captura.audio && (
-          <button
-            onClick={() => {
-              adiarCompra(dinheiro?.descricao || captura.texto, dinheiro?.valor, horasDeEspera)
-              resolver()
-            }}
-            title={`Vai para Finanças → Antes de comprar, e o app pergunta de novo em ${horasDeEspera}h`}
-          >
+        {!dinheiro && sugestao !== 'despesa' && sugestao !== 'receita' && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
+        {!captura.audio && sugestao !== 'compra' && (
+          <button onClick={comprar} title={`Vai para Finanças → Antes de comprar, e o app pergunta de novo em ${horasDeEspera}h`}>
             Quero comprar: esperar {horasDeEspera}h
           </button>
         )}
-        {captura.sugestao !== 'compromisso' && <button onClick={() => setModo({ tipo: 'evento' })}>Compromisso</button>}
-        {captura.sugestao !== 'lembrete' && <button onClick={() => setModo({ tipo: 'lembrete' })}>Lembrete</button>}
-        {!captura.audio && (
-          <button
-            onClick={() => {
-              s.estacionarIdeia(captura.texto, null)
-              s.descartarCaptura(captura.id)
-            }}
-          >
-            É só uma ideia
-          </button>
-        )}
+        {sugestao !== 'compromisso' && <button onClick={() => setModo({ tipo: 'evento' })}>Compromisso</button>}
+        {sugestao !== 'lembrete' && <button onClick={() => setModo({ tipo: 'lembrete' })}>Lembrete</button>}
+        {!captura.audio && sugestao !== 'ideia' && <button onClick={ideia}>É só uma ideia</button>}
         <button className="discreto" onClick={() => s.descartarCaptura(captura.id)}>
           Apagar
         </button>
@@ -208,7 +215,7 @@ export function Caixa() {
             onSubmit={(e) => {
               e.preventDefault()
               if (!texto.trim()) return
-              organizar(texto)
+              void organizar(texto)
               setTexto('')
             }}
           >
@@ -218,7 +225,7 @@ export function Caixa() {
               {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
               <BotaoVoz
                 onTexto={(falado) => {
-                  organizar([texto.trim(), falado].filter(Boolean).join(' '))
+                  void organizar([texto.trim(), falado].filter(Boolean).join(' '))
                   setTexto('')
                 }}
               />

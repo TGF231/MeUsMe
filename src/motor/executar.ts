@@ -3,11 +3,13 @@ import { useAgenda } from '../stores/agenda'
 import { useAvisos, useConfig } from '../stores/config'
 import { sugerirCategoria, useFinancas } from '../stores/financas'
 import { dataISO, hora, reais } from '../util'
+import { carregarRede } from './carregar'
 import { decidir } from './interpretar'
 import type { Interpretacao } from './regras'
 
 const DURACAO_COMPROMISSO = 60 * 60_000
 const DIA = 86_400_000
+const ENERGIA_MEDIA = 2
 
 /** "hoje às 13:00", "amanhã às 15:00", "sexta, 30/10 às 09:00". */
 export function quandoPorExtenso(t: number, agora = Date.now()) {
@@ -32,6 +34,10 @@ function criar(r: Interpretacao): (() => void) | null {
     const id = useAgenda.getState().criarLembrete({ texto: r.titulo, quando: r.quando, repetir: 'nunca' })
     return () => useAgenda.getState().removerLembrete(id)
   }
+  if (r.classe === 'passo') {
+    const id = useStore.getState().criarPasso(null, r.titulo, ENERGIA_MEDIA)
+    return () => useStore.getState().removerPasso(id)
+  }
   const f = useFinancas.getState()
   if ((r.classe === 'despesa' || r.classe === 'receita') && r.valor && f.contas[0]) {
     const id = f.lancar({
@@ -46,29 +52,39 @@ function criar(r: Interpretacao): (() => void) | null {
   return null
 }
 
-function aviso(r: Interpretacao): [string, string] {
-  const motivo = ` · por causa de ${r.motivo}`
-  if (r.classe === 'compromisso') return [`Compromisso: ${r.titulo}`, quandoPorExtenso(r.quando!) + motivo]
-  if (r.classe === 'lembrete') return [`Lembrete: ${r.titulo}`, quandoPorExtenso(r.quando!) + motivo]
-  const nome = r.classe === 'receita' ? 'Entrada' : 'Gasto'
-  return [r.titulo ? `${nome}: ${r.titulo}` : nome, reais(Math.abs(r.valor!)) + motivo]
+const NOMES: Record<string, [regra: string, rede: string]> = {
+  compromisso: ['Compromisso', 'Parece um compromisso'],
+  lembrete: ['Lembrete', 'Parece um lembrete'],
+  despesa: ['Gasto', 'Parece um gasto'],
+  receita: ['Entrada', 'Parece uma entrada'],
+  passo: ['Tarefa', 'Parece uma tarefa'],
+}
+
+/** Título e corpo do aviso. Pela regra, diz o porquê; pela rede, diz "parece", nunca "por causa de". */
+function aviso(r: Interpretacao, porRede: boolean): [string, string] {
+  const nome = NOMES[r.classe][porRede ? 1 : 0]
+  const titulo = r.titulo ? `${nome}: ${r.titulo}` : nome
+  const detalhe = r.quando ? quandoPorExtenso(r.quando) : r.valor ? reais(Math.abs(r.valor)) : 'solta, energia média'
+  return [titulo, porRede ? detalhe : `${detalhe} · por causa de ${r.motivo}`]
 }
 
 /**
- * Passa o texto pelo motor (docs/MOTOR.md). Se uma regra se aplica, cria o item e avisa com
- * Desfazer, que apaga o item e devolve o texto para a Caixa. Senão, guarda na Caixa com a sugestão.
+ * Passa o texto pelo motor (docs/MOTOR.md). Se uma regra (ou a rede liberada) decide, cria o
+ * item e avisa com Desfazer, que apaga o item e devolve o texto para a Caixa. Senão, guarda na
+ * Caixa com a sugestão.
  */
-export function organizar(texto: string) {
+export async function organizar(texto: string) {
   const t = texto.trim()
   if (!t) return
-  const d = decidir(t, new Date(), { automatico: useConfig.getState().organizarSozinho })
+  const rede = await carregarRede()
+  const d = decidir(t, new Date(), { automatico: useConfig.getState().organizarSozinho, rede })
   if ('caixa' in d) return useStore.getState().capturar(t, d.sugestao)
 
   const desfazer = criar(d.criar)
   if (!desfazer) return useStore.getState().capturar(t, d.criar.classe)
-  const [titulo, corpo] = aviso(d.criar)
+  const [titulo, corpo] = aviso(d.criar, !!d.porRede)
   useAvisos.getState().mostrar(titulo, corpo, {
-    destaque: d.criar.motivo,
+    destaque: d.porRede ? undefined : d.criar.motivo,
     acao: {
       rotulo: 'Desfazer',
       // Sem sugestão: se foi desfeito, o tipo estava errado.
