@@ -252,3 +252,22 @@ test('"às 3:00", "às 3,5" e "às 3.000" não perdem a proteção', () => {
   assert.equal(lerHora('dividir às 3,5'), null)
   assert.equal(lerHora('pagar às 3.000'), null)
 })
+
+const horasFaladas: [string, [number, number] | null][] = [
+  ['Reunião à uma da tarde.', [13, 0]],
+  ['Consulta às duas da tarde', [14, 0]],
+  ['jantar às oito da noite', [20, 0]],
+  ['às dez da manhã', [10, 0]],
+  ['reunião às duas', [14, 0]],
+  ['às três e meia', [15, 30]],
+  ['reunião às 3 e meia da tarde', [15, 30]],
+  ['às 10 e meia', [10, 30]],
+  ['comprar duas camisas', null],
+]
+
+for (const [texto, esperado] of horasFaladas) {
+  test(`hora falada: ${texto}`, () => {
+    const h = lerHora(texto)
+    assert.deepEqual(h && [h.h, h.m], esperado)
+  })
+}
