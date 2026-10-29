@@ -287,3 +287,17 @@
 {"texto":"atualizar o site da loja","classe":"passo"}
 {"texto":"trocar o pneu da bike","classe":"passo"}
 {"texto":"organizar as fotos do celular","classe":"passo"}
+{"texto":"Ligar para o banco amanhã.","classe":"passo"}
+{"texto":"Mandar o relatório para o chefe.","classe":"passo"}
+{"texto":"Comprar ração para o cachorro.","classe":"passo"}
+{"texto":"Consulta com o dermatologista na quinta.","classe":"compromisso"}
+{"texto":"Aniversário da minha mãe no sábado.","classe":"compromisso"}
+{"texto":"Ideia: fazer um podcast sobre plantas.","classe":"ideia"}
+{"texto":"Quero comprar um fone novo.","classe":"compra"}
+{"texto":"35 conto no almoço","classe":"despesa"}
+{"texto":"gastei 50 pila de uber","classe":"despesa"}
+{"texto":"Gastei 80 reais no mercado.","classe":"despesa"}
+{"texto":"recebi 200 conto do freela","classe":"receita"}
+{"texto":"Vendi a bicicleta por 400 reais.","classe":"receita"}
+{"texto":"Lembrar de tomar o remédio às oito da noite.","classe":"lembrete"}
+{"texto":"Não esquecer de levar o guarda-chuva.","classe":"lembrete"}
