@@ -31,7 +31,8 @@ const COM_MOEDA = [
   // R$ 35 · -R$ 35 · menos R$ 35 · R$ 2 mil
   new RegExp(String.raw`${SINAL}r\$\s*(${NUMERO})${MIL}`, 'gi'),
   // 35 reais · +1000 reais · menos 35 reais · 2 mil reais
-  new RegExp(String.raw`${SINAL}\b(${NUMERO})${MIL}\s*(?:reais|real)\b`, 'gi'),
+  // Gíria também vale: "35 conto", "50 pila". Só com número antes: "escrever um conto" é texto.
+  new RegExp(String.raw`${SINAL}\b(${NUMERO})${MIL}\s*(?:reais|real|contos?|pilas?)\b`, 'gi'),
   // 35,00 · -12,90 (vírgula com dois dígitos de centavos)
   new RegExp(String.raw`${SINAL}(?<![\d.,])(\d+(?:\.\d{3})*,\d{2})(?![\d,])`, 'gi'),
   // -35 · +1000 · +2 mil: o sinal colado no número basta, e fica no mesmo teclado dos números.
