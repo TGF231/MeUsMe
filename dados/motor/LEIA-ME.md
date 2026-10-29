@@ -14,6 +14,10 @@ Dados da rede neural do motor local ([docs/MOTOR.md](../../docs/MOTOR.md), parte
 
 ## Como montar o `avaliacao.jsonl`
 
+**Atalho:** o app já guarda cada captura que você organiza na Caixa como `{texto, classe}`. Em Ajustes → Captura → **Exportar o que aprendeu**, o arquivo (`meusme-aprendizado-AAAA-MM-DD.jsonl`) sai neste formato; é só renomear para `avaliacao.jsonl` e pôr nesta pasta. Esses exemplos nunca entram no treino de fábrica (só no ajuste da última camada no seu aparelho), então valem como avaliação. Antes de usar, revise: uma captura organizada às pressas no tipo errado vira um rótulo errado.
+
+Sem o atalho:
+
 1. Copie das suas Caixas, notas ou mensagens para si mesmo as frases do jeito que foram escritas, com erro, sem acento, abreviadas. Não corrija nada: a avaliação mede o motor com o texto de verdade.
 2. Uma por linha, com a classe que ela **deveria** virar:
 
