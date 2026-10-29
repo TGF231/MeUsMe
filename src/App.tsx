@@ -32,7 +32,7 @@ const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
 ]
 
 /** O corpo do aviso com o trecho que disparou a regra em negrito. */
-function ComDestaque({ texto, destaque }: { texto: string; destaque?: string }) {
+function ComDestaque({ texto, destaque }: Readonly<{ texto: string; destaque?: string }>) {
   const i = destaque ? texto.indexOf(destaque) : -1
   if (!destaque || i < 0) return <>{texto}</>
   return (

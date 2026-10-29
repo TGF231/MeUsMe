@@ -16,12 +16,9 @@ const ENERGIA_MEDIA = 2
 /** "hoje às 13:00", "amanhã às 15:00", "sexta, 30/10 às 09:00". */
 export function quandoPorExtenso(t: number, agora = Date.now()) {
   const dia = dataISO(t)
-  const nome =
-    dia === dataISO(agora)
-      ? 'hoje'
-      : dia === dataISO(agora + DIA)
-        ? 'amanhã'
-        : new Date(t).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }).replace('-feira', '')
+  let nome = new Date(t).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }).replace('-feira', '')
+  if (dia === dataISO(agora)) nome = 'hoje'
+  else if (dia === dataISO(agora + DIA)) nome = 'amanhã'
   return `${nome} às ${hora(t)}`
 }
 
