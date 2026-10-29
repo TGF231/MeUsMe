@@ -45,7 +45,7 @@ export function palpite(rede: Rede, texto: string, entre?: Classe[]): Palpite {
   const p = prever(rede, caracteristicas(texto))
   const candidatas = (entre ?? (rede.classes as Classe[])).map((c) => ({ classe: c, p: p[rede.classes.indexOf(c)] ?? 0 }))
   const total = candidatas.reduce((s, c) => s + c.p, 0) || 1
-  const melhor = candidatas.reduce((a, b) => (b.p > a.p ? b : a))
+  const melhor = candidatas.reduce((a, b) => (b.p > a.p ? b : a), candidatas[0])
   return { classe: melhor.classe, certeza: melhor.p / total }
 }
 
