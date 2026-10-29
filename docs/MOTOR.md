@@ -2,12 +2,12 @@
 
 Desenho do motor que lê o que você digita ou dita ("dentista 13:00", "R$ 35 almoço", "lembrar de pagar a luz sexta") e já cria o compromisso, o gasto, o lembrete ou o passo. Tudo roda no aparelho: sem servidor, sem internet, sem mandar texto para ninguém.
 
-Estado: **fase 0 feita** (regra do valor). Fases 1 a 3 planejadas.
+Estado: **fases 0 e 1 feitas** (regra do valor; as quatro regras, o tutorial e o aviso com Desfazer). Fases 2 e 3 planejadas.
 
 ## O que muda para quem usa
 
 - Na Caixa, na captura rápida (`+` / `Ctrl+Espaço`) e no ditado, o texto passa pelo motor antes de ir para a Caixa.
-- **Com certeza alta**, o item é criado na hora e aparece um aviso por alguns segundos: *"Compromisso: Dentista, hoje 13:00 · Desfazer · Editar"*. Sem tocar em nada, fica.
+- **Com certeza alta**, o item é criado na hora e aparece um aviso por 12 segundos: *"Compromisso: Dentista · hoje às 13:00 · por causa de **13:00** · Desfazer"*. Sem tocar em nada, fica.
 - **Desfazer** apaga o item e devolve o texto para a Caixa: nada se perde. O motor anota o erro e aprende com ele (fase 3).
 - **Sem certeza**, vai para a Caixa como hoje, já com o tipo provável no primeiro botão ("Parece um compromisso").
 - Em Ajustes, um interruptor: *Organizar capturas automaticamente*. Desligado, o motor só sugere na Caixa.
@@ -34,7 +34,7 @@ Por que essas quatro:
 
 ### O app ensina enquanto é usado
 
-- **O aviso diz o porquê**: *"Compromisso por causa de **13:00** · Desfazer · Editar"*. O trecho que disparou a regra aparece em negrito. Quando foi a rede, o aviso diz *"Parece um passo"*, nunca "por causa de".
+- **O aviso diz o porquê**: *"Compromisso: Dentista · hoje às 13:00 · por causa de **13:00** · Desfazer"*. O trecho que disparou a regra aparece em negrito. Quando foi a rede, o aviso diz *"Parece um passo"*, nunca "por causa de".
 - **O exemplo do campo** alterna entre as regras: *"dentista 13:00"*, *"-R$ 35 almoço"*, *"lembrar de… sexta"*.
 - **Um `?` ao lado do campo de captura** abre o tutorial de novo, e ele também fica em Ajustes → *Como escrever rápido*.
 - Quando um valor vai para a Caixa por falta de sinal, o cartão lembra a regra: *"Use + ou - na frente para o app lançar sozinho."*
@@ -84,7 +84,9 @@ Na captura livre, **só é dinheiro o que tem marca de moeda**:
 
 ### Hora
 
-`13:00`, `13h`, `13h30`, `13 horas`, `às 13`, `às 3 da tarde`, `9 da manhã`, `meio-dia`, `meia-noite`. "às 3" sem período vira 15h entre 1 e 7 (ninguém marca dentista às 3 da madrugada) e fica como está de 8 a 12.
+`13:00`, `13h`, `13h30`, `13 horas`, `às 13`, `às 3 da tarde`, `9 da manhã`, `meio-dia`, `meia-noite`. "às 3" sem período vira 15h entre 1 e 7 (ninguém marca dentista às 3 da madrugada) e fica como está de 8 a 12. Com "h" ou ":" vale como escrito, em 24 horas: `academia 6h` é de manhã.
+
+Não são hora: `estudar 2h` (de 1h a 4h, sem "às", é duração), `comprar as 3 camisas` ("as" sem acento só vale com "da tarde", "da manhã" ou "da noite").
 
 ### Data
 
@@ -106,7 +108,7 @@ O texto sem os trechos usados e sem conectores soltos (`às`, `no dia`, `lembrar
 
 | Classe | Vira | Criação automática? |
 |---|---|---|
-| `compromisso` | evento na Agenda (1 h por padrão) | sim, se tiver hora |
+| `compromisso` | evento na Agenda (1 h por padrão), só no MeUsMe: para ir também ao Google, use o formulário | sim, se tiver hora |
 | `lembrete` | lembrete (9h se não houver hora) | sim, se tiver data ou hora |
 | `despesa` | saída na conta principal, com categoria sugerida | sim, se tiver valor |
 | `receita` | entrada na conta principal | sim, se tiver valor |
@@ -177,7 +179,7 @@ Regras primeiro, sempre. A rede decide só o que as regras deixam em aberto: fra
 
 ## Parte 3: aprender com você
 
-- Cada Desfazer, cada Editar que troca o tipo e cada captura organizada na Caixa vira um exemplo `{texto, classe}` guardado no aparelho.
+- Cada Desfazer e cada captura organizada na Caixa vira um exemplo `{texto, classe}` guardado no aparelho.
 - A escolha entre **Saída · Entrada** na Caixa também conta: é assim que "R$ 1000 tv" vira venda para quem vende.
 - A cada 20 exemplos novos, o app retreina **só a última camada** (32 × 7 pesos) por alguns segundos, em segundo plano. A primeira camada fica como veio do treino.
 - Os exemplos ficam no aparelho e não sincronizam. "Esquecer o que o motor aprendeu", em Ajustes, volta aos pesos de fábrica.
@@ -186,7 +188,7 @@ Regras primeiro, sempre. A rede decide só o que as regras deixam em aberto: fra
 
 - Tutorial de quatro telas, no mesmo formato da introdução, mostrado na primeira captura depois da atualização e reaberto pelo `?` e por Ajustes.
 - `Captura` ganha `sugestao?: Classe`; o `Processar` da Caixa mostra esse tipo primeiro.
-- O aviso (`useAvisos`) ganha botões de ação (Desfazer, Editar), o trecho em negrito que disparou a regra, e fica 8 s quando tem ação.
+- O aviso (`useAvisos`) ganha um botão de ação (Desfazer) e o trecho em negrito que disparou a regra. Fica os mesmos 12 s dos outros avisos. Para editar, Desfazer devolve o texto à Caixa, onde cada tipo tem seu formulário: um botão Editar a mais no aviso não ganharia nada.
 - `executar.ts` cria o item e devolve a função que desfaz.
 - O ditado e a captura rápida chamam o motor em vez de `capturar()` direto.
 - Feito na fase 0: `lerDinheiro(texto, { exigirMoeda })` no lugar de `lerGasto`; na Caixa, o botão diz "Registrar entrada" ou "Registrar gasto" conforme o sinal; README atualizado ("35 almoço" deixa de ser gasto).
@@ -220,7 +222,7 @@ testes/
 | Fase | Entrega | Já resolve |
 |---|---|---|
 | 0 · feita | Extrator de valor: moeda obrigatória, sinal, palavras de direção | "dentista 13:00" e "35 almoço" deixam de virar dinheiro; "+R$ 1000 tv" abre como entrada |
-| 1 | Extratores, as quatro regras, tutorial, aviso com Desfazer e "por causa de", sugestão na Caixa | "dentista 13:00", "paguei R$ 35 almoço", "+1000 reais tv", "lembrar de… sexta"; "R$ 35 almoço" vai para a Caixa com Saída · Entrada |
+| 1 · feita | Extratores, as quatro regras, tutorial, aviso com Desfazer e "por causa de", sugestão na Caixa | "dentista 13:00", "paguei R$ 35 almoço", "+1000 reais tv", "lembrar de… sexta"; "R$ 35 almoço" vai para a Caixa com Saída · Entrada |
 | 2 | Dados, treino, avaliação, rede no lugar das regras de classe | frases sem palavra-chave: "pagar a luz", "ideia: app de receitas", "R$ 35 almoço" como despesa |
 | 3 | Aprender com as correções | o seu jeito de escrever |
 

@@ -1,21 +1,25 @@
 import { useState } from 'react'
 import { BotaoVoz } from '../components/BotaoVoz'
+import { ComoEscrever } from '../components/ComoEscrever'
 import { EventoForm } from '../components/EventoForm'
 import { LancamentoForm } from '../components/LancamentoForm'
 import { LembreteForm } from '../components/LembreteForm'
 import { PassoForm } from '../components/PassoForm'
-import { lerDinheiro } from '../motor/extratores'
 import { GravarRecado, OuvirRecado } from '../components/Recado'
+import { organizar } from '../motor/executar'
+import { lerDinheiro } from '../motor/extratores'
+import { aplicarRegras } from '../motor/regras'
+import { EXEMPLOS_DE_CAMPO } from '../motor/tutorial'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
 import type { Captura } from '../types'
-import { reais } from '../util'
+import { dataISO, reais } from '../util'
 
 type Modo =
   | { tipo: 'passo'; projetoId: string | null }
   | { tipo: 'projeto' }
-  | { tipo: 'gasto' }
+  | { tipo: 'gasto'; receita?: boolean }
   | { tipo: 'lembrete' }
   | { tipo: 'evento' }
   | null
@@ -30,6 +34,8 @@ function Processar({ captura }: { captura: Captura }) {
   const ativos = s.projetos.filter((p) => !p.concluidoEm)
   // Só é dinheiro com R$, "reais" ou vírgula de centavos (docs/MOTOR.md, regra 2).
   const dinheiro = lerDinheiro(texto)
+  // O que as regras do motor entendem, para os formulários já virem preenchidos.
+  const [regra] = useState(() => (texto ? aplicarRegras(texto, new Date()) : null))
   const resolver = () => s.descartarCaptura(captura.id)
   const adiarCompra = useFinancas((f) => f.adiarCompra)
   const horasDeEspera = useConfig((c) => c.horasDeEspera)
@@ -40,15 +46,27 @@ function Processar({ captura }: { captura: Captura }) {
       <LancamentoForm
         inicial={
           dinheiro
-            ? { valor: dinheiro.valor, descricao: dinheiro.descricao, tipo: dinheiro.direcao === 'entrada' ? 'receita' : 'gasto' }
+            ? {
+                valor: dinheiro.valor,
+                descricao: dinheiro.descricao,
+                tipo: (modo.receita ?? dinheiro.direcao === 'entrada') ? 'receita' : 'gasto',
+              }
             : { descricao: texto }
         }
         onPronto={resolver}
         onCancelar={cancelar}
       />
     )
-  if (modo?.tipo === 'lembrete') return <LembreteForm inicial={texto} onPronto={resolver} onCancelar={cancelar} />
-  if (modo?.tipo === 'evento') return <EventoForm inicial={{ titulo: texto }} onPronto={resolver} onCancelar={cancelar} />
+  if (modo?.tipo === 'lembrete')
+    return <LembreteForm inicial={regra?.classe === 'lembrete' ? regra.titulo : texto} onPronto={resolver} onCancelar={cancelar} />
+  if (modo?.tipo === 'evento')
+    return (
+      <EventoForm
+        inicial={regra?.classe === 'compromisso' ? { titulo: regra.titulo, data: regra.quando ? dataISO(regra.quando) : undefined } : { titulo: texto }}
+        onPronto={resolver}
+        onCancelar={cancelar}
+      />
+    )
 
   if (modo?.tipo === 'passo') {
     return (
@@ -96,56 +114,80 @@ function Processar({ captura }: { captura: Captura }) {
     )
   }
 
+  const semDirecao = dinheiro && !dinheiro.direcao
   return (
-    <div className="linha acoes">
-      {dinheiro && (
-        <button className="primario" onClick={() => setModo({ tipo: 'gasto' })}>
-          Registrar {dinheiro.direcao === 'entrada' ? 'entrada' : 'gasto'} de {reais(dinheiro.valor)}
+    <>
+      <div className="linha acoes">
+        {captura.sugestao === 'lembrete' && (
+          <button className="primario" onClick={() => setModo({ tipo: 'lembrete' })}>
+            Parece um lembrete
+          </button>
+        )}
+        {captura.sugestao === 'compromisso' && (
+          <button className="primario" onClick={() => setModo({ tipo: 'evento' })}>
+            Parece um compromisso
+          </button>
+        )}
+        {dinheiro && semDirecao && (
+          <>
+            <button className="primario" onClick={() => setModo({ tipo: 'gasto', receita: false })}>
+              Saída de {reais(dinheiro.valor)}
+            </button>
+            <button className="primario" onClick={() => setModo({ tipo: 'gasto', receita: true })}>
+              Entrada de {reais(dinheiro.valor)}
+            </button>
+          </>
+        )}
+        {dinheiro && !semDirecao && (
+          <button className="primario" onClick={() => setModo({ tipo: 'gasto' })}>
+            Registrar {dinheiro.direcao === 'entrada' ? 'entrada' : 'gasto'} de {reais(dinheiro.valor)}
+          </button>
+        )}
+        <button onClick={() => setModo({ tipo: 'passo', projetoId: null })}>Tarefa solta</button>
+        {ativos.length > 0 && (
+          <select
+            value=""
+            onChange={(e) => e.target.value && setModo({ tipo: 'passo', projetoId: e.target.value })}
+          >
+            <option value="">Passo de projeto…</option>
+            {ativos.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.titulo}
+              </option>
+            ))}
+          </select>
+        )}
+        <button onClick={() => setModo({ tipo: 'projeto' })}>Virar projeto</button>
+        {!dinheiro && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
+        {!captura.audio && (
+          <button
+            onClick={() => {
+              adiarCompra(dinheiro?.descricao || captura.texto, dinheiro?.valor, horasDeEspera)
+              resolver()
+            }}
+            title={`Vai para Finanças → Antes de comprar, e o app pergunta de novo em ${horasDeEspera}h`}
+          >
+            Quero comprar: esperar {horasDeEspera}h
+          </button>
+        )}
+        {captura.sugestao !== 'compromisso' && <button onClick={() => setModo({ tipo: 'evento' })}>Compromisso</button>}
+        {captura.sugestao !== 'lembrete' && <button onClick={() => setModo({ tipo: 'lembrete' })}>Lembrete</button>}
+        {!captura.audio && (
+          <button
+            onClick={() => {
+              s.estacionarIdeia(captura.texto, null)
+              s.descartarCaptura(captura.id)
+            }}
+          >
+            É só uma ideia
+          </button>
+        )}
+        <button className="discreto" onClick={() => s.descartarCaptura(captura.id)}>
+          Apagar
         </button>
-      )}
-      <button onClick={() => setModo({ tipo: 'passo', projetoId: null })}>Tarefa solta</button>
-      {ativos.length > 0 && (
-        <select
-          value=""
-          onChange={(e) => e.target.value && setModo({ tipo: 'passo', projetoId: e.target.value })}
-        >
-          <option value="">Passo de projeto…</option>
-          {ativos.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.titulo}
-            </option>
-          ))}
-        </select>
-      )}
-      <button onClick={() => setModo({ tipo: 'projeto' })}>Virar projeto</button>
-      {!dinheiro && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
-      {!captura.audio && (
-        <button
-          onClick={() => {
-            adiarCompra(dinheiro?.descricao || captura.texto, dinheiro?.valor, horasDeEspera)
-            resolver()
-          }}
-          title={`Vai para Finanças → Antes de comprar, e o app pergunta de novo em ${horasDeEspera}h`}
-        >
-          Quero comprar: esperar {horasDeEspera}h
-        </button>
-      )}
-      <button onClick={() => setModo({ tipo: 'evento' })}>Compromisso</button>
-      <button onClick={() => setModo({ tipo: 'lembrete' })}>Lembrete</button>
-      {!captura.audio && (
-        <button
-          onClick={() => {
-            s.estacionarIdeia(captura.texto, null)
-            s.descartarCaptura(captura.id)
-          }}
-        >
-          É só uma ideia
-        </button>
-      )}
-      <button className="discreto" onClick={() => s.descartarCaptura(captura.id)}>
-        Apagar
-      </button>
-    </div>
+      </div>
+      {semDirecao && <p className="motivo">Use + ou - na frente do valor para o app lançar sozinho.</p>}
+    </>
   )
 }
 
@@ -153,6 +195,9 @@ export function Caixa() {
   const s = useStore()
   const [texto, setTexto] = useState('')
   const soltas = s.ideias.filter((i) => !i.projetoId)
+  // O tutorial abre sozinho na primeira visita; depois, pelo "?".
+  const [tutorial, setTutorial] = useState(() => !useConfig.getState().tutorialCapturaVisto)
+  const [exemplo] = useState(() => EXEMPLOS_DE_CAMPO[Math.floor(Math.random() * EXEMPLOS_DE_CAMPO.length)])
 
   return (
     <section className="tela">
@@ -163,26 +208,30 @@ export function Caixa() {
             onSubmit={(e) => {
               e.preventDefault()
               if (!texto.trim()) return
-              s.capturar(texto.trim())
+              organizar(texto)
               setTexto('')
             }}
           >
             <label className="rotulo">Tire da cabeça. Organizar fica para depois.</label>
             <div className="linha">
-              <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Qualquer coisa…" aria-label="Capturar na Caixa" />
-              {/* Falou, guardou: o ditado vira captura na hora, junto do que já estava escrito. */}
+              <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder={`Ex.: ${exemplo}`} aria-label="Capturar na Caixa" />
+              {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
               <BotaoVoz
                 onTexto={(falado) => {
-                  s.capturar([texto.trim(), falado].filter(Boolean).join(' '))
+                  organizar([texto.trim(), falado].filter(Boolean).join(' '))
                   setTexto('')
                 }}
               />
+              <button type="button" className="icone-botao" onClick={() => setTutorial(true)} aria-label="Como escrever rápido">
+                ?
+              </button>
               <button type="submit" className="primario">
                 Guardar
               </button>
             </div>
           </form>
           <GravarRecado />
+          {tutorial && <ComoEscrever onFechar={() => setTutorial(false)} />}
 
           {s.capturas.length === 0 ? (
             <p className="vazio-texto">Caixa vazia. Sua cabeça agradece.</p>

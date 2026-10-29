@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { lerBackup, montarBackup } from '../backup'
+import { ComoEscrever } from '../components/ComoEscrever'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
 import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows } from '../nativo/desktop'
 import { Sincronizacao } from '../components/Sincronizacao'
@@ -212,6 +213,29 @@ function GoogleNavegador() {
   )
 }
 
+function Captura() {
+  const organizarSozinho = useConfig((c) => c.organizarSozinho)
+  const ajustar = useConfig((c) => c.ajustar)
+  const [tutorial, setTutorial] = useState(false)
+
+  return (
+    <div className="cartao">
+      <h2 className="titulo">Captura</h2>
+      <label className="check">
+        <input type="checkbox" checked={organizarSozinho} onChange={(e) => ajustar({ organizarSozinho: e.target.checked })} />
+        Organizar capturas sozinho
+      </label>
+      <p className="motivo">
+        {organizarSozinho
+          ? 'Hora vira compromisso, "lembrar" vira lembrete e valor com sinal vira lançamento, na hora, com Desfazer. Tudo acontece no aparelho.'
+          : 'Tudo vai para a Caixa, com o tipo provável sugerido.'}
+      </p>
+      <button onClick={() => setTutorial(true)}>Como escrever rápido</button>
+      {tutorial && <ComoEscrever onFechar={() => setTutorial(false)} />}
+    </div>
+  )
+}
+
 function Aparencia() {
   const cfg = useConfig()
   const livre = !ACENTOS_PRONTOS.some((a) => a.id === cfg.acento)
@@ -371,6 +395,7 @@ export function Ajustes() {
   return (
     <section className="tela grade-ajustes">
       <Aparencia />
+      <Captura />
       <Sincronizacao />
       <Windows />
       <Notificacoes />

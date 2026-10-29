@@ -41,7 +41,7 @@ interface Estado {
   removerConta: (id: string) => void
   salvarCategoria: (c: Omit<Categoria, 'id'> & { id?: string }) => void
   removerCategoria: (id: string) => void
-  lancar: (t: Omit<Transacao, 'id' | 'criadoEm'>) => void
+  lancar: (t: Omit<Transacao, 'id' | 'criadoEm'>) => string
   atualizarTransacao: (id: string, mudancas: Partial<Transacao>) => void
   removerTransacao: (id: string) => void
   /**
@@ -93,7 +93,11 @@ export const useFinancas = create<Estado>()(
           transacoes: s.transacoes.map((t) => (t.categoriaId === id ? { ...t, categoriaId: null } : t)),
         })),
 
-      lancar: (t) => set((s) => ({ transacoes: [{ ...t, id: novoId(), criadoEm: Date.now() }, ...s.transacoes] })),
+      lancar: (t) => {
+        const id = novoId()
+        set((s) => ({ transacoes: [{ ...t, id, criadoEm: Date.now() }, ...s.transacoes] }))
+        return id
+      },
       atualizarTransacao: (id, m) =>
         set((s) => ({ transacoes: s.transacoes.map((t) => (t.id === id ? { ...t, ...m, id } : t)) })),
       removerTransacao: (id) => set((s) => ({ transacoes: s.transacoes.filter((t) => t.id !== id) })),
