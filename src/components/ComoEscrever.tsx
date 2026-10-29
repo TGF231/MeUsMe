@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ERROU, TUTORIAL } from '../motor/tutorial'
 import { useConfig } from '../stores/config'
 
 /** Tutorial "Como escrever rápido": as quatro regras do motor, uma por tela (src/motor/tutorial.ts). */
-export function ComoEscrever({ onFechar }: { onFechar: () => void }) {
+export function ComoEscrever({ onFechar }: Readonly<{ onFechar: () => void }>) {
   const [i, setI] = useState(0)
   const ajustar = useConfig((c) => c.ajustar)
   const tela = TUTORIAL[i]
@@ -12,10 +12,22 @@ export function ComoEscrever({ onFechar }: { onFechar: () => void }) {
     ajustar({ tutorialCapturaVisto: true })
     onFechar()
   }
+  // Esc fecha, de qualquer ponto da página.
+  useEffect(() => {
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      ajustar({ tutorialCapturaVisto: true })
+      onFechar()
+    }
+    document.addEventListener('keydown', aoTeclar)
+    return () => document.removeEventListener('keydown', aoTeclar)
+  }, [ajustar, onFechar])
 
   return (
-    <div className="fundo" role="dialog" aria-modal="true" aria-label="Como escrever rápido" onClick={fechar}>
-      <div className="modal tutorial" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.key === 'Escape' && fechar()}>
+    <div className="fundo">
+      {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, alcançável por teclado e leitor de tela. */}
+      <button type="button" className="fundo-fechar" aria-label="Fechar o tutorial" onClick={fechar} />
+      <dialog open className="modal tutorial" aria-modal="true" aria-label="Como escrever rápido">
         <p className="rotulo">
           Como escrever rápido · {i + 1} de {TUTORIAL.length}
         </p>
@@ -50,7 +62,7 @@ export function ComoEscrever({ onFechar }: { onFechar: () => void }) {
             </>
           )}
         </div>
-      </div>
+      </dialog>
     </div>
   )
 }
