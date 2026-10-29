@@ -226,7 +226,7 @@ function Captura() {
       <h2 className="titulo">Captura</h2>
       <label className="check">
         <input type="checkbox" checked={organizarSozinho} onChange={(e) => ajustar({ organizarSozinho: e.target.checked })} />
-        Organizar capturas sozinho
+        <span>Organizar capturas sozinho</span>
       </label>
       <p className="motivo">
         {organizarSozinho
