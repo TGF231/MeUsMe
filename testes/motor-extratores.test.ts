@@ -47,6 +47,12 @@ const comMoeda: [string, Partial<Dinheiro> | null][] = [
   ['correr +2 km', null],
   ['desconto de -10%', null],
   ['ficar +2 dias', null],
+  ['jantar +2 pessoas', null],
+  ['+1 convidado na festa', null],
+  ['tomar -2 vezes ao dia', null],
+  ['comprar +3 caixas de leite', null],
+  ['+2 litros de agua', null],
+  ['curso de +6 meses', null],
 
   // Sem sinal, palavras decidem; sem nenhuma das duas, a direção fica em aberto.
   ['R$ 1000 tv', { direcao: null }],

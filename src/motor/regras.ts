@@ -67,8 +67,8 @@ export function passoDeProjeto(texto: string, projetos: { id: string; titulo: st
   }
 }
 
-// Regra 1. "lembrar de", "lembra", "me lembre de", "lembrete:"
-const LEMBRAR = /(?<![\wÀ-ÿ])(?:me\s+)?lembr(?:ar|a|e|ete)(?:-me)?(?:\s+de)?(?![\wÀ-ÿ]):?/i
+// Regra 1. "lembrar de", "lembra", "me lembre de", "lembrete:"; e a variação "não esquecer de".
+const LEMBRAR = /(?<![\wÀ-ÿ])(?:(?:me\s+)?lembr(?:ar|a|e|ete)(?:-me)?|n[ãa]o\s+(?:pode\s+|posso\s+)?esquec(?:er|e))(?:\s+de)?(?![\wÀ-ÿ]):?/i
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
