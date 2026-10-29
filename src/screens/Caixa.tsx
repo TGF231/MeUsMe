@@ -7,7 +7,7 @@ import { LembreteForm } from '../components/LembreteForm'
 import { PassoForm } from '../components/PassoForm'
 import { GravarRecado, OuvirRecado } from '../components/Recado'
 import { organizar } from '../motor/executar'
-import { lerDinheiro } from '../motor/extratores'
+import { lerDinheiro, type Dinheiro } from '../motor/extratores'
 import { aplicarRegras, prepararCompromisso } from '../motor/regras'
 import { EXEMPLOS_DE_CAMPO } from '../motor/tutorial'
 import { useStore } from '../store'
@@ -26,124 +26,111 @@ type Modo =
   | { tipo: 'evento' }
   | null
 
-function Processar({ captura }: { captura: Captura }) {
+/** O que todas as partes de Processar usam. */
+interface Contexto {
+  captura: Captura
+  /** Num recado de voz o texto é só o rótulo: os formulários começam vazios para escrever ou ditar. */
+  texto: string
+  dinheiro: Dinheiro | null
+  setModo: (m: Modo) => void
+  resolver: () => void
+  /** O que você fez com a captura ensina o motor (docs/MOTOR.md, parte 3). */
+  aprender: (classe: Classe) => void
+}
+
+function NovoProjeto({ ctx }: Readonly<{ ctx: Contexto }>) {
   const s = useStore()
-  const [modo, setModo] = useState<Modo>(null)
+  const [titulo, setTitulo] = useState(ctx.texto)
   const [chegada, setChegada] = useState('')
-  // Num recado de voz o texto é só o rótulo: os formulários começam vazios para escrever ou ditar.
-  const texto = captura.audio ? '' : captura.texto
-  const [titulo, setTitulo] = useState(texto)
-  const ativos = s.projetos.filter((p) => !p.concluidoEm)
-  // Só é dinheiro com R$, "reais" ou vírgula de centavos (docs/MOTOR.md, regra 2).
-  const dinheiro = lerDinheiro(texto)
-  // O que as regras do motor entendem, para os formulários já virem preenchidos.
+  return (
+    <form
+      className="form"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (!titulo.trim() || !chegada.trim()) return
+        s.criarProjeto(titulo.trim(), chegada.trim())
+        ctx.resolver()
+      }}
+    >
+      <label className="rotulo">Nome do projeto</label>
+      <input value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+      <label className="rotulo">Linha de chegada: como você vai saber que terminou?</label>
+      <input autoFocus value={chegada} onChange={(e) => setChegada(e.target.value)} placeholder="Ex.: currículo enviado para 3 vagas" />
+      <div className="linha">
+        <button type="submit" className="primario">
+          Criar projeto
+        </button>
+        <button type="button" onClick={() => ctx.setModo(null)}>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  )
+}
+
+/** O formulário do tipo escolhido, já preenchido com o que as regras do motor entenderam. */
+function FormularioDaCaptura({ ctx, modo }: Readonly<{ ctx: Contexto; modo: NonNullable<Modo> }>) {
+  const s = useStore()
+  const { texto, dinheiro, aprender, resolver } = ctx
+  const cancelar = () => ctx.setModo(null)
+  // O que as regras entendem, e o título e o dia de um compromisso sem hora ("consulta dermato dia 12").
   const [regra] = useState(() => (texto ? aplicarRegras(texto, new Date()) : null))
-  // Compromisso sem hora ("consulta dermato dia 12"): título limpo e o dia, para o formulário.
   const [semHora] = useState(() => {
     const { titulo, data } = prepararCompromisso(texto, new Date())
     return { titulo, data: data && dataISO(data) }
   })
-  const resolver = () => s.descartarCaptura(captura.id)
-  // O que você fez com a captura ensina o motor (docs/MOTOR.md, parte 3). Recado de voz não tem texto para aprender.
-  const registrar = useMotor((m) => m.registrar)
-  const aprender = (classe: Classe) => !captura.audio && registrar(captura.texto, classe)
+  const pronto = (classe: Classe) => () => {
+    aprender(classe)
+    resolver()
+  }
+
+  switch (modo.tipo) {
+    case 'gasto':
+      return (
+        <LancamentoForm
+          inicial={
+            dinheiro
+              ? { valor: dinheiro.valor, descricao: dinheiro.descricao, tipo: (modo.receita ?? dinheiro.direcao === 'entrada') ? 'receita' : 'gasto' }
+              : { descricao: texto }
+          }
+          onPronto={(tipo) => pronto(tipo === 'receita' ? 'receita' : 'despesa')()}
+          onCancelar={cancelar}
+        />
+      )
+    case 'lembrete':
+      return <LembreteForm inicial={regra?.classe === 'lembrete' ? regra.titulo : texto} onPronto={pronto('lembrete')} onCancelar={cancelar} />
+    case 'evento':
+      return (
+        <EventoForm
+          inicial={regra?.classe === 'compromisso' ? { titulo: regra.titulo, data: regra.quando ? dataISO(regra.quando) : undefined } : semHora}
+          onPronto={pronto('compromisso')}
+          onCancelar={cancelar}
+        />
+      )
+    case 'passo':
+      return (
+        <PassoForm
+          inicial={texto}
+          projetoId={modo.projetoId}
+          onSalvar={(t, e) => {
+            s.criarPasso(modo.projetoId, t, e)
+            pronto('passo')()
+          }}
+          onCancelar={cancelar}
+        />
+      )
+    case 'projeto':
+      return <NovoProjeto ctx={ctx} />
+  }
+}
+
+/** Os botões da captura: o tipo provável (regras ou rede, docs/MOTOR.md) vem primeiro, e o botão comum dele some. */
+function AcoesDaCaptura({ ctx }: Readonly<{ ctx: Contexto }>) {
+  const s = useStore()
+  const { captura, dinheiro, setModo, aprender, resolver } = ctx
+  const ativos = s.projetos.filter((p) => !p.concluidoEm)
   const adiarCompra = useFinancas((f) => f.adiarCompra)
   const horasDeEspera = useConfig((c) => c.horasDeEspera)
-  const cancelar = () => setModo(null)
-
-  if (modo?.tipo === 'gasto')
-    return (
-      <LancamentoForm
-        inicial={
-          dinheiro
-            ? {
-                valor: dinheiro.valor,
-                descricao: dinheiro.descricao,
-                tipo: (modo.receita ?? dinheiro.direcao === 'entrada') ? 'receita' : 'gasto',
-              }
-            : { descricao: texto }
-        }
-        onPronto={(tipo) => {
-          aprender(tipo === 'receita' ? 'receita' : 'despesa')
-          resolver()
-        }}
-        onCancelar={cancelar}
-      />
-    )
-  if (modo?.tipo === 'lembrete')
-    return (
-      <LembreteForm
-        inicial={regra?.classe === 'lembrete' ? regra.titulo : texto}
-        onPronto={() => {
-          aprender('lembrete')
-          resolver()
-        }}
-        onCancelar={cancelar}
-      />
-    )
-  if (modo?.tipo === 'evento')
-    return (
-      <EventoForm
-        inicial={
-          regra?.classe === 'compromisso'
-            ? { titulo: regra.titulo, data: regra.quando ? dataISO(regra.quando) : undefined }
-            : semHora
-        }
-        onPronto={() => {
-          aprender('compromisso')
-          resolver()
-        }}
-        onCancelar={cancelar}
-      />
-    )
-
-  if (modo?.tipo === 'passo') {
-    return (
-      <PassoForm
-        inicial={texto}
-        projetoId={modo.projetoId}
-        onSalvar={(t, e) => {
-          s.criarPasso(modo.projetoId, t, e)
-          aprender('passo')
-          s.descartarCaptura(captura.id)
-        }}
-        onCancelar={() => setModo(null)}
-      />
-    )
-  }
-
-  if (modo?.tipo === 'projeto') {
-    return (
-      <form
-        className="form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!titulo.trim() || !chegada.trim()) return
-          s.criarProjeto(titulo.trim(), chegada.trim())
-          s.descartarCaptura(captura.id)
-        }}
-      >
-        <label className="rotulo">Nome do projeto</label>
-        <input value={titulo} onChange={(e) => setTitulo(e.target.value)} />
-        <label className="rotulo">Linha de chegada: como você vai saber que terminou?</label>
-        <input
-          autoFocus
-          value={chegada}
-          onChange={(e) => setChegada(e.target.value)}
-          placeholder="Ex.: currículo enviado para 3 vagas"
-        />
-        <div className="linha">
-          <button type="submit" className="primario">
-            Criar projeto
-          </button>
-          <button type="button" onClick={() => setModo(null)}>
-            Cancelar
-          </button>
-        </div>
-      </form>
-    )
-  }
-
   const sugestao = captura.sugestao
   const semDirecao = dinheiro && !dinheiro.direcao
   const tarefa = () => setModo({ tipo: 'passo', projetoId: null })
@@ -155,10 +142,9 @@ function Processar({ captura }: { captura: Captura }) {
   const ideia = () => {
     s.estacionarIdeia(captura.texto, null)
     aprender('ideia')
-    s.descartarCaptura(captura.id)
+    resolver()
   }
 
-  // O tipo provável (regras ou rede, docs/MOTOR.md) vem primeiro, e o botão comum dele some.
   const SUGESTOES: Partial<Record<Classe, [string, () => void]>> = {
     lembrete: ['Parece um lembrete', () => setModo({ tipo: 'lembrete' })],
     compromisso: ['Parece um compromisso', () => setModo({ tipo: 'evento' })],
@@ -175,6 +161,7 @@ function Processar({ captura }: { captura: Captura }) {
     ['Entrada', true],
   ]
   if (sugestao === 'receita') saidaEntrada.reverse()
+  const mostraGasto = !dinheiro && sugestao !== 'despesa' && sugestao !== 'receita'
 
   return (
     <>
@@ -184,8 +171,7 @@ function Processar({ captura }: { captura: Captura }) {
             {sugerido[0]}
           </button>
         )}
-        {dinheiro &&
-          semDirecao &&
+        {semDirecao &&
           saidaEntrada.map(([rotulo, receita]) => (
             <button key={rotulo} className="primario" onClick={() => setModo({ tipo: 'gasto', receita })}>
               {rotulo} de {reais(dinheiro.valor)}
@@ -198,10 +184,7 @@ function Processar({ captura }: { captura: Captura }) {
         )}
         {sugestao !== 'passo' && <button onClick={tarefa}>Tarefa solta</button>}
         {ativos.length > 0 && (
-          <select
-            value=""
-            onChange={(e) => e.target.value && setModo({ tipo: 'passo', projetoId: e.target.value })}
-          >
+          <select value="" onChange={(e) => e.target.value && setModo({ tipo: 'passo', projetoId: e.target.value })}>
             <option value="">Passo de projeto…</option>
             {ativos.map((p) => (
               <option key={p.id} value={p.id}>
@@ -211,7 +194,7 @@ function Processar({ captura }: { captura: Captura }) {
           </select>
         )}
         <button onClick={() => setModo({ tipo: 'projeto' })}>Virar projeto</button>
-        {!dinheiro && sugestao !== 'despesa' && sugestao !== 'receita' && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
+        {mostraGasto && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
         {!captura.audio && sugestao !== 'compra' && (
           <button onClick={comprar} title={`Vai para Finanças → Antes de comprar, e o app pergunta de novo em ${horasDeEspera}h`}>
             Quero comprar: esperar {horasDeEspera}h
@@ -227,6 +210,25 @@ function Processar({ captura }: { captura: Captura }) {
       {semDirecao && <p className="motivo">Use + ou - na frente do valor para o app lançar sozinho.</p>}
     </>
   )
+}
+
+function Processar({ captura }: Readonly<{ captura: Captura }>) {
+  const s = useStore()
+  const [modo, setModo] = useState<Modo>(null)
+  const registrar = useMotor((m) => m.registrar)
+  const texto = captura.audio ? '' : captura.texto
+  const ctx: Contexto = {
+    captura,
+    texto,
+    // Só é dinheiro com sinal, R$, "reais" ou vírgula de centavos (docs/MOTOR.md, regra 2).
+    dinheiro: lerDinheiro(texto),
+    setModo,
+    resolver: () => s.descartarCaptura(captura.id),
+    aprender: (classe) => {
+      if (!captura.audio) registrar(captura.texto, classe)
+    },
+  }
+  return modo ? <FormularioDaCaptura ctx={ctx} modo={modo} /> : <AcoesDaCaptura ctx={ctx} />
 }
 
 export function Caixa() {
