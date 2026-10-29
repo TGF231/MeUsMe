@@ -216,3 +216,10 @@ test('"não esquecer de" vale como "lembrar de"', () => {
   assert.equal(aplicarRegras('lembrei de comprar pão', AGORA), null)
   assert.equal(aplicarRegras('comprar lembrança da viagem', AGORA), null)
 })
+
+test('"lembra" só é pedido no começo; no meio, descreve', () => {
+  assert.equal(aplicarRegras('bot que lembra de beber água', AGORA), null)
+  assert.equal(aplicarRegras('ela lembra de tudo', AGORA), null)
+  for (const t of ['lembra de passar protetor', 'me lembra de alongar', 'Lembre de pagar a luz', 'preciso lembrar de pagar a luz', 'lembrete: renovar a cnh'])
+    assert.equal(aplicarRegras(t, AGORA)?.classe, 'lembrete', t)
+})
