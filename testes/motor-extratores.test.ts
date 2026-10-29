@@ -95,3 +95,10 @@ for (const [texto, esperado] of soltos) {
     for (const [campo, valor] of Object.entries(esperado)) assert.equal(lido[campo as keyof Dinheiro], valor, campo)
   })
 }
+
+test('gíria de dinheiro: "conto" e "pila" valem como reais, só com número antes', () => {
+  assert.equal(lerDinheiro('35 conto almoço')?.valor, 3500)
+  assert.equal(lerDinheiro('-50 pila uber')?.direcao, 'saida')
+  assert.equal(lerDinheiro('vendi a bike 300 contos')?.direcao, 'entrada')
+  assert.equal(lerDinheiro('escrever um conto sobre o bairro'), null)
+})

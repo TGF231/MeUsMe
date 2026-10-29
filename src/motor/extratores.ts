@@ -31,7 +31,8 @@ const COM_MOEDA = [
   // R$ 35 · -R$ 35 · menos R$ 35 · R$ 2 mil
   new RegExp(String.raw`${SINAL}r\$\s*(${NUMERO})${MIL}`, 'gi'),
   // 35 reais · +1000 reais · menos 35 reais · 2 mil reais
-  new RegExp(String.raw`${SINAL}\b(${NUMERO})${MIL}\s*(?:reais|real)\b`, 'gi'),
+  // Gíria também vale: "35 conto", "50 pila". Só com número antes: "escrever um conto" é texto.
+  new RegExp(String.raw`${SINAL}\b(${NUMERO})${MIL}\s*(?:reais|real|contos?|pilas?)\b`, 'gi'),
   // 35,00 · -12,90 (vírgula com dois dígitos de centavos)
   new RegExp(String.raw`${SINAL}(?<![\d.,])(\d+(?:\.\d{3})*,\d{2})(?![\d,])`, 'gi'),
   // -35 · +1000 · +2 mil: o sinal colado no número basta, e fica no mesmo teclado dos números.
@@ -48,7 +49,9 @@ const SOLTO_FIM = new RegExp(String.raw`(?<=\s)${SINAL}(${NUMERO})${MIL}$`, 'i')
 const VERBOS = /\b(vendi|recebi|ganhei|paguei|comprei|gastei)\b/gi
 const ENTRADA = /\b(vendi|recebi|ganhei|entrou|caiu|sal[aá]rio|reembolso)\b/i
 const SAIDA = /\b(paguei|comprei|gastei|conta de|mensalidade)\b/i
-const CONECTOR_INICIAL = /^(?:de|do|da|dos|das|no|na|em|com|pelo|pela|pra|para|o|a)\s+/i
+const CONECTOR_INICIAL = /^(?:de|do|da|dos|das|no|na|em|com|pelo|pela|pra|para|por|o|a|um|uma)\s+/i
+// "Comprei um tênis por R$ 250": o "por" que sobra no fim da descrição.
+const CONECTOR_FINAL = /\s+(?:de|do|da|no|na|em|com|pelo|pela|pra|para|por)$/i
 
 interface Achado {
   inicio: number
@@ -93,6 +96,7 @@ function limparDescricao(texto: string) {
   let t = texto.replace(VERBOS, ' ').replace(/\s+/g, ' ').trim()
   t = t.replace(/^[\s,;:.–-]+|[\s,;:.–-]+$/g, '')
   while (CONECTOR_INICIAL.test(t)) t = t.replace(CONECTOR_INICIAL, '')
+  while (CONECTOR_FINAL.test(t)) t = t.replace(CONECTOR_FINAL, '')
   return t
 }
 
@@ -151,9 +155,18 @@ const HORAS = [
   // 13h · 13h30 · 13hrs · 13 horas · às 3h da tarde · das 14h
   new RegExp(String.raw`${ANTES}(?:[àa]s\s+|das\s+)?([01]?\d|2[0-3])\s*(?:h|hs|hrs?|horas?)(?:\s*([0-5]\d))?${PERIODO}${DEPOIS}`, 'i'),
   // às 3 · às 3 da tarde. Sem acento ("as 3"), só com o período: "comprar as 3 camisas" não é hora.
-  // O grupo vazio () ocupa o lugar dos minutos, para o período ficar no grupo 3 como nos outros.
-  new RegExp(String.raw`${ANTES}(?:às|as(?=\s+\d{1,2}\s+da\s+(?:manh|tarde|noite)))\s+([01]?\d|2[0-3])()${PERIODO}(?![\wÀ-ÿ:,.])`, 'i'),
+  // Aqui os minutos (grupo 2) só podem ser "e meia", para o período ficar no grupo 3 como nos outros.
+  // Logo depois do número não pode vir ":", algarismo, nem "," ou "." seguidos de algarismo ("às 3:00", "às 3,5");
+  // um ponto final pode ("Reunião às 8 da noite." é às 20h, não às 8h).
+  new RegExp(String.raw`${ANTES}(?:às|as(?=\s+\d{1,2}\s+da\s+(?:manh|tarde|noite)))\s+([01]?\d|2[0-3])(?![\d:]|[,.]\d)(\s+e\s+meia)?${PERIODO}${DEPOIS}`, 'i'),
+  // Por extenso, como às vezes sai do ditado: "às duas", "à uma da tarde", "às oito e meia da noite".
+  new RegExp(String.raw`${ANTES}(?:às|à(?=\s+uma${DEPOIS}))\s+(uma|duas|tr[eê]s|quatro|cinco|seis|sete|oito|nove|dez|onze|doze)(\s+e\s+meia)?${PERIODO}${DEPOIS}`, 'i'),
 ]
+
+/** Minutos do grupo 2: "30", " e meia" ou nada. */
+const minutos = (g: string | undefined) => (g ? (/meia/i.test(g) ? 30 : Number(g)) : 0)
+
+const HORAS_POR_EXTENSO = ['uma', 'duas', 'tres', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze']
 
 /** "estudar 2h" é duração, não hora: "Nh" de 1 a 4, sem "às", "das", minutos nem período. */
 const ehDuracao = (padrao: number, m: RegExpExecArray, h: number, periodo: string) =>
@@ -162,7 +175,7 @@ const ehDuracao = (padrao: number, m: RegExpExecArray, h: number, periodo: strin
 /** Hora no relógio de 24h: "da tarde" soma 12; "às 3" sem período, de 1 a 7, também (ninguém marca dentista às 3 da madrugada). */
 function em24h(padrao: number, h: number, periodo: string) {
   if (/tarde|noite/.test(periodo) && h < 12) return h + 12
-  if (padrao === 3 && !periodo && h >= 1 && h <= 7) return h + 12
+  if (padrao >= 3 && !periodo && h >= 1 && h <= 7) return h + 12
   return h
 }
 
@@ -172,10 +185,10 @@ export function lerHora(texto: string): Hora | null {
     const m = primeiro(texto, re)
     if (!m) continue
     if (i === 0) return { ...trechoDe(m), h: /meio/i.test(m[1]) ? 12 : 0, m: 0 }
-    const h = Number(m[1])
+    const h = i === 4 ? HORAS_POR_EXTENSO.indexOf(semAcento(m[1])) + 1 : Number(m[1])
     const periodo = m[3]?.toLowerCase() ?? ''
     if (ehDuracao(i, m, h, periodo)) continue
-    return { ...trechoDe(m), h: em24h(i, h, periodo), m: m[2] ? Number(m[2]) : 0 }
+    return { ...trechoDe(m), h: em24h(i, h, periodo), m: minutos(m[2]) }
   }
   return null
 }

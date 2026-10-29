@@ -111,12 +111,15 @@ Testadas em `testes/motor-regras.test.ts`, mas fora do tutorial:
 | `não esquecer de pagar a luz sexta`, `nao esquece o guarda chuva` | o mesmo que "lembrar de" ("lembrei" e "lembrança" não contam) |
 | `lembra de passar protetor`, mas não `bot que lembra de beber água` | "lembra" e "lembre" só são pedido no começo; no meio, descrevem. "lembrar" e "lembrete" valem em qualquer lugar |
 | `15hrs`, `das 14h` | hora |
+| `à uma da tarde`, `às duas`, `às oito da noite`, `às três e meia`, `às 3 e meia` | hora por extenso, como o ditado às vezes escreve (sem período, de uma a sete é à tarde) |
 | `reunião das 14h às 16h`, `15h-17h`, `aula 15h às 17` | compromisso com início e fim (`22h às 6h` termina no dia seguinte) |
 | `fim de semana`, `próxima semana`, `daqui a 3 dias`, `em 2 semanas` | data |
 | `lembrar de… amanhã de manhã` / `à tarde` / `à noite` / `cedo` | lembrete às 9h / 14h / 19h / 8h (período sem hora só vale em lembrete) |
 | `todo dia`, `toda segunda`, `todas as sextas`, `todo dia 5`, `todo mês` | lembrete que se repete (diário, semanal, mensal) |
 | `-35 almoço ontem`, `+200 freela anteontem` | lançamento com a data de ontem / anteontem |
 | `site: arrumar o rodapé`, `Site - arrumar o rodapé` | passo do projeto aberto "Site" (nome inteiro no começo, seguido de ":" ou " - "; só quando nenhuma regra se aplica: `site: reunião 15h` é compromisso) |
+
+**Ditado.** O reconhecedor do Google devolve maiúscula no começo, ponto final e "sexta-feira" por extenso. Testes com frases nesse formato acharam dois bugs: "Jantar às 8 da noite." virava 8h (o ponto final impedia ler "da noite") e "Comprei um tênis por R$ 250." virava "um tênis por".
 
 **Repetição vira lembrete, mesmo sem "lembrar".** `academia toda segunda 7h` tem hora, mas compromissos ainda não se repetem, e criar só a próxima segunda perderia o que a pessoa disse. A ordem fica: "lembrar" → dinheiro → repetição → hora. Dinheiro vem antes: `-50 academia todo mês` é um gasto.
 

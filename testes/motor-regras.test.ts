@@ -223,3 +223,51 @@ test('"lembra" só é pedido no começo; no meio, descreve', () => {
   for (const t of ['lembra de passar protetor', 'me lembra de alongar', 'Lembre de pagar a luz', 'preciso lembrar de pagar a luz', 'lembrete: renovar a cnh'])
     assert.equal(aplicarRegras(t, AGORA)?.classe, 'lembrete', t)
 })
+
+// O ditado do Google devolve maiúscula no começo, ponto final e "sexta-feira" por extenso.
+const ditadas: [string, string, string, number?][] = [
+  ['Lembrar de pagar a luz na sexta-feira.', 'lembrete', 'Pagar a luz', em(30, 9)],
+  ['Dentista amanhã às 15h.', 'compromisso', 'Dentista', em(29, 15)],
+  ['Reunião com o João às 3 da tarde.', 'compromisso', 'Reunião com o João', em(28, 15)],
+  ['Jantar às 8 da noite.', 'compromisso', 'Jantar', em(28, 20)],
+  ['Me lembra de ligar para a minha mãe amanhã de manhã.', 'lembrete', 'Ligar para a minha mãe', em(29, 9)],
+  ['Academia toda segunda às 7h.', 'lembrete', 'Academia', em(2, 7, 0, 10)],
+  ['Menos 35 reais almoço.', 'despesa', 'almoço'],
+  ['Comprei um tênis por R$ 250.', 'despesa', 'tênis'],
+  ['Paguei 120 reais de luz ontem.', 'despesa', 'luz'],
+]
+
+for (const [texto, classe, titulo, quando] of ditadas) {
+  test(`ditado: ${texto}`, () => {
+    const r = aplicarRegras(texto, AGORA)
+    assert.ok(r)
+    assert.equal(r.classe, classe)
+    assert.equal(r.titulo, titulo)
+    if (quando !== undefined) assert.equal(r.quando, quando)
+  })
+}
+
+test('"às 3:00", "às 3,5" e "às 3.000" não perdem a proteção', () => {
+  assert.deepEqual([lerHora('às 3:00')?.h, lerHora('às 3:00')?.m], [3, 0])
+  assert.equal(lerHora('dividir às 3,5'), null)
+  assert.equal(lerHora('pagar às 3.000'), null)
+})
+
+const horasFaladas: [string, [number, number] | null][] = [
+  ['Reunião à uma da tarde.', [13, 0]],
+  ['Consulta às duas da tarde', [14, 0]],
+  ['jantar às oito da noite', [20, 0]],
+  ['às dez da manhã', [10, 0]],
+  ['reunião às duas', [14, 0]],
+  ['às três e meia', [15, 30]],
+  ['reunião às 3 e meia da tarde', [15, 30]],
+  ['às 10 e meia', [10, 30]],
+  ['comprar duas camisas', null],
+]
+
+for (const [texto, esperado] of horasFaladas) {
+  test(`hora falada: ${texto}`, () => {
+    const h = lerHora(texto)
+    assert.deepEqual(h && [h.h, h.m], esperado)
+  })
+}
