@@ -148,22 +148,22 @@ O texto normalizado (minúsculas, sem acento) vira um vetor esparso por *feature
 - palavras e pares de palavras;
 - ~10 marcas dos extratores: tem hora, tem data, tem valor, começa com verbo, tem "lembrar", tem "quero", número de palavras (curto/médio/longo).
 
-Cada pedaço cai em uma de 4.096 posições (hash FNV-1a). O vetor é normalizado para comprimento 1.
+Cada pedaço cai em uma de 2.048 posições (hash FNV-1a). Começou com 4.096; com 2.048 a conferência ficou igual (57 de 61, contra 56) e o arquivo de pesos caiu pela metade. O vetor é normalizado para comprimento 1.
 
 ### Arquitetura
 
 ```
-4.096 + 11 entradas ──► 32 neurônios (ReLU) ──► 7 saídas (softmax)
+2.048 + 11 entradas ──► 32 neurônios (ReLU) ──► 7 saídas (softmax)
 ```
 
-- ~132 mil pesos. Guardados em int8 com uma escala por linha: 199 KB de `pesos.json` (149 KB comprimidos), num pedaço separado do app que só é baixado na primeira captura (`src/motor/carregar.ts`). Se faltar, o motor segue só com as regras.
+- ~66 mil pesos. Guardados em int8 com uma escala por linha: ~107 KB de `pesos.json`, num pedaço separado do app que só é baixado na primeira captura (`src/motor/carregar.ts`). Se faltar, o motor segue só com as regras.
 - Como a entrada é esparsa (30 a 80 posições ativas), a primeira camada é só somar as linhas ativas. Menos de 1 ms por frase, em TypeScript puro, sem biblioteca.
 - O mesmo `src/motor/caracteristicas.ts` é usado no treino e no app. Se fossem dois códigos, qualquer diferença entre eles estragaria a rede sem nenhum erro aparente.
 
 ### Treino
 
 - `npm run motor:treinar` (`scripts/motor-treinar.ts`) roda no Node em ~7 s: separa 1/4 das frases escritas à mão para conferir, mostra o acerto e a matriz de confusão, e depois treina com tudo e grava os pesos.
-- Treino atual: 264 frases à mão (90 delas nos casos de fronteira: lista de mercado é tarefa, "site com as fotos" é ideia, "comprar presente" é tarefa e não compra) + 1.750 geradas. Na conferência, 56 de 61 frases à mão fora do treino (92%). Ainda é um número otimista: quem escreveu as frases de conferência também escreveu as de treino.
+- Treino atual: 264 frases à mão (90 delas nos casos de fronteira: lista de mercado é tarefa, "site com as fotos" é ideia, "comprar presente" é tarefa e não compra) + 1.750 geradas. Na conferência, 57 de 61 frases à mão fora do treino (93%). Ainda é um número otimista: quem escreveu as frases de conferência também escreveu as de treino.
 - **Suavização de rótulos (0,1):** no treino, a classe certa vale 90% e o resto se divide entre as outras. Sem ela, a rede errava com 98% ou 99% de certeza ("mudar o layout do quarto" como tarefa); com ela, os erros caem para perto de 30% e os acertos ficam em torno de 81%. Das sugestões com 50% ou mais, 48 acertam e 2 erram. É o que dá sentido à trava: a certeza precisa dizer a verdade para um limiar de 2% de erro valer alguma coisa.
 - Entropia cruzada com suavização de rótulos, Adam, regularização L2 e dropout na camada escondida; semente fixa, para o mesmo dado dar sempre os mesmos pesos.
 - Saída: `src/motor/pesos.json`, gerado e versionado, com o hash dos dados de treino e a versão das características. Um teste falha se os dados mudarem e os pesos não forem retreinados.

@@ -89,6 +89,16 @@ function lembrete(t: string, agora: Date, horaLembrete: number, motivo: Trecho):
   }
 }
 
+/**
+ * Título e dia de um compromisso que as regras não criaram (sem hora): "consulta dermato dia 12"
+ * abre o formulário com "Consulta dermato" no dia 12, em vez de vazio.
+ */
+export function prepararCompromisso(texto: string, agora: Date): { titulo: string; data?: Date } {
+  const t = texto.trim()
+  const data = lerData(t, agora)
+  return { titulo: limparTitulo(t, [data]) || t, ...(data && { data: data.dia }) }
+}
+
 export function aplicarRegras(texto: string, agora: Date, horaLembrete = 9): Interpretacao | null {
   const t = texto.trim()
 
