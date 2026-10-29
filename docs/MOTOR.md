@@ -30,7 +30,7 @@ Por que essas quatro:
 - **Precedência na ordem da tabela**, para nunca haver dúvida: `lembrar de pagar R$ 50 sexta 10h` é lembrete (regra 1 antes da 2 e da 3); `R$ 35 almoço 13h` é dinheiro (regra 2 antes da 3).
 - **Uma palavra ou um símbolo por regra.** Nada de "depende do contexto" no tutorial.
 - **Funcionam falando.** "menos 35 reais" e "mais mil reais" valem como `-` e `+`; o ditado do Google escreve "R$" sozinho.
-- **Variações aceitas, mas não ensinadas:** `35 reais`, `35,00`, "paguei", "vendi", "às 3 da tarde". Funcionam, mas o tutorial não precisa citá-las. Quem não sabe delas não perde nada.
+- **Variações aceitas, mas não ensinadas:** `35 reais`, `35,00`, "paguei", "vendi", "às 3 da tarde", e as da seção [Variações](#variações) (repetição, intervalo, período, "ontem"). Funcionam, mas o tutorial não precisa citá-las. Quem não sabe delas não perde nada.
 
 ### O app ensina enquanto é usado
 
@@ -99,7 +99,22 @@ Resolução, sempre a partir de "agora" passado como parâmetro (testável):
 
 - Só hora: hoje se ainda não passou; senão amanhã.
 - Dia da semana: a próxima ocorrência; hoje se for o mesmo dia e a hora ainda não passou.
-- `dia 15`: este mês se ainda não passou; senão o próximo.
+- `dia 15`: este mês se ainda não passou; senão o próximo. Não vale com "h" logo depois: em "todo dia 8h", o 8 é a hora.
+
+### Variações
+
+Testadas em `testes/motor-regras.test.ts`, mas fora do tutorial:
+
+| Escrito | Vira |
+|---|---|
+| `15hrs`, `das 14h` | hora |
+| `reunião das 14h às 16h`, `15h-17h`, `aula 15h às 17` | compromisso com início e fim (`22h às 6h` termina no dia seguinte) |
+| `fim de semana`, `próxima semana`, `daqui a 3 dias`, `em 2 semanas` | data |
+| `lembrar de… amanhã de manhã` / `à tarde` / `à noite` / `cedo` | lembrete às 9h / 14h / 19h / 8h (período sem hora só vale em lembrete) |
+| `todo dia`, `toda segunda`, `todas as sextas`, `todo dia 5`, `todo mês` | lembrete que se repete (diário, semanal, mensal) |
+| `-35 almoço ontem`, `+200 freela anteontem` | lançamento com a data de ontem / anteontem |
+
+**Repetição vira lembrete, mesmo sem "lembrar".** `academia toda segunda 7h` tem hora, mas compromissos ainda não se repetem, e criar só a próxima segunda perderia o que a pessoa disse. A ordem fica: "lembrar" → dinheiro → repetição → hora. Dinheiro vem antes: `-50 academia todo mês` é um gasto.
 
 ### Título
 

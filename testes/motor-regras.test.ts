@@ -130,3 +130,45 @@ for (const tela of TUTORIAL)
       assert.ok('criar' in d, `"${e.texto}" deveria ser criado sozinho`)
       for (const [campo, valor] of Object.entries(e.espera)) assert.equal(d.criar[campo as keyof typeof d.criar], valor, campo)
     })
+
+// Variações aceitas, mas não ensinadas no tutorial.
+// [texto, classe, título, quando, extra]
+const variacoes: [string, string | null, string?, number?, Record<string, unknown>?][] = [
+  ['reunião 15hrs', 'compromisso', 'Reunião', em(28, 15)],
+  ['reunião das 14h às 16h', 'compromisso', 'Reunião', em(28, 14), { fim: em(28, 16) }],
+  ['reunião 15h-17h', 'compromisso', 'Reunião', em(28, 15), { fim: em(28, 17) }],
+  ['aula 15h às 17', 'compromisso', 'Aula', em(28, 15), { fim: em(28, 17) }],
+  ['plantão 22h às 6h', 'compromisso', 'Plantão', em(28, 22), { fim: em(29, 6) }],
+  ['churrasco fim de semana 13h', 'compromisso', 'Churrasco', em(31, 13)],
+  ['consulta daqui a 3 dias 10h', 'compromisso', 'Consulta', em(31, 10)],
+  ['dentista em 2 semanas 9h', 'compromisso', 'Dentista', em(11, 9, 0, 10)],
+  ['reunião próxima semana 15h', 'compromisso', 'Reunião', em(2, 15, 0, 10)],
+  ['lembrar de ligar pra mãe amanhã de manhã', 'lembrete', 'Ligar pra mãe', em(29, 9)],
+  ['lembrar de tirar o lixo hoje à noite', 'lembrete', 'Tirar o lixo', em(28, 19)],
+  ['lembrar de pagar o aluguel todo dia 5', 'lembrete', 'Pagar o aluguel', em(5, 9, 0, 10), { repetir: 'mensal' }],
+  ['lembrar de tomar o remédio todo dia 8h', 'lembrete', 'Tomar o remédio', em(29, 8), { repetir: 'diario' }],
+  // Repetição sem "lembrar" também vira lembrete: compromissos ainda não se repetem.
+  ['academia toda segunda 7h', 'lembrete', 'Academia', em(2, 7, 0, 10), { repetir: 'semanal', motivo: 'toda segunda' }],
+  ['regar as plantas todas as sextas', 'lembrete', 'Regar as plantas', em(30, 9), { repetir: 'semanal' }],
+  ['tomar água todo dia', 'lembrete', 'Tomar água', em(29, 9), { repetir: 'diario' }],
+  // "ontem" num lançamento
+  ['-35 almoço ontem', 'despesa', 'almoço', undefined, { valor: -3500, data: '2026-10-27' }],
+  ['+200 freela anteontem', 'receita', 'freela', undefined, { valor: 20000, data: '2026-10-26' }],
+  // Dinheiro vem antes da repetição.
+  ['-50 academia todo mês', 'despesa', 'academia todo mês', undefined, { valor: -5000 }],
+  // Não são variação
+  ['todo mundo no churrasco', null],
+  ['viagem fim de semana', null],
+]
+
+for (const [texto, classe, titulo, quando, extra] of variacoes) {
+  test(`variação: ${texto}`, () => {
+    const r = aplicarRegras(texto, AGORA)
+    if (classe === null) return assert.equal(r, null)
+    assert.ok(r)
+    assert.equal(r.classe, classe)
+    assert.equal(r.titulo, titulo)
+    if (quando !== undefined) assert.equal(r.quando, quando, 'quando')
+    for (const [campo, valor] of Object.entries(extra ?? {})) assert.equal(r[campo as keyof typeof r], valor, campo)
+  })
+}
