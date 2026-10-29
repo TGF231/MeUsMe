@@ -41,6 +41,30 @@ export interface Interpretacao {
   data?: string
   /** O que falta para criar sozinho; sem isso, vai para a Caixa com sugestão. */
   falta?: 'quando' | 'direcao'
+  /** Passo de projeto ("site: arrumar o rodapé"). */
+  projeto?: { id: string; titulo: string }
+}
+
+const semAcentoMinusculo = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+
+/**
+ * "site: arrumar o rodapé" com um projeto "Site" aberto: passo desse projeto. O nome do projeto
+ * tem que vir no começo, inteiro, seguido de ":" ou " - ". Sem acento e maiúscula contam igual.
+ */
+export function passoDeProjeto(texto: string, projetos: { id: string; titulo: string }[]): Interpretacao | null {
+  const t = texto.trim()
+  const separador = t.match(/\s*(?::|\s[-–]\s)\s*/)
+  if (!separador?.index) return null
+  const nome = semAcentoMinusculo(t.slice(0, separador.index))
+  const projeto = projetos.find((p) => semAcentoMinusculo(p.titulo) === nome)
+  const resto = t.slice(separador.index + separador[0].length).trim()
+  if (!projeto || !resto) return null
+  return {
+    classe: 'passo',
+    titulo: resto.charAt(0).toUpperCase() + resto.slice(1),
+    motivo: t.slice(0, separador.index + separador[0].length).trim(),
+    projeto: { id: projeto.id, titulo: projeto.titulo },
+  }
 }
 
 // Regra 1. "lembrar de", "lembra", "me lembre de", "lembrete:"

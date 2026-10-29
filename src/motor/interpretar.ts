@@ -1,7 +1,7 @@
 import { caracteristicas } from './caracteristicas.ts'
 import { chaveDaMemoria } from './pessoal.ts'
 import { prever, type Rede } from './rede.ts'
-import { aplicarRegras, type Classe, type Interpretacao } from './regras.ts'
+import { aplicarRegras, passoDeProjeto, type Classe, type Interpretacao } from './regras.ts'
 
 /** Quem decidiu: uma regra do tutorial, a sua correção anterior para o mesmo texto, ou a rede. */
 export type Origem = 'regra' | 'memoria' | 'rede'
@@ -28,6 +28,8 @@ export interface OpcoesMotor {
   rede?: MotorRede | null
   /** Como você organizou cada texto antes (src/motor/pessoal.ts). */
   memoria?: Map<string, Classe>
+  /** Projetos abertos, para "site: arrumar o rodapé" virar passo do projeto Site. */
+  projetos?: { id: string; titulo: string }[]
 }
 
 /** Abaixo disso a rede não arrisca nem sugestão: a captura fica na Caixa como veio. */
@@ -52,13 +54,14 @@ const comMaiuscula = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
 /**
  * Decide o destino de uma captura: criar o item na hora ou guardar na Caixa.
  *
- * 1. Regras, sempre primeiro: o que o tutorial ensina não depende de mais nada.
+ * 1. Regras, sempre primeiro: o que o tutorial ensina não depende de mais nada. Depois delas,
+ *    o prefixo de projeto ("site: …").
  * 2. A sua correção para o mesmo texto: vale o que você fez da última vez.
  * 3. A rede, só depois de liberada pela avaliação com capturas reais.
  *
  * Memória e rede só criam tarefa solta e a direção de um valor sem sinal; o resto vira sugestão.
  */
-export function decidir(texto: string, agora: Date, { automatico = true, horaLembrete = 9, rede, memoria }: OpcoesMotor = {}): Decisao {
+export function decidir(texto: string, agora: Date, { automatico = true, horaLembrete = 9, rede, memoria, projetos = [] }: OpcoesMotor = {}): Decisao {
   const r = aplicarRegras(texto, agora, horaLembrete)
   const lembrado = memoria?.get(chaveDaMemoria(texto))
   const redeCria = (certeza: number) => !!rede && rede.liberado && certeza >= rede.limiar
@@ -75,6 +78,10 @@ export function decidir(texto: string, agora: Date, { automatico = true, horaLem
     if (!automatico || r.falta) return { caixa: true, sugestao: r.classe }
     return { criar: r, origem: 'regra' }
   }
+
+  // Variação: "site: arrumar o rodapé" é passo do projeto Site. Depois das regras: "site: reunião 15h" é compromisso.
+  const deProjeto = passoDeProjeto(texto, projetos)
+  if (deProjeto) return automatico ? { criar: deProjeto, origem: 'regra' } : { caixa: true, sugestao: 'passo' }
 
   const tarefa = (origem: Origem): Decisao => ({ criar: { classe: 'passo', titulo: comMaiuscula(texto.trim()), motivo: '' }, origem })
   if (lembrado) return lembrado === 'passo' && automatico ? tarefa('memoria') : { caixa: true, sugestao: lembrado }

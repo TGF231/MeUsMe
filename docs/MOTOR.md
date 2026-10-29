@@ -113,6 +113,7 @@ Testadas em `testes/motor-regras.test.ts`, mas fora do tutorial:
 | `lembrar de… amanhã de manhã` / `à tarde` / `à noite` / `cedo` | lembrete às 9h / 14h / 19h / 8h (período sem hora só vale em lembrete) |
 | `todo dia`, `toda segunda`, `todas as sextas`, `todo dia 5`, `todo mês` | lembrete que se repete (diário, semanal, mensal) |
 | `-35 almoço ontem`, `+200 freela anteontem` | lançamento com a data de ontem / anteontem |
+| `site: arrumar o rodapé`, `Site - arrumar o rodapé` | passo do projeto aberto "Site" (nome inteiro no começo, seguido de ":" ou " - "; só quando nenhuma regra se aplica: `site: reunião 15h` é compromisso) |
 
 **Repetição vira lembrete, mesmo sem "lembrar".** `academia toda segunda 7h` tem hora, mas compromissos ainda não se repetem, e criar só a próxima segunda perderia o que a pessoa disse. A ordem fica: "lembrar" → dinheiro → repetição → hora. Dinheiro vem antes: `-50 academia todo mês` é um gasto.
 
