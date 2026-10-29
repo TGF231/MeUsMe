@@ -13,11 +13,13 @@ import { geradorComSemente, gravar, novaRede, prever, treinar, type Exemplo, typ
 
 export const OPCOES: OpcoesTreino = { epocas: 25, lote: 16, taxa: 0.005, l2: 1e-4, dropout: 0.2, semente: 42 }
 export const POR_CLASSE = 250
+/** Frases por classe guardadas em pesos.json para o retreino no aparelho (src/motor/pessoal.ts). */
+export const REVISAO_POR_CLASSE = 15
 
 /** Hash de tudo que muda os pesos: um teste compara com o gravado em pesos.json. */
 export function hashDosDados() {
   const fontes = ['dados/motor/exemplos.jsonl', 'dados/motor/modelos.ts', 'src/motor/caracteristicas.ts', 'src/motor/rede.ts']
-  const tudo = fontes.map((f) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n')).join('\0') + JSON.stringify({ OPCOES, POR_CLASSE, VERSAO_CARACTERISTICAS })
+  const tudo = fontes.map((f) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n')).join('\0') + JSON.stringify({ OPCOES, POR_CLASSE, REVISAO_POR_CLASSE, VERSAO_CARACTERISTICAS })
   return fnv1a(tudo).toString(16).padStart(8, '0')
 }
 
@@ -54,7 +56,14 @@ function main() {
   matriz.forEach((linha, i) => console.log(`${CLASSES[i].padEnd(14)}${linha.map((n) => String(n).padStart(8)).join('')}`))
 
   const rede = treinar(novaRede(CLASSES, geradorComSemente(OPCOES.semente)), [...manuais, ...gerados].map(paraExemplo), OPCOES)
-  const pesos = gravar(rede, { versaoCaracteristicas: VERSAO_CARACTERISTICAS, hashDados: hashDosDados(), automatico: { liberado: false, limiar: 1 } })
+  // Revisão: de cada classe, primeiro as frases à mão (mais parecidas com as reais), depois as geradas.
+  const revisao = CLASSES.flatMap((c) =>
+    [...manuais, ...gerados]
+      .filter((e) => e.classe === c)
+      .sort((a, b) => Number(!manuais.includes(a)) - Number(!manuais.includes(b)) || fnv1a(a.texto) - fnv1a(b.texto))
+      .slice(0, REVISAO_POR_CLASSE),
+  )
+  const pesos = gravar(rede, { versaoCaracteristicas: VERSAO_CARACTERISTICAS, hashDados: hashDosDados(), automatico: { liberado: false, limiar: 1 }, revisao })
   writeFileSync('src/motor/pesos.json', JSON.stringify(pesos) + '\n')
   console.log(`\nPesos gravados em src/motor/pesos.json (hash ${pesos.hashDados}). Rode npm run motor:avaliar para medir com as capturas reais.`)
 }

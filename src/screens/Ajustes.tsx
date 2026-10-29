@@ -9,6 +9,7 @@ import { ehDesktop, ehNativo } from '../nativo/plataforma'
 import { abrirAjusteDeHorarioExato, horarioExatoLiberado, lerPermissao, notificar, pedirPermissao, type Permissao } from '../notificacoes'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
+import { useMotor } from '../stores/motor'
 import { useStatusSync } from '../sync/motor'
 import { ACENTOS_PRONTOS, pareceSemantica, resolverAcento } from '../tema/cores'
 import { temaEfetivo } from '../tema/aplicar'
@@ -217,6 +218,8 @@ function Captura() {
   const organizarSozinho = useConfig((c) => c.organizarSozinho)
   const ajustar = useConfig((c) => c.ajustar)
   const [tutorial, setTutorial] = useState(false)
+  const aprendidos = useMotor((m) => m.exemplos.length)
+  const esquecer = useMotor((m) => m.esquecer)
 
   return (
     <div className="cartao">
@@ -230,7 +233,19 @@ function Captura() {
           ? 'Hora vira compromisso, "lembrar" vira lembrete e valor com sinal vira lançamento, na hora, com Desfazer. Tudo acontece no aparelho.'
           : 'Tudo vai para a Caixa, com o tipo provável sugerido.'}
       </p>
-      <button onClick={() => setTutorial(true)}>Como escrever rápido</button>
+      <p className="motivo">
+        {aprendidos
+          ? `O app aprendeu com ${aprendidos} ${aprendidos === 1 ? 'captura organizada' : 'capturas organizadas'} por você na Caixa. Isso fica só neste aparelho.`
+          : 'Cada captura que você organiza na Caixa ensina o app a acertar o tipo da próxima. Isso fica só neste aparelho.'}
+      </p>
+      <div className="linha">
+        <button onClick={() => setTutorial(true)}>Como escrever rápido</button>
+        {aprendidos > 0 && (
+          <button className="discreto" onClick={esquecer}>
+            Esquecer o que aprendeu
+          </button>
+        )}
+      </div>
       {tutorial && <ComoEscrever onFechar={() => setTutorial(false)} />}
     </div>
   )

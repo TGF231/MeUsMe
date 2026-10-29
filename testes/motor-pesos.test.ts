@@ -40,7 +40,7 @@ test('a rede sugere na Caixa o que as regras deixam em aberto', () => {
 
 test('liberada, a rede só cria tarefa solta e direção de valor; nunca ideia nem compra', () => {
   const tarefa = decidir('ligar para o banco', AGORA, { rede: liberada })
-  assert.ok('criar' in tarefa && tarefa.porRede && tarefa.criar.classe === 'passo')
+  assert.ok('criar' in tarefa && tarefa.origem === 'rede' && tarefa.criar.classe === 'passo')
   assert.equal(tarefa.criar.titulo, 'Ligar para o banco')
 
   const valor = decidir('R$ 35 almoço', AGORA, { rede: liberada })

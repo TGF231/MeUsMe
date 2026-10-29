@@ -13,6 +13,7 @@ import { EXEMPLOS_DE_CAMPO } from '../motor/tutorial'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
+import { useMotor } from '../stores/motor'
 import type { Classe } from '../motor/regras'
 import type { Captura } from '../types'
 import { dataISO, reais } from '../util'
@@ -38,6 +39,9 @@ function Processar({ captura }: { captura: Captura }) {
   // O que as regras do motor entendem, para os formulários já virem preenchidos.
   const [regra] = useState(() => (texto ? aplicarRegras(texto, new Date()) : null))
   const resolver = () => s.descartarCaptura(captura.id)
+  // O que você fez com a captura ensina o motor (docs/MOTOR.md, parte 3). Recado de voz não tem texto para aprender.
+  const registrar = useMotor((m) => m.registrar)
+  const aprender = (classe: Classe) => !captura.audio && registrar(captura.texto, classe)
   const adiarCompra = useFinancas((f) => f.adiarCompra)
   const horasDeEspera = useConfig((c) => c.horasDeEspera)
   const cancelar = () => setModo(null)
@@ -54,17 +58,32 @@ function Processar({ captura }: { captura: Captura }) {
               }
             : { descricao: texto }
         }
-        onPronto={resolver}
+        onPronto={(tipo) => {
+          aprender(tipo === 'receita' ? 'receita' : 'despesa')
+          resolver()
+        }}
         onCancelar={cancelar}
       />
     )
   if (modo?.tipo === 'lembrete')
-    return <LembreteForm inicial={regra?.classe === 'lembrete' ? regra.titulo : texto} onPronto={resolver} onCancelar={cancelar} />
+    return (
+      <LembreteForm
+        inicial={regra?.classe === 'lembrete' ? regra.titulo : texto}
+        onPronto={() => {
+          aprender('lembrete')
+          resolver()
+        }}
+        onCancelar={cancelar}
+      />
+    )
   if (modo?.tipo === 'evento')
     return (
       <EventoForm
         inicial={regra?.classe === 'compromisso' ? { titulo: regra.titulo, data: regra.quando ? dataISO(regra.quando) : undefined } : { titulo: texto }}
-        onPronto={resolver}
+        onPronto={() => {
+          aprender('compromisso')
+          resolver()
+        }}
         onCancelar={cancelar}
       />
     )
@@ -76,6 +95,7 @@ function Processar({ captura }: { captura: Captura }) {
         projetoId={modo.projetoId}
         onSalvar={(t, e) => {
           s.criarPasso(modo.projetoId, t, e)
+          aprender('passo')
           s.descartarCaptura(captura.id)
         }}
         onCancelar={() => setModo(null)}
@@ -120,10 +140,12 @@ function Processar({ captura }: { captura: Captura }) {
   const tarefa = () => setModo({ tipo: 'passo', projetoId: null })
   const comprar = () => {
     adiarCompra(dinheiro?.descricao || captura.texto, dinheiro?.valor, horasDeEspera)
+    aprender('compra')
     resolver()
   }
   const ideia = () => {
     s.estacionarIdeia(captura.texto, null)
+    aprender('ideia')
     s.descartarCaptura(captura.id)
   }
 
