@@ -240,7 +240,7 @@ Trilha 12 · energia média · 3 passos
 
 1. Instale Vitest, jsdom e Testing Library; crie o script `npm run test:telas` e ponha no [ci.yml](../.github/workflows/ci.yml).
 2. O primeiro é a prova de domínio da trilha 12: `PassoForm` mostra o aviso de "ideia vaga".
-3. Depois, os fluxos centrais: concluir um passo na tela Agora, registrar "35 almoço" e capturar na Caixa.
+3. Depois, os fluxos centrais: concluir um passo na tela Agora, registrar "R$ 35 almoço" e capturar na Caixa.
 
 **Chegada:** 4 testes de tela no CI, e um PR que muda o texto do aviso fica vermelho.
 

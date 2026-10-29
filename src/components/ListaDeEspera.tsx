@@ -3,7 +3,8 @@ import { useAgora } from '../hooks'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
 import type { Desejo } from '../types'
-import { dataISO, hora, lerGasto, lerValor, nomeDoDia, reais } from '../util'
+import { lerDinheiro } from '../motor/extratores'
+import { dataISO, hora, lerValor, nomeDoDia, reais } from '../util'
 import { LancamentoForm } from './LancamentoForm'
 
 const PRAZOS = [24, 48, 72, 168]
@@ -46,7 +47,8 @@ export function ListaDeEspera() {
         onSubmit={(e) => {
           e.preventDefault()
           if (!texto.trim()) return
-          const g = lerGasto(texto)
+          // Aqui o campo já é de valor: "250 fone novo" vale sem R$.
+          const g = lerDinheiro(texto, { exigirMoeda: false })
           f.adiarCompra(g?.descricao ?? texto.trim(), g?.valor ?? lerValor(texto) ?? undefined, cfg.horasDeEspera)
           setTexto('')
         }}

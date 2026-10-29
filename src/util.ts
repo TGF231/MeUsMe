@@ -77,15 +77,6 @@ export function lerValor(texto: string): number | null {
   return Math.round(n * 100) * (negativo ? -1 : 1)
 }
 
-/** Extrai valor e descrição de textos como "35 almoço" ou "R$ 12,90 uber". */
-export function lerGasto(texto: string): { valor: number; descricao: string } | null {
-  const m = texto.trim().match(/^(?:r\$\s*)?(\d+(?:[.,]\d+)*)\s+(.+)$/i) ?? texto.trim().match(/^(.+?)\s+(?:r\$\s*)?(\d+(?:[.,]\d{1,2})?)$/i)
-  if (!m) return null
-  const [numero, descricao] = /^\d/.test(m[1]) ? [m[1], m[2]] : [m[2], m[1]]
-  const valor = lerValor(numero)
-  return valor && valor > 0 ? { valor, descricao } : null
-}
-
 export function baixarArquivo(nome: string, conteudo: string, tipo = 'application/json') {
   const url = URL.createObjectURL(new Blob([conteudo], { type: tipo }))
   const a = document.createElement('a')
