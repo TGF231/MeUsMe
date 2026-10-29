@@ -136,6 +136,11 @@ export interface OpcoesTreino {
   semente: number
   /** Treina só W2 e b2 (aprendizado com as correções, fase 3). */
   soUltimaCamada?: boolean
+  /**
+   * Com âncora, o L2 puxa W2 e b2 de volta para estes valores (os de fábrica) em vez de zero:
+   * a rede aprende as suas correções sem esquecer o que sabia das classes que você não corrigiu.
+   */
+  ancora?: { w2: Float32Array; b2: Float32Array }
   aoTerminarEpoca?: (epoca: number, perdaMedia: number) => void
 }
 
@@ -147,8 +152,8 @@ export function treinar(rede: Rede, exemplos: Exemplo[], o: OpcoesTreino) {
   const adam = { w1: momentos(rede.w1.length), b1: momentos(ESCONDIDA), w2: momentos(rede.w2.length), b2: momentos(rede.b2.length) }
   let t = 0
 
-  /** Adam em `grad.length` parâmetros a partir de `deslocamento`; `decai` aplica o L2. */
-  const passo = (param: Float32Array, mom: { m: Float32Array; v: Float32Array }, deslocamento: number, grad: Float32Array, decai: boolean) => {
+  /** Adam em `grad.length` parâmetros a partir de `deslocamento`; `decai` aplica o L2 (em direção à âncora, se houver). */
+  const passo = (param: Float32Array, mom: { m: Float32Array; v: Float32Array }, deslocamento: number, grad: Float32Array, decai: boolean, ancora?: Float32Array) => {
     const c1 = 1 - beta1 ** t
     const c2 = 1 - beta2 ** t
     for (let i = 0; i < grad.length; i++) {
@@ -156,7 +161,7 @@ export function treinar(rede: Rede, exemplos: Exemplo[], o: OpcoesTreino) {
       const k = deslocamento + i
       mom.m[k] = beta1 * mom.m[k] + (1 - beta1) * g
       mom.v[k] = beta2 * mom.v[k] + (1 - beta2) * g * g
-      param[k] -= o.taxa * (mom.m[k] / c1 / (Math.sqrt(mom.v[k] / c2) + eps) + (decai ? o.l2 * param[k] : 0))
+      param[k] -= o.taxa * (mom.m[k] / c1 / (Math.sqrt(mom.v[k] / c2) + eps) + (decai ? o.l2 * (param[k] - (ancora?.[k] ?? 0)) : 0))
     }
   }
 
@@ -185,8 +190,8 @@ export function treinar(rede: Rede, exemplos: Exemplo[], o: OpcoesTreino) {
         for (let k = 0; k < g.b2.length; k++) soma.b2[k] += g.b2[k] / lote.length
       }
       t++
-      passo(rede.w2, adam.w2, 0, soma.w2, true)
-      passo(rede.b2, adam.b2, 0, soma.b2, false)
+      passo(rede.w2, adam.w2, 0, soma.w2, true, o.ancora?.w2)
+      passo(rede.b2, adam.b2, 0, soma.b2, !!o.ancora, o.ancora?.b2)
       if (o.soUltimaCamada) continue
       passo(rede.b1, adam.b1, 0, soma.b1, false)
       // Atualização preguiçosa: só as linhas de W1 que o lote usou.
@@ -237,6 +242,11 @@ export interface PesosGravados {
   b2: number[]
   /** Escrito por scripts/motor-avaliar.ts com as capturas reais; até lá, a rede só sugere. */
   automatico: { liberado: boolean; limiar: number; medidoEm?: string }
+  /**
+   * Amostra do treino (algumas frases por classe) misturada aos seus exemplos no retreino da
+   * última camada: sem ela, 20 vendas seguidas ensinariam que todo valor é entrada.
+   */
+  revisao: { texto: string; classe: string }[]
 }
 
 const paraBase64 = (bytes: Uint8Array) => {
@@ -246,7 +256,7 @@ const paraBase64 = (bytes: Uint8Array) => {
 }
 const deBase64 = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
 
-export function gravar(rede: Rede, meta: Pick<PesosGravados, 'versaoCaracteristicas' | 'hashDados' | 'automatico'>): PesosGravados {
+export function gravar(rede: Rede, meta: Pick<PesosGravados, 'versaoCaracteristicas' | 'hashDados' | 'automatico' | 'revisao'>): PesosGravados {
   const { q, escalas } = quantizar(rede.w1)
   const arredondar = (a: Float32Array) => Array.from(a, (v) => Math.round(v * 1e5) / 1e5)
   return {

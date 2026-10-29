@@ -56,7 +56,7 @@ test('int8: erro de cada peso até meia escala e probabilidades quase iguais', (
   const rede = novaRede(CLASSES, geradorComSemente(3))
   const { q, escalas } = quantizar(rede.w1)
   for (let i = 0; i < 2000; i++) assert.ok(Math.abs(q[i] * escalas[Math.floor(i / ESCONDIDA)] - rede.w1[i]) <= escalas[Math.floor(i / ESCONDIDA)] / 2 + 1e-9)
-  const lida = ler(gravar(rede, { versaoCaracteristicas: 1, hashDados: 'x', automatico: { liberado: false, limiar: 1 } }))
+  const lida = ler(gravar(rede, { versaoCaracteristicas: 1, hashDados: 'x', automatico: { liberado: false, limiar: 1 }, revisao: [] }))
   const x = caracteristicas('reunião com o João amanhã')
   const [p, pl] = [prever(rede, x), prever(lida, x)]
   for (let k = 0; k < CLASSES.length; k++) assert.ok(Math.abs(p[k] - pl[k]) < 0.02, `classe ${k}: ${p[k]} × ${pl[k]}`)

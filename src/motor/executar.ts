@@ -2,9 +2,11 @@ import { useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { useAvisos, useConfig } from '../stores/config'
 import { sugerirCategoria, useFinancas } from '../stores/financas'
+import { useMotor } from '../stores/motor'
 import { dataISO, hora, reais } from '../util'
 import { carregarRede } from './carregar'
-import { decidir } from './interpretar'
+import { decidir, type Origem } from './interpretar'
+import { comCamadaPessoal, memoriaDe } from './pessoal'
 import type { Interpretacao } from './regras'
 
 const DURACAO_COMPROMISSO = 60 * 60_000
@@ -60,31 +62,35 @@ const NOMES: Record<string, [regra: string, rede: string]> = {
   passo: ['Tarefa', 'Parece uma tarefa'],
 }
 
-/** Título e corpo do aviso. Pela regra, diz o porquê; pela rede, diz "parece", nunca "por causa de". */
-function aviso(r: Interpretacao, porRede: boolean): [string, string] {
-  const nome = NOMES[r.classe][porRede ? 1 : 0]
+/** Título e corpo do aviso: a regra diz o porquê, a memória diz que repetiu você, a rede diz "parece". */
+function aviso(r: Interpretacao, origem: Origem): [string, string] {
+  const nome = NOMES[r.classe][origem === 'rede' ? 1 : 0]
   const titulo = r.titulo ? `${nome}: ${r.titulo}` : nome
   const detalhe = r.quando ? quandoPorExtenso(r.quando) : r.valor ? reais(Math.abs(r.valor)) : 'solta, energia média'
-  return [titulo, porRede ? detalhe : `${detalhe} · por causa de ${r.motivo}`]
+  if (origem === 'regra') return [titulo, `${detalhe} · por causa de ${r.motivo}`]
+  if (origem === 'memoria') return [titulo, `${detalhe} · como você organizou da última vez`]
+  return [titulo, detalhe]
 }
 
 /**
- * Passa o texto pelo motor (docs/MOTOR.md). Se uma regra (ou a rede liberada) decide, cria o
- * item e avisa com Desfazer, que apaga o item e devolve o texto para a Caixa. Senão, guarda na
- * Caixa com a sugestão.
+ * Passa o texto pelo motor (docs/MOTOR.md). Se uma regra, a sua correção anterior ou a rede
+ * liberada decide, cria o item e avisa com Desfazer, que apaga o item e devolve o texto para a
+ * Caixa. Senão, guarda na Caixa com a sugestão.
  */
 export async function organizar(texto: string) {
   const t = texto.trim()
   if (!t) return
-  const rede = await carregarRede()
-  const d = decidir(t, new Date(), { automatico: useConfig.getState().organizarSozinho, rede })
+  const base = await carregarRede()
+  const { exemplos, pessoal } = useMotor.getState()
+  const rede = base && { ...base, rede: comCamadaPessoal(base.rede, base.hashDados ?? '', pessoal) }
+  const d = decidir(t, new Date(), { automatico: useConfig.getState().organizarSozinho, rede, memoria: memoriaDe(exemplos) })
   if ('caixa' in d) return useStore.getState().capturar(t, d.sugestao)
 
   const desfazer = criar(d.criar)
   if (!desfazer) return useStore.getState().capturar(t, d.criar.classe)
-  const [titulo, corpo] = aviso(d.criar, !!d.porRede)
+  const [titulo, corpo] = aviso(d.criar, d.origem)
   useAvisos.getState().mostrar(titulo, corpo, {
-    destaque: d.porRede ? undefined : d.criar.motivo,
+    destaque: d.origem === 'regra' ? d.criar.motivo : undefined,
     acao: {
       rotulo: 'Desfazer',
       // Sem sugestão: se foi desfeito, o tipo estava errado.

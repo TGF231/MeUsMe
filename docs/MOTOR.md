@@ -2,7 +2,7 @@
 
 Desenho do motor que lê o que você digita ou dita ("dentista 13:00", "-35 almoço", "lembrar de pagar a luz sexta") e já cria o compromisso, o gasto, o lembrete ou o passo. Tudo roda no aparelho: sem servidor, sem internet, sem mandar texto para ninguém.
 
-Estado: **fases 0, 1 e 2 feitas.** A rede sugere na Caixa; a criação automática por ela espera o `avaliacao.jsonl` com capturas reais (`npm run motor:avaliar`). Fase 3 planejada.
+Estado: **fases 0 a 3 feitas.** A rede sugere na Caixa e aprende com o que você organiza; a criação automática pela rede espera o `avaliacao.jsonl` com capturas reais (`npm run motor:avaliar`).
 
 ## O que muda para quem usa
 
@@ -189,10 +189,12 @@ Na Caixa, a sugestão da rede aparece só com certeza de 50% ou mais; abaixo dis
 
 ## Parte 3: aprender com você
 
-- Cada Desfazer e cada captura organizada na Caixa vira um exemplo `{texto, classe}` guardado no aparelho.
-- A escolha entre **Saída · Entrada** na Caixa também conta: é assim que "R$ 1000 tv" vira venda para quem vende.
-- A cada 20 exemplos novos, o app retreina **só a última camada** (32 × 7 pesos) por alguns segundos, em segundo plano. A primeira camada fica como veio do treino.
-- Os exemplos ficam no aparelho e não sincronizam. "Esquecer o que o motor aprendeu", em Ajustes, volta aos pesos de fábrica.
+- **O que ensina:** cada captura que você organiza na Caixa vira um exemplo `{texto, classe}`: tarefa, compromisso, lembrete, ideia, compra, e gasto ou entrada conforme o tipo escolhido no formulário. A escolha entre **Saída · Entrada** conta: é assim que "R$ 1000 tv" vira venda para quem vende. Desfazer não ensina sozinho (diz o que *não* era, não o que era); o que ensina é a organização que vem depois, na Caixa. Recado de voz também não, porque não tem texto.
+- **Memória exata** (`src/motor/pessoal.ts`): o mesmo texto organizado antes vale como da última vez, logo depois das regras. Algarismos contam como iguais: depois de lançar "R$ 1000 tv" como entrada, "R$ 1200 tv" já é lançado sozinho como entrada, com o aviso *"como você organizou da última vez"*. A memória só cria o que a rede criaria (tarefa solta e direção de valor); ideia e compra continuam como sugestão.
+- **Retreino da última camada:** a cada 20 exemplos novos, o app retreina só W2 e b2 (32 × 7 pesos + 7), em segundo plano, numa fração de segundo. A primeira camada fica como veio do treino. Dois cuidados contra aprender demais:
+  - **Âncora:** o L2 puxa os pesos de volta para os de fábrica, não para zero.
+  - **Revisão:** 15 frases de cada classe do treino original (105 no total, gravadas em `pesos.json`) entram junto com os seus exemplos. Sem ela, 20 vendas seguidas ensinavam que *todo* valor é entrada: "R$ 120 uber" virava entrada com 69%. Com ela, "R$ 1500 microondas" vai de 75% gasto para 99,99% venda, e uber, almoço e farmácia continuam gasto (um teste confere).
+- **Onde fica:** `meusme-motor` no aparelho (`src/stores/motor.ts`), até 500 exemplos; não sincroniza nem entra no backup. A camada pessoal só vale sobre os mesmos pesos de fábrica: depois de um retreino de fábrica, ela é refeita a partir dos exemplos guardados. Em Ajustes → Captura: quantas capturas o app aprendeu e "Esquecer o que aprendeu".
 
 ## Mudanças no app
 
@@ -210,7 +212,9 @@ Na Caixa, a sugestão da rede aparece só com certeza de 50% ou mais; abaixo dis
 src/motor/
   extratores.ts        valor, hora, data, título
   caracteristicas.ts   texto → vetor esparso (treino e app)
-  rede.ts              camadas, softmax, int8, treino da última camada
+  rede.ts              camadas, softmax, int8, treino (com âncora para a última camada)
+  pessoal.ts           memória exata, retreino da última camada com revisão
+  carregar.ts          busca os pesos na primeira captura
   regras.ts            as quatro regras do tutorial, em ordem de precedência
   tutorial.ts          exemplos do tutorial (a tela e o teste leem daqui)
   interpretar.ts       junta tudo e aplica a decisão
@@ -234,7 +238,7 @@ testes/
 | 0 · feita | Extrator de valor: marca obrigatória, sinal, palavras de direção | "dentista 13:00" e "35 almoço" deixam de virar dinheiro; "+1000 tv" abre como entrada |
 | 1 · feita | Extratores, as quatro regras, tutorial, aviso com Desfazer e "por causa de", sugestão na Caixa | "dentista 13:00", "-35 almoço", "+1000 tv", "lembrar de… sexta"; "R$ 35 almoço" vai para a Caixa com Saída · Entrada |
 | 2 · feita | Dados, treino, avaliação, rede para o que as regras deixam em aberto | frases sem palavra-chave: "pagar a luz", "ideia: app de receitas", "R$ 35 almoço" como despesa |
-| 3 | Aprender com as correções | o seu jeito de escrever |
+| 3 · feita | Aprender com o que você organiza: memória exata e retreino da última camada | "R$ 1000 tv" como venda para quem vende; o seu jeito de escrever |
 
 Cada fase é um PR. A fase 1 é a base de comparação da 2: sem ela não há como provar que a rede ajuda.
 

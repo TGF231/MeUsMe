@@ -4,7 +4,8 @@ import { hoje, lerValor, reais } from '../util'
 
 interface Props {
   inicial?: { valor?: number; descricao?: string; tipo?: 'gasto' | 'receita' }
-  onPronto?: () => void
+  /** Recebe o tipo escolhido, para o motor aprender gasto × entrada. */
+  onPronto?: (tipo: 'gasto' | 'receita') => void
   onCancelar?: () => void
 }
 
@@ -40,7 +41,7 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
         setValorTexto('')
         setDescricao('')
         setCategoriaEscolhida(null)
-        onPronto?.()
+        onPronto?.(tipo)
       }}
     >
       <div className="segmentado">
