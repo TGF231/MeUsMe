@@ -172,3 +172,30 @@ for (const [texto, classe, titulo, quando, extra] of variacoes) {
     for (const [campo, valor] of Object.entries(extra ?? {})) assert.equal(r[campo as keyof typeof r], valor, campo)
   })
 }
+
+const PROJETOS = [
+  { id: 'p1', titulo: 'Site' },
+  { id: 'p2', titulo: 'Mudança de apê' },
+]
+
+test('projeto: "site: arrumar o rodapé" vira passo do projeto Site', () => {
+  for (const texto of ['site: arrumar o rodapé', 'Site - arrumar o rodapé', 'SITE:arrumar o rodapé']) {
+    const d = decidir(texto, AGORA, { projetos: PROJETOS })
+    assert.ok('criar' in d, texto)
+    assert.equal(d.criar.classe, 'passo')
+    assert.equal(d.criar.titulo, 'Arrumar o rodapé')
+    assert.deepEqual(d.criar.projeto, { id: 'p1', titulo: 'Site' })
+  }
+  const d = decidir('mudanca de ape: encaixotar livros', AGORA, { projetos: PROJETOS })
+  assert.ok('criar' in d && d.criar.projeto?.id === 'p2', 'sem acento e maiúscula contam igual')
+})
+
+test('projeto: as regras vêm antes, e nome que não é de projeto não conta', () => {
+  const reuniao = decidir('site: reunião com o cliente 15h', AGORA, { projetos: PROJETOS })
+  assert.ok('criar' in reuniao && reuniao.criar.classe === 'compromisso')
+  const gasto = decidir('site: -200 hospedagem', AGORA, { projetos: PROJETOS })
+  assert.ok('criar' in gasto && gasto.criar.classe === 'despesa')
+  assert.deepEqual(decidir('blog: post novo', AGORA, { projetos: PROJETOS }), { caixa: true })
+  assert.deepEqual(decidir('site:', AGORA, { projetos: PROJETOS }), { caixa: true })
+  assert.deepEqual(decidir('site: arrumar o rodapé', AGORA, { projetos: PROJETOS, automatico: false }), { caixa: true, sugestao: 'passo' })
+})

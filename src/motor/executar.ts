@@ -37,7 +37,7 @@ function criar(r: Interpretacao): (() => void) | null {
     return () => useAgenda.getState().removerLembrete(id)
   }
   if (r.classe === 'passo') {
-    const id = useStore.getState().criarPasso(null, r.titulo, ENERGIA_MEDIA)
+    const id = useStore.getState().criarPasso(r.projeto?.id ?? null, r.titulo, ENERGIA_MEDIA)
     return () => useStore.getState().removerPasso(id)
   }
   const f = useFinancas.getState()
@@ -66,10 +66,11 @@ const NOMES: Record<string, [regra: string, rede: string]> = {
 
 /** Título e corpo do aviso: a regra diz o porquê, a memória diz que repetiu você, a rede diz "parece". */
 function aviso(r: Interpretacao, origem: Origem): [string, string] {
-  const nome = NOMES[r.classe][origem === 'rede' ? 1 : 0]
+  // Dentro de um projeto, o app chama de passo; solta, de tarefa.
+  const nome = r.projeto ? 'Passo' : NOMES[r.classe][origem === 'rede' ? 1 : 0]
   const titulo = r.titulo ? `${nome}: ${r.titulo}` : nome
   const detalhe = [
-    r.quando ? quandoPorExtenso(r.quando) + (r.fim ? ` até ${hora(r.fim)}` : '') : r.valor ? reais(Math.abs(r.valor)) : 'solta, energia média',
+    r.quando ? quandoPorExtenso(r.quando) + (r.fim ? ` até ${hora(r.fim)}` : '') : r.valor ? reais(Math.abs(r.valor)) : r.projeto ? `no projeto ${r.projeto.titulo}` : 'solta, energia média',
     r.repetir && REPETE[r.repetir],
     r.data && r.data !== dataISO() && (r.data === dataISO(Date.now() - DIA) ? 'ontem' : 'anteontem'),
   ]
@@ -91,7 +92,8 @@ export async function organizar(texto: string) {
   const base = await carregarRede()
   const { exemplos, pessoal } = useMotor.getState()
   const rede = base && { ...base, rede: comCamadaPessoal(base.rede, base.hashDados ?? '', pessoal) }
-  const d = decidir(t, new Date(), { automatico: useConfig.getState().organizarSozinho, rede, memoria: memoriaDe(exemplos) })
+  const projetos = useStore.getState().projetos.filter((p) => !p.concluidoEm)
+  const d = decidir(t, new Date(), { automatico: useConfig.getState().organizarSozinho, rede, memoria: memoriaDe(exemplos), projetos })
   if ('caixa' in d) return useStore.getState().capturar(t, d.sugestao)
 
   const desfazer = criar(d.criar)
