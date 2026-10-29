@@ -109,6 +109,7 @@ Testadas em `testes/motor-regras.test.ts`, mas fora do tutorial:
 | Escrito | Vira |
 |---|---|
 | `não esquecer de pagar a luz sexta`, `nao esquece o guarda chuva` | o mesmo que "lembrar de" ("lembrei" e "lembrança" não contam) |
+| `lembra de passar protetor`, mas não `bot que lembra de beber água` | "lembra" e "lembre" só são pedido no começo; no meio, descrevem. "lembrar" e "lembrete" valem em qualquer lugar |
 | `15hrs`, `das 14h` | hora |
 | `reunião das 14h às 16h`, `15h-17h`, `aula 15h às 17` | compromisso com início e fim (`22h às 6h` termina no dia seguinte) |
 | `fim de semana`, `próxima semana`, `daqui a 3 dias`, `em 2 semanas` | data |
@@ -201,6 +202,8 @@ se a rede tem certeza ≥ limiar
    e a classe tem os dados que precisa  → cria o item (aviso "parece …")
 senão                                   → Caixa com sugestão
 ```
+
+Nas 289 frases rotuladas à mão, as regras criam 48 itens sozinhas, todos com o tipo certo; um teste em `testes/motor-invariantes.test.ts` mantém isso.
 
 Regras primeiro, sempre. A rede decide só o que as regras deixam em aberto: frases sem hora, sem "lembrar" e sem valor com sinal, e valores sem sinal (`R$ 35 almoço`). Um teste garante que os exemplos do tutorial dão o mesmo resultado com e sem a rede.
 

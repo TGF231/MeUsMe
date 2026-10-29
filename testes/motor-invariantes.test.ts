@@ -69,3 +69,19 @@ test(`invariantes do motor em ${frases.length} frases`, () => {
     }
   }
 })
+
+test('nas frases rotuladas à mão, o que as regras criam sozinhas tem sempre o tipo certo', () => {
+  const rotuladas = readFileSync('dados/motor/exemplos.jsonl', 'utf8')
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((l) => JSON.parse(l) as { texto: string; classe: string })
+  let criadas = 0
+  for (const e of rotuladas) {
+    const d = decidir(e.texto, AGORA)
+    if (!('criar' in d)) continue
+    criadas++
+    assert.equal(d.criar.classe, e.classe, `"${e.texto}" foi criado como ${d.criar.classe}`)
+  }
+  // Se as regras pararem de criar quase tudo, o teste deixa de provar alguma coisa.
+  assert.ok(criadas >= 40, `só ${criadas} criadas pelas regras`)
+})

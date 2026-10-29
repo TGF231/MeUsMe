@@ -67,9 +67,12 @@ export function passoDeProjeto(texto: string, projetos: { id: string; titulo: st
   }
 }
 
-// Regra 1. "lembrar de", "lembra", "me lembre de", "lembrete:"; e a variação "não esquecer de".
-// Duas expressões simples em vez de uma complicada: mais fácil de ler e de mudar.
-const LEMBRAR = /(?<![\wÀ-ÿ])(?:me\s+)?lembr(?:ar|a|e|ete)(?:-me)?(?:\s+de)?(?![\wÀ-ÿ]):?/i
+// Regra 1. "lembrar de", "lembrete:", "lembra de…", "me lembre de"; e a variação "não esquecer de".
+// "lembrar" e "lembrete" valem em qualquer lugar ("preciso lembrar de…"). "lembra" e "lembre" só no
+// começo, onde são um pedido: no meio, descrevem ("bot que lembra de beber água" é uma ideia).
+// Expressões simples em vez de uma complicada: mais fácil de ler e de mudar.
+const LEMBRAR = /(?<![\wÀ-ÿ])(?:me\s+)?lembr(?:ar|ete)(?:-me)?(?:\s+de)?(?![\wÀ-ÿ]):?/i
+const LEMBRA_NO_COMECO = /^(?:me\s+)?lembr[ae](?:-me)?(?:\s+de)?(?![\wÀ-ÿ]):?/i
 const NAO_ESQUECER = /(?<![\wÀ-ÿ])n[ãa]o\s+(?:pode\s+|posso\s+)?esquec(?:er|e)(?:\s+de)?(?![\wÀ-ÿ])/i
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -104,7 +107,7 @@ export function prepararCompromisso(texto: string, agora: Date): { titulo: strin
 export function aplicarRegras(texto: string, agora: Date, horaLembrete = 9): Interpretacao | null {
   const t = texto.trim()
 
-  const lembrar = LEMBRAR.exec(t) ?? NAO_ESQUECER.exec(t)
+  const lembrar = LEMBRAR.exec(t) ?? LEMBRA_NO_COMECO.exec(t) ?? NAO_ESQUECER.exec(t)
   if (lembrar?.index !== undefined) return lembrete(t, agora, horaLembrete, { inicio: lembrar.index, fim: lembrar.index + lembrar[0].length, trecho: lembrar[0] })
 
   // Regra 2. Dinheiro começa com - ou + ("-35 almoço"); R$, "reais" e centavos também valem.
