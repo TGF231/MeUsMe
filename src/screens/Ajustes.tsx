@@ -241,9 +241,27 @@ function Captura() {
       <div className="linha">
         <button onClick={() => setTutorial(true)}>Como escrever rápido</button>
         {aprendidos > 0 && (
-          <button className="discreto" onClick={esquecer}>
-            Esquecer o que aprendeu
-          </button>
+          <>
+            {/* Uma frase por linha, {texto, classe}: o formato de dados/motor/avaliacao.jsonl (ver o LEIA-ME de lá). */}
+            <button
+              className="discreto"
+              onClick={() =>
+                baixarArquivo(
+                  `meusme-aprendizado-${hoje()}.jsonl`,
+                  useMotor
+                    .getState()
+                    .exemplos.map(({ texto, classe }) => JSON.stringify({ texto, classe }))
+                    .join('\n') + '\n',
+                  'application/x-ndjson',
+                )
+              }
+            >
+              Exportar o que aprendeu
+            </button>
+            <button className="discreto" onClick={esquecer}>
+              Esquecer o que aprendeu
+            </button>
+          </>
         )}
       </div>
       {tutorial && <ComoEscrever onFechar={() => setTutorial(false)} />}

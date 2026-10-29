@@ -213,7 +213,7 @@ Na Caixa, a sugestão da rede aparece só com certeza de 50% ou mais; abaixo dis
 - **Retreino da última camada:** a cada 20 exemplos novos, o app retreina só W2 e b2 (32 × 7 pesos + 7), em segundo plano, numa fração de segundo. A primeira camada fica como veio do treino. Dois cuidados contra aprender demais:
   - **Âncora:** o L2 puxa os pesos de volta para os de fábrica, não para zero.
   - **Revisão:** 15 frases de cada classe do treino original (105 no total, gravadas em `pesos.json`) entram junto com os seus exemplos. Sem ela, 20 vendas seguidas ensinavam que *todo* valor é entrada: "R$ 120 uber" virava entrada com 69%. Com ela, "R$ 1500 microondas" vai de 75% gasto para 99,99% venda, e uber, almoço e farmácia continuam gasto (um teste confere).
-- **Onde fica:** `meusme-motor` no aparelho (`src/stores/motor.ts`), até 500 exemplos; não sincroniza nem entra no backup. A camada pessoal só vale sobre os mesmos pesos de fábrica: depois de um retreino de fábrica, ela é refeita a partir dos exemplos guardados. Em Ajustes → Captura: quantas capturas o app aprendeu e "Esquecer o que aprendeu".
+- **Onde fica:** `meusme-motor` no aparelho (`src/stores/motor.ts`), até 500 exemplos; não sincroniza nem entra no backup. A camada pessoal só vale sobre os mesmos pesos de fábrica: depois de um retreino de fábrica, ela é refeita a partir dos exemplos guardados. Em Ajustes → Captura: quantas capturas o app aprendeu, "Exportar o que aprendeu" e "Esquecer o que aprendeu". O arquivo exportado (`{texto, classe}` por linha) é o formato do `avaliacao.jsonl`: as suas organizações nunca entram no treino de fábrica, então valem como avaliação real dele, depois de uma revisão dos rótulos.
 
 ## Mudanças no app
 
