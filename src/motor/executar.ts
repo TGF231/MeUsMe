@@ -5,7 +5,7 @@ import { sugerirCategoria, useFinancas } from '../stores/financas'
 import { useMotor } from '../stores/motor'
 import { dataISO, hora, reais } from '../util'
 import { carregarRede } from './carregar'
-import { decidir, type Origem } from './interpretar'
+import { decidir, type Decisao, type MotorRede, type Origem } from './interpretar'
 import { comCamadaPessoal, memoriaDe } from './pessoal'
 import type { Interpretacao } from './regras'
 
@@ -81,6 +81,30 @@ function aviso(r: Interpretacao, origem: Origem): [string, string] {
   return [titulo, detalhe]
 }
 
+/** A decisão com tudo o que o app sabe agora: ajustes, memória, camada pessoal e projetos abertos. */
+export function decidirAgora(texto: string, base: MotorRede | null): Decisao {
+  const { exemplos, pessoal } = useMotor.getState()
+  const rede = base && { ...base, rede: comCamadaPessoal(base.rede, base.hashDados ?? '', pessoal) }
+  const projetos = useStore.getState().projetos.filter((p) => !p.concluidoEm)
+  return decidir(texto.trim(), new Date(), { automatico: useConfig.getState().organizarSozinho, rede, memoria: memoriaDe(exemplos), projetos })
+}
+
+const SUGESTOES: Record<string, string> = {
+  compromisso: 'um compromisso',
+  lembrete: 'um lembrete',
+  despesa: 'um gasto',
+  receita: 'uma entrada',
+  passo: 'uma tarefa',
+  ideia: 'uma ideia',
+  compra: 'vontade de comprar',
+}
+
+/** O que o app faria com o texto, numa linha, sem criar nada (o "Experimente" do tutorial). */
+export function descrever(d: Decisao): string {
+  if ('criar' in d) return aviso(d.criar, d.origem).join(' · ')
+  return d.sugestao ? `Fica na Caixa, com "parece ${SUGESTOES[d.sugestao]}" na frente` : 'Fica na Caixa'
+}
+
 /**
  * Passa o texto pelo motor (docs/MOTOR.md). Se uma regra, a sua correção anterior ou a rede
  * liberada decide, cria o item e avisa com Desfazer, que apaga o item e devolve o texto para a
@@ -89,11 +113,7 @@ function aviso(r: Interpretacao, origem: Origem): [string, string] {
 export async function organizar(texto: string) {
   const t = texto.trim()
   if (!t) return
-  const base = await carregarRede()
-  const { exemplos, pessoal } = useMotor.getState()
-  const rede = base && { ...base, rede: comCamadaPessoal(base.rede, base.hashDados ?? '', pessoal) }
-  const projetos = useStore.getState().projetos.filter((p) => !p.concluidoEm)
-  const d = decidir(t, new Date(), { automatico: useConfig.getState().organizarSozinho, rede, memoria: memoriaDe(exemplos), projetos })
+  const d = decidirAgora(t, await carregarRede())
   if ('caixa' in d) return useStore.getState().capturar(t, d.sugestao)
 
   const desfazer = criar(d.criar)
