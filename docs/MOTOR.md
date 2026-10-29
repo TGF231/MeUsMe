@@ -2,7 +2,7 @@
 
 Desenho do motor que lê o que você digita ou dita ("dentista 13:00", "-35 almoço", "lembrar de pagar a luz sexta") e já cria o compromisso, o gasto, o lembrete ou o passo. Tudo roda no aparelho: sem servidor, sem internet, sem mandar texto para ninguém.
 
-Estado: **fases 0 e 1 feitas** (regra do valor; as quatro regras, o tutorial e o aviso com Desfazer). Fases 2 e 3 planejadas.
+Estado: **fases 0, 1 e 2 feitas.** A rede sugere na Caixa; a criação automática por ela espera o `avaliacao.jsonl` com capturas reais (`npm run motor:avaliar`). Fase 3 planejada.
 
 ## O que muda para quem usa
 
@@ -136,16 +136,17 @@ Cada pedaço cai em uma de 4.096 posições (hash FNV-1a). O vetor é normalizad
 ### Arquitetura
 
 ```
-4.096 + 10 entradas ──► 32 neurônios (ReLU) ──► 7 saídas (softmax)
+4.096 + 11 entradas ──► 32 neurônios (ReLU) ──► 7 saídas (softmax)
 ```
 
-- ~132 mil pesos. Guardados em int8 com uma escala por linha: **~135 KB** no app.
+- ~132 mil pesos. Guardados em int8 com uma escala por linha: 199 KB de `pesos.json` (149 KB comprimidos), num pedaço separado do app que só é baixado na primeira captura (`src/motor/carregar.ts`). Se faltar, o motor segue só com as regras.
 - Como a entrada é esparsa (30 a 80 posições ativas), a primeira camada é só somar as linhas ativas. Menos de 1 ms por frase, em TypeScript puro, sem biblioteca.
 - O mesmo `src/motor/caracteristicas.ts` é usado no treino e no app. Se fossem dois códigos, qualquer diferença entre eles estragaria a rede sem nenhum erro aparente.
 
 ### Treino
 
-- `scripts/motor-treinar.ts` roda no Node (que já executa TypeScript nos testes).
+- `npm run motor:treinar` (`scripts/motor-treinar.ts`) roda no Node em ~7 s: separa 1/4 das frases escritas à mão para conferir, mostra o acerto e a matriz de confusão, e depois treina com tudo e grava os pesos.
+- Primeiro treino: 174 frases à mão + 1.750 geradas; na conferência, 37 de 39 frases à mão fora do treino (95%). É um número otimista: as frases de conferência foram escritas pela mesma pessoa que escreveu as de treino.
 - Entropia cruzada, Adam, regularização L2 e dropout na camada escondida; semente fixa, para o mesmo dado dar sempre os mesmos pesos.
 - Saída: `src/motor/pesos.json`, gerado e versionado, com o hash dos dados de treino e a versão das características. Um teste falha se os dados mudarem e os pesos não forem retreinados.
 - Um teste de **checagem de gradiente** compara o gradiente calculado com o numérico em uma rede pequena. É a forma padrão de provar que a retropropagação está certa.
@@ -154,9 +155,9 @@ Cada pedaço cai em uma de 4.096 posições (hash FNV-1a). O vetor é normalizad
 
 Em `dados/motor/`:
 
-- `exemplos.jsonl`: algumas centenas de frases escritas à mão, uma por linha, com a classe. Começa por variações reais de como se escreve com pressa: sem acento, abreviado, com erro.
+- `exemplos.jsonl`: frases escritas à mão (174 no primeiro treino), uma por linha, com a classe. Começa por variações reais de como se escreve com pressa: sem acento, abreviado, com erro.
 - `modelos.ts`: geradores de variação (`{coisa} {hora}`, `lembrar de {ação} {dia}`, `R$ {valor} {lugar}`…), para cobrir combinações sem escrever todas.
-- `avaliacao.jsonl`: **capturas reais suas**, que nunca entram no treino. É o que mede a rede de verdade. Ficam no repositório (que é privado); dá para trocar nomes de pessoas antes de colar.
+- `avaliacao.jsonl`: **capturas reais suas**, que nunca entram no treino. É o que mede a rede de verdade. Ficam no repositório (que é privado); dá para trocar nomes de pessoas antes de colar. Como montar: `dados/motor/LEIA-ME.md`.
 
 ### Avaliação e a trava da criação automática
 
@@ -165,7 +166,11 @@ Em `dados/motor/`:
 - acerto por classe e a matriz de confusão;
 - para cada limiar de certeza: quantas capturas seriam organizadas sozinhas e **quantas seriam organizadas errado**.
 
-O limiar é escolhido para **no máximo 2% de erro automático**. A rede também precisa vencer a versão só com regras (fase 1) no mesmo conjunto. Se não vencer, não entra.
+O limiar é escolhido para **no máximo 2% de erro automático**, com pelo menos 10 itens criados e 50 frases no conjunto. A rede também precisa vencer a versão só com regras (fase 1) no mesmo conjunto. Se não vencer, não entra.
+
+O resultado vai para `automatico` em `pesos.json`: `{ liberado, limiar, medidoEm }`. Treinar de novo desliga a criação automática até a próxima avaliação: pesos novos precisam ser medidos de novo.
+
+O que a rede pode criar sozinha, quando liberada: **tarefa solta** (frase sem nenhuma marca) e a **direção de um valor sem sinal** (`R$ 35 almoço`). Ideia e compra nunca: classificadas errado, somem da tela Agora. Compromisso e lembrete sem hora nem data também não: faltaria o quando.
 
 ## Decisão
 
@@ -178,7 +183,9 @@ se a rede tem certeza ≥ limiar
 senão                                   → Caixa com sugestão
 ```
 
-Regras primeiro, sempre. A rede decide só o que as regras deixam em aberto: frases sem hora, sem "lembrar" e sem valor com sinal, e valores sem sinal (`R$ 35 almoço`).
+Regras primeiro, sempre. A rede decide só o que as regras deixam em aberto: frases sem hora, sem "lembrar" e sem valor com sinal, e valores sem sinal (`R$ 35 almoço`). Um teste garante que os exemplos do tutorial dão o mesmo resultado com e sem a rede.
+
+Na Caixa, a sugestão da rede aparece só com certeza de 50% ou mais; abaixo disso, a captura fica sem sugestão.
 
 ## Parte 3: aprender com você
 
@@ -226,7 +233,7 @@ testes/
 |---|---|---|
 | 0 · feita | Extrator de valor: marca obrigatória, sinal, palavras de direção | "dentista 13:00" e "35 almoço" deixam de virar dinheiro; "+1000 tv" abre como entrada |
 | 1 · feita | Extratores, as quatro regras, tutorial, aviso com Desfazer e "por causa de", sugestão na Caixa | "dentista 13:00", "-35 almoço", "+1000 tv", "lembrar de… sexta"; "R$ 35 almoço" vai para a Caixa com Saída · Entrada |
-| 2 | Dados, treino, avaliação, rede no lugar das regras de classe | frases sem palavra-chave: "pagar a luz", "ideia: app de receitas", "R$ 35 almoço" como despesa |
+| 2 · feita | Dados, treino, avaliação, rede para o que as regras deixam em aberto | frases sem palavra-chave: "pagar a luz", "ideia: app de receitas", "R$ 35 almoço" como despesa |
 | 3 | Aprender com as correções | o seu jeito de escrever |
 
 Cada fase é um PR. A fase 1 é a base de comparação da 2: sem ela não há como provar que a rede ajuda.

@@ -31,7 +31,7 @@ interface Estado {
   removerProjeto: (id: string) => void
   definirFoco: (id: string | null) => void
 
-  criarPasso: (projetoId: string | null, texto: string, energia: Energia, antesDe?: string) => void
+  criarPasso: (projetoId: string | null, texto: string, energia: Energia, antesDe?: string) => string
   concluirPasso: (id: string) => void
   atualizarPasso: (id: string, mudancas: Partial<Omit<Passo, 'id'>>) => void
   removerPasso: (id: string) => void
@@ -111,7 +111,8 @@ export const useStore = create<Estado>()(
         }),
       definirFoco: (pid) => set({ focoId: pid }),
 
-      criarPasso: (projetoId, texto, energia, antesDe) =>
+      criarPasso: (projetoId, texto, energia, antesDe) => {
+        const novo = id()
         set((s) => {
           const doProjeto = s.passos.filter((p) => p.projetoId === projetoId)
           let ordem = doProjeto.reduce((m, p) => Math.max(m, p.ordem), 0) + 1
@@ -124,8 +125,10 @@ export const useStore = create<Estado>()(
               criadoEm = alvo.criadoEm - 1
             }
           }
-          return { passos: [...s.passos, { id: id(), projetoId, texto, energia, ordem, criadoEm }] }
-        }),
+          return { passos: [...s.passos, { id: novo, projetoId, texto, energia, ordem, criadoEm }] }
+        })
+        return novo
+      },
       concluirPasso: (pid) =>
         set((s) => ({ passos: s.passos.map((p) => (p.id === pid ? { ...p, feitoEm: Date.now() } : p)) })),
       atualizarPasso: (pid, m) => set((s) => ({ passos: s.passos.map((p) => (p.id === pid ? { ...p, ...m } : p)) })),
