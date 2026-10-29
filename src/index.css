@@ -443,6 +443,26 @@ h2.titulo {
   z-index: 10;
 }
 
+/* Botão invisível que cobre o fundo de uma janela: tocar fora fecha. */
+.fundo-fechar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: default;
+}
+
+/* <dialog open> sem os estilos do navegador (posição absoluta, margem, cores próprias). */
+dialog.modal {
+  position: relative;
+  inset: auto;
+  margin: 0;
+  color: inherit;
+}
+
 .modal {
   background: var(--superficie);
   border: 1px solid var(--borda-2);
