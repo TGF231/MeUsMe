@@ -199,3 +199,10 @@ test('projeto: as regras vêm antes, e nome que não é de projeto não conta', 
   assert.deepEqual(decidir('site:', AGORA, { projetos: PROJETOS }), { caixa: true })
   assert.deepEqual(decidir('site: arrumar o rodapé', AGORA, { projetos: PROJETOS, automatico: false }), { caixa: true, sugestao: 'passo' })
 })
+
+test('compromisso sem hora: o formulário abre com título limpo e o dia', async () => {
+  const { prepararCompromisso } = await import('../src/motor/regras.ts')
+  assert.deepEqual(prepararCompromisso('consulta dermato dia 12', AGORA), { titulo: 'Consulta dermato', data: new Date(2026, 10, 12) })
+  assert.deepEqual(prepararCompromisso('jantar com a Bia sexta', AGORA), { titulo: 'Jantar com a Bia', data: new Date(2026, 9, 30) })
+  assert.deepEqual(prepararCompromisso('consulta no oftalmo', AGORA), { titulo: 'Consulta no oftalmo' })
+})

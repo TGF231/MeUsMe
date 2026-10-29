@@ -8,10 +8,10 @@ import { lerData, lerDinheiro, lerHora } from './extratores.ts'
  * Mudou alguma coisa aqui? Suba VERSAO_CARACTERISTICAS e retreine (npm run motor:treinar).
  */
 
-export const VERSAO_CARACTERISTICAS = 1
+export const VERSAO_CARACTERISTICAS = 2
 
 /** Posições do hashing: pedaços de letras e palavras caem numa destas. */
-export const DIMENSAO_HASH = 4096
+export const DIMENSAO_HASH = 2048
 
 /** Marcas dos extratores, depois das posições do hashing. */
 export const MARCAS = [

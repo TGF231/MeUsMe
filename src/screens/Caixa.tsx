@@ -8,7 +8,7 @@ import { PassoForm } from '../components/PassoForm'
 import { GravarRecado, OuvirRecado } from '../components/Recado'
 import { organizar } from '../motor/executar'
 import { lerDinheiro } from '../motor/extratores'
-import { aplicarRegras } from '../motor/regras'
+import { aplicarRegras, prepararCompromisso } from '../motor/regras'
 import { EXEMPLOS_DE_CAMPO } from '../motor/tutorial'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
@@ -38,6 +38,11 @@ function Processar({ captura }: { captura: Captura }) {
   const dinheiro = lerDinheiro(texto)
   // O que as regras do motor entendem, para os formulários já virem preenchidos.
   const [regra] = useState(() => (texto ? aplicarRegras(texto, new Date()) : null))
+  // Compromisso sem hora ("consulta dermato dia 12"): título limpo e o dia, para o formulário.
+  const [semHora] = useState(() => {
+    const { titulo, data } = prepararCompromisso(texto, new Date())
+    return { titulo, data: data && dataISO(data) }
+  })
   const resolver = () => s.descartarCaptura(captura.id)
   // O que você fez com a captura ensina o motor (docs/MOTOR.md, parte 3). Recado de voz não tem texto para aprender.
   const registrar = useMotor((m) => m.registrar)
@@ -79,7 +84,11 @@ function Processar({ captura }: { captura: Captura }) {
   if (modo?.tipo === 'evento')
     return (
       <EventoForm
-        inicial={regra?.classe === 'compromisso' ? { titulo: regra.titulo, data: regra.quando ? dataISO(regra.quando) : undefined } : { titulo: texto }}
+        inicial={
+          regra?.classe === 'compromisso'
+            ? { titulo: regra.titulo, data: regra.quando ? dataISO(regra.quando) : undefined }
+            : semHora
+        }
         onPronto={() => {
           aprender('compromisso')
           resolver()

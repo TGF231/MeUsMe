@@ -209,7 +209,7 @@ export function treinar(rede: Rede, exemplos: Exemplo[], o: OpcoesTreino) {
 
 /**
  * W1 em int8 com uma escala por linha: valor ≈ int8 × escala. Divide o tamanho por 4
- * (de ~520 KB para ~130 KB) e muda as probabilidades só na terceira casa.
+ * (com 2.048 posições, de ~260 KB para ~66 KB) e muda as probabilidades só na terceira casa.
  */
 export function quantizar(w1: Float32Array): { q: Int8Array; escalas: Float32Array } {
   const linhas = w1.length / ESCONDIDA
