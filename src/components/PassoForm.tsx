@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import type { Energia } from '../types'
 import { SeletorEnergia } from './SeletorEnergia'
 import { BotaoVoz } from './BotaoVoz'
+import { Simbolo } from './Icone'
 
 // Verbos que indicam intenção vaga em vez de ação concreta.
 const VAGOS = /\b(pensar|ver|resolver|organizar|decidir|melhorar|estudar|planejar|cuidar|arrumar|tentar|trabalhar|focar|entender)\b/i
@@ -94,7 +95,8 @@ export function PassoForm({
                 setEnergia(s.energia)
               }}
             >
-              ↺ {s.texto}
+              <Simbolo c="↺" diz="Repetir" />
+              {s.texto}
             </button>
           ))}
         </div>

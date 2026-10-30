@@ -50,7 +50,11 @@ function ServidorProprio({ aoMudar }: { aoMudar: () => void }) {
             {temServidorEmbutido() ? 'Voltar ao servidor do MeUsMe' : 'Esquecer este servidor'}
           </button>
         </div>
-        {mensagem && <p className="dica neutra">{mensagem}</p>}
+        {mensagem && (
+          <p className="dica neutra" role="status">
+            {mensagem}
+          </p>
+        )}
       </div>
     )
 
@@ -101,7 +105,11 @@ function ServidorProprio({ aoMudar }: { aoMudar: () => void }) {
           Usar código
         </button>
       </div>
-      {mensagem && <p className="dica neutra">{mensagem}</p>}
+      {mensagem && (
+          <p className="dica neutra" role="status">
+            {mensagem}
+          </p>
+        )}
     </div>
   )
 }
@@ -161,7 +169,11 @@ export function Sincronizacao() {
           </button>
           <button onClick={() => void tentar(async () => (await sair(), status.reiniciar()))}>Sair</button>
         </div>
-        {mensagem && <p className="dica">{mensagem}</p>}
+        {mensagem && (
+        <p className="dica" role="status">
+          {mensagem}
+        </p>
+      )}
         <details>
           <summary>Apagar minha conta</summary>
           <p className="motivo">
@@ -256,7 +268,11 @@ export function Sincronizacao() {
           </div>
         </form>
       )}
-      {mensagem && <p className="dica">{mensagem}</p>}
+      {mensagem && (
+        <p className="dica" role="status">
+          {mensagem}
+        </p>
+      )}
       {avancado}
     </div>
   )

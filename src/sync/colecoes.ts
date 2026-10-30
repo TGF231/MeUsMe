@@ -63,6 +63,9 @@ const COLECOES: Colecao[] = [
   { nome: 'config.revisaoFeitaEm', loja: useConfig, campo: 'revisaoFeitaEm', tipo: 'valor' },
   { nome: 'config.horasDeEspera', loja: useConfig, campo: 'horasDeEspera', tipo: 'valor' },
   { nome: 'config.organizarSozinho', loja: useConfig, campo: 'organizarSozinho', tipo: 'valor' },
+  // Acessibilidade é da pessoa, vale em todo aparelho; o tamanho do texto depende da tela e não vai.
+  { nome: 'config.alvosGrandes', loja: useConfig, campo: 'alvosGrandes', tipo: 'valor' },
+  { nome: 'config.avisosFicam', loja: useConfig, campo: 'avisosFicam', tipo: 'valor' },
   // Evita disparar o mesmo aviso em dois aparelhos.
   { nome: 'config.disparados', loja: useConfig, campo: 'disparados', tipo: 'mapa' },
 ]

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useJanelaModal } from '../hooks'
+import { Simbolo } from './Icone'
 import { carregarRede } from '../motor/carregar'
 import { decidirAgora, descrever } from '../motor/executar'
 import type { MotorRede } from '../motor/interpretar'
@@ -20,7 +22,14 @@ function Experimente() {
       </label>
       <input id="experimente" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Ex.: dentista amanhã 15h" autoComplete="off" />
       <p className="motivo" aria-live="polite">
-        {texto.trim() ? `→ ${descrever(decidirAgora(texto, rede))}` : 'Nada é criado aqui.'}
+        {texto.trim() ? (
+          <>
+            <Simbolo c="→" />
+            {descrever(decidirAgora(texto, rede))}
+          </>
+        ) : (
+          'Nada é criado aqui.'
+        )}
       </p>
     </div>
   )
@@ -36,34 +45,35 @@ export function ComoEscrever({ onFechar }: Readonly<{ onFechar: () => void }>) {
     ajustar({ tutorialCapturaVisto: true })
     onFechar()
   }
-  // Esc fecha, de qualquer ponto da página.
-  useEffect(() => {
-    const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      ajustar({ tutorialCapturaVisto: true })
-      onFechar()
-    }
-    document.addEventListener('keydown', aoTeclar)
-    return () => document.removeEventListener('keydown', aoTeclar)
-  }, [ajustar, onFechar])
+  const janela = useJanelaModal()
 
   return (
-    <div className="fundo">
-      {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, alcançável por teclado e leitor de tela. */}
-      <button type="button" className="fundo-fechar" aria-label="Fechar o tutorial" onClick={fechar} />
-      <dialog open className="modal tutorial" aria-modal="true" aria-label="Como escrever rápido">
+    <dialog
+      ref={janela}
+      className="fundo"
+      aria-label="Como escrever rápido"
+      onCancel={(e) => {
+        e.preventDefault()
+        fechar()
+      }}
+    >
+      <div className="modal tutorial">
         <p className="rotulo">
           Como escrever rápido · {i + 1} de {TUTORIAL.length}
         </p>
-        <h2 className="titulo">{tela.titulo}</h2>
-        <p>{tela.texto}</p>
-        <ul className="lista-simples exemplos">
-          {tela.exemplos.map((e) => (
-            <li key={e.texto}>
-              <code>{e.texto}</code> → {e.resultado}
-            </li>
-          ))}
-        </ul>
+        {/* Ao avançar, o leitor de tela lê a tela nova sem o foco sair do botão. */}
+        <div aria-live="polite">
+          <h2 className="titulo">{tela.titulo}</h2>
+          <p>{tela.texto}</p>
+          <ul className="lista-simples exemplos">
+            {tela.exemplos.map((e) => (
+              <li key={e.texto}>
+                <code>{e.texto}</code> <Simbolo c="→" diz="vira" />
+                {e.resultado}
+              </li>
+            ))}
+          </ul>
+        </div>
         <p className="motivo">{ERROU}</p>
         {fim && <Experimente />}
         <div className="pontinhos" role="img" aria-label={`Tela ${i + 1} de ${TUTORIAL.length}`}>
@@ -87,7 +97,9 @@ export function ComoEscrever({ onFechar }: Readonly<{ onFechar: () => void }>) {
             </>
           )}
         </div>
-      </dialog>
-    </div>
+      </div>
+      {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, alcançável por teclado e leitor de tela. */}
+      <button type="button" className="fundo-fechar" aria-label="Fechar o tutorial" onClick={fechar} />
+    </dialog>
   )
 }

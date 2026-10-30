@@ -48,7 +48,7 @@ export function CapturaBancos() {
         trouxer o lançamento oficial, ele substitui este automaticamente.
       </p>
       {permitido ? (
-        <p className="motivo">Acesso liberado. ✓</p>
+        <p className="motivo">Acesso liberado.</p>
       ) : (
         <>
           <button className="primario" onClick={() => void Captura.abrirAjustes()}>

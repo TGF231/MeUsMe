@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Simbolo } from '../components/Icone'
 import { EventoForm } from '../components/EventoForm'
 import { LembreteForm } from '../components/LembreteForm'
 import { conectarGoogle, ErroGoogle, removerDoGoogle, sincronizarGoogle, temToken } from '../google'
@@ -69,7 +70,12 @@ function BarraGoogle() {
             ? `Google sincronizado às ${hora(agenda.ultimaSync)}`
             : 'Google conectado'
           : 'Google Agenda não conectado'}
-        {erro && <span className="atencao"> · {erro}</span>}
+        {erro && (
+          <span className="atencao" role="alert">
+            {' · '}
+            {erro}
+          </span>
+        )}
       </span>
       <button onClick={() => sincronizar(true)} disabled={estado === 'sincronizando'}>
         {estado === 'sincronizando' ? 'Sincronizando…' : agenda.googleConectado ? 'Sincronizar' : 'Conectar'}
@@ -89,9 +95,14 @@ function LinhaEvento({ e, agora }: { e: Evento; agora: number }) {
       <span className="horario">{e.diaInteiro ? 'Dia todo' : `${hora(e.inicio)}–${hora(e.fim)}`}</span>
       <span className="flex">
         {e.titulo}
-        {passo && <span className="motivo"> · {passo.feitoEm ? 'passo feito ✓' : 'horário reservado para um passo'}</span>}
+        {passo && <span className="motivo"> · {passo.feitoEm ? 'passo feito' : 'horário reservado para um passo'}</span>}
         {e.origem === 'google' && <span className="selo">Google</span>}
-        {erro && <span className="atencao"> {erro}</span>}
+        {erro && (
+          <span className="atencao" role="alert">
+            {' '}
+            {erro}
+          </span>
+        )}
       </span>
       <button
         className="discreto"
@@ -153,8 +164,9 @@ export function RestoDoDia() {
       quando: e.diaInteiro ? 0 : e.inicio,
       horario: e.diaInteiro ? 'Dia todo' : `${hora(e.inicio)}–${hora(e.fim)}`,
       texto: e.titulo,
+      lembrete: false,
     })),
-    ...lembretes.map((l) => ({ id: l.id, quando: l.quando, horario: hora(l.quando), texto: `⏰ ${l.texto}` })),
+    ...lembretes.map((l) => ({ id: l.id, quando: l.quando, horario: hora(l.quando), texto: l.texto, lembrete: true })),
   ].sort((a, b) => a.quando - b.quando)
 
   return (
@@ -163,7 +175,8 @@ export function RestoDoDia() {
       {itens.length === 0 && <p className="motivo">Nada mais marcado para hoje.</p>}
       {itens.slice(0, 8).map((i) => (
         <p key={i.id} className="linha-dia">
-          <span className="horario">{i.horario}</span> {i.texto}
+          <span className="horario">{i.horario}</span> {i.lembrete && <Simbolo c="⏰" diz="Lembrete" />}
+          {i.texto}
         </p>
       ))}
     </div>
@@ -191,7 +204,7 @@ export function Agenda() {
       <div className="visao-dia">
         <div className="dias">
           {dias.map((d) => (
-            <button key={d} className={d === dia ? 'ativo' : ''} onClick={() => setDia(d)}>
+            <button key={d} className={d === dia ? 'ativo' : ''} aria-pressed={d === dia} onClick={() => setDia(d)}>
               {nomeDoDia(dataISO(d))}
             </button>
           ))}

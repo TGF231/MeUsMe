@@ -53,7 +53,7 @@ export function Palpite({ passo }: { passo: Passo }) {
   return (
     <div className="pergunta-tempo centralizado">
       <span className="rotulo">Palpite: quanto isso vai levar?</span>
-      <div className="chips">
+      <div className="chips" role="group" aria-label="Palpite: quanto isso vai levar">
         {PALPITES.map((m) => (
           <button key={m} onClick={() => atualizar(passo.id, { estimativaMin: m })}>
             {duracao(m)}

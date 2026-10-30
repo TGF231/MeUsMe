@@ -9,6 +9,7 @@ import { HUMORES } from '../rotulos'
 import { minutosDoPasso, useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { dataISO, duracao, hora, hoje, nomeDoDia } from '../util'
+import { Simbolo } from '../components/Icone'
 
 const DIA = 86_400_000
 
@@ -146,7 +147,8 @@ export function Historico() {
                 {feitos.map((p) => (
                   <div key={p.id} className="registro">
                     <span className="flex">
-                      ✓ {p.texto}
+                      <Simbolo c="✓" diz="Feito" />
+                      {p.texto}
                       <span className="motivo"> · {projetoDe(p.projetoId)?.titulo ?? 'tarefa solta'} · {hora(p.feitoEm!)}</span>
                     </span>
                     <TempoGasto passo={p} />
@@ -156,7 +158,8 @@ export function Historico() {
                 {trabalhados.map(({ passo, minutos }) => (
                   <div key={passo!.id} className="registro andamento">
                     <span className="flex">
-                      ⏱ {passo!.texto}
+                      <Simbolo c="⏱" diz="Em andamento" />
+                      {passo!.texto}
                       <span className="motivo"> · {passo!.feitoEm ? 'concluído em outro dia' : 'ainda em andamento'}</span>
                     </span>
                     <span className="tempo">{duracao(minutos)}</span>
@@ -165,7 +168,8 @@ export function Historico() {
                 {compromissos.map((e) => (
                   <div key={e.id} className="registro compromisso">
                     <span className="flex">
-                      📅 {e.titulo}
+                      <Simbolo c="📅" diz="Compromisso" />
+                      {e.titulo}
                       <span className="motivo"> · {hora(e.inicio)}</span>
                     </span>
                     <span className="tempo">{duracao((e.fim - e.inicio) / 60_000)}</span>

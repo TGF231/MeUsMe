@@ -8,7 +8,7 @@ export function DeNovo({ passo }: { passo: Passo }) {
   const [feito, setFeito] = useState(false)
   return (
     <button className="mini-botao" disabled={feito} onClick={() => (repetir(passo.id), setFeito(true))} aria-label={`Fazer de novo: ${passo.texto}`}>
-      {feito ? '✓ Na fila' : 'De novo'}
+      {feito ? 'Na fila' : 'De novo'}
     </button>
   )
 }

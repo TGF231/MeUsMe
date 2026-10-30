@@ -54,3 +54,16 @@ export function Icone({ nome }: { nome: NomeIcone }) {
     </svg>
   )
 }
+
+/**
+ * Símbolo no meio do texto (✓, ★, 📅…). O leitor de tela não lê o desenho ("marca de seleção", "estrela preta"):
+ * lê `diz`, quando o símbolo carrega sentido, ou nada, quando é só enfeite.
+ */
+export function Simbolo({ c, diz }: Readonly<{ c: string; diz?: string }>) {
+  return (
+    <>
+      <span aria-hidden="true">{c} </span>
+      {diz && <span className="so-leitor">{diz}: </span>}
+    </>
+  )
+}

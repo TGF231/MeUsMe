@@ -39,9 +39,9 @@ export function LembreteForm({ inicial = '', onPronto, onCancelar }: Props) {
         <input type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Dia" className="flex" />
         <input type="time" value={horaTexto} onChange={(e) => setHoraTexto(e.target.value)} aria-label="Hora" className="flex" />
       </div>
-      <div className="chips">
+      <div className="chips" role="group" aria-label="Repetir">
         {(Object.keys(REPETIR) as Lembrete['repetir'][]).map((r) => (
-          <button key={r} type="button" className={repetir === r ? 'ativo' : ''} onClick={() => setRepetir(r)}>
+          <button key={r} type="button" className={repetir === r ? 'ativo' : ''} aria-pressed={repetir === r} onClick={() => setRepetir(r)}>
             {REPETIR[r]}
           </button>
         ))}

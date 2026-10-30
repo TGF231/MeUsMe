@@ -4,6 +4,7 @@ import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import { mesISO, reais } from '../util'
+import { Simbolo } from './Icone'
 
 const DIA = 86_400_000
 
@@ -42,7 +43,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
       <div className="etapa">
         <p className="rotulo">1. Caixa</p>
         {s.capturas.length === 0 ? (
-          <p>Vazia. ✓</p>
+          <p>Vazia.</p>
         ) : (
           <div className="linha entre">
             <span>
@@ -58,10 +59,10 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
         {ativos.length === 0 ? (
           <p className="motivo">Nenhum projeto ativo. Uma captura da Caixa pode virar um.</p>
         ) : (
-          <div className="chips">
+          <div className="chips" role="group" aria-label="Projeto em foco">
             {ativos.map((p) => (
-              <button key={p.id} className={s.focoId === p.id ? 'ativo' : ''} onClick={() => s.definirFoco(s.focoId === p.id ? null : p.id)}>
-                {s.focoId === p.id ? '★ ' : ''}
+              <button key={p.id} className={s.focoId === p.id ? 'ativo' : ''} aria-pressed={s.focoId === p.id} onClick={() => s.definirFoco(s.focoId === p.id ? null : p.id)}>
+                {s.focoId === p.id && <Simbolo c="★" />}
                 {p.titulo}
               </button>
             ))}
@@ -92,7 +93,8 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
         </div>
         {contas.map(({ f, dia }) => (
           <p key={f.id} className="motivo">
-            💸 {f.nome} · {reais(f.valor)} · dia {dia}
+            <Simbolo c="💸" diz="Conta" />
+            {f.nome} · {reais(f.valor)} · dia {dia}
           </p>
         ))}
       </div>

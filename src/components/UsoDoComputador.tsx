@@ -29,10 +29,10 @@ export function UsoDoComputador() {
       <div className="linha entre">
         <p className="rotulo">Tempo no computador</p>
         <div className="segmentado mini-segmentado">
-          <button className={periodo === 1 ? 'ativo' : ''} onClick={() => setPeriodo(1)}>
+          <button className={periodo === 1 ? 'ativo' : ''} aria-pressed={periodo === 1} onClick={() => setPeriodo(1)}>
             Hoje
           </button>
-          <button className={periodo === 7 ? 'ativo' : ''} onClick={() => setPeriodo(7)}>
+          <button className={periodo === 7 ? 'ativo' : ''} aria-pressed={periodo === 7} onClick={() => setPeriodo(7)}>
             7 dias
           </button>
         </div>

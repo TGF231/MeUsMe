@@ -1,4 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+/**
+ * Janela modal de verdade (<dialog> aberto com showModal): o foco fica preso dentro, o resto da página fica
+ * inerte para teclado e leitor de tela e, ao fechar, o foco volta para onde estava. Esc chega como `onCancel`.
+ */
+export function useJanelaModal() {
+  const ref = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    const antes = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const janela = ref.current
+    if (janela && !janela.open) janela.showModal()
+    return () => {
+      janela?.close()
+      if (antes?.isConnected) antes.focus()
+    }
+  }, [])
+  return ref
+}
 
 /**
  * Instante atual, atualizado a cada `intervaloMs`. Componentes não leem Date.now() durante o render:

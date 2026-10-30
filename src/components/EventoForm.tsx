@@ -60,9 +60,9 @@ export function EventoForm({ inicial, rotulo = 'Criar compromisso', onPronto, on
         <input type="time" value={horaTexto} onChange={(e) => setHoraTexto(e.target.value)} aria-label="Hora" className="flex" />
       </div>
       <label className="rotulo">Duração</label>
-      <div className="chips">
+      <div className="chips" role="group" aria-label="Duração">
         {DURACOES.map((d) => (
-          <button key={d} type="button" className={minutos === d ? 'ativo' : ''} onClick={() => setMinutos(d)}>
+          <button key={d} type="button" className={minutos === d ? 'ativo' : ''} aria-pressed={minutos === d} onClick={() => setMinutos(d)}>
             {duracao(d)}
           </button>
         ))}

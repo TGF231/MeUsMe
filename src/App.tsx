@@ -1,6 +1,7 @@
 import { App as AppNativo } from '@capacitor/app'
 import { useEffect, useRef, useState } from 'react'
 import { useAgendador } from './agendador'
+import { useJanelaModal } from './hooks'
 import { Icone } from './components/Icone'
 import { Introducao } from './components/Introducao'
 import { usoDoArmazenamento } from './erros'
@@ -18,7 +19,7 @@ import { Financas } from './screens/Financas'
 import { Historico } from './screens/Historico'
 import { Projetos } from './screens/Projetos'
 import { useStore } from './store'
-import { useAvisos, useConfig } from './stores/config'
+import { AVISO_MS, useAvisos, useConfig } from './stores/config'
 import { useSincronizacao } from './sync/motor'
 import { BotaoVoz } from './components/BotaoVoz'
 
@@ -44,52 +45,96 @@ function ComDestaque({ texto, destaque }: Readonly<{ texto: string; destaque?: s
   )
 }
 
+type Aviso = ReturnType<typeof useAvisos.getState>['avisos'][number]
+
+/**
+ * Um aviso sai sozinho depois de AVISO_MS, menos enquanto está em uso (mouse em cima ou foco dentro, para dar tempo
+ * de ler e alcançar o Desfazer) ou com "Avisos ficam até eu fechar" ligado em Ajustes → Acessibilidade.
+ */
+function UmAviso({ aviso: a, fechar }: Readonly<{ aviso: Aviso; fechar: (id: number) => void }>) {
+  const ficam = useConfig((c) => c.avisosFicam)
+  const [emUso, setEmUso] = useState({ mouse: false, foco: false })
+  const contando = !ficam && !emUso.mouse && !emUso.foco
+  useEffect(() => {
+    if (!contando) return
+    const t = setTimeout(() => fechar(a.id), AVISO_MS)
+    return () => clearTimeout(t)
+  }, [contando, a.id, fechar])
+
+  return (
+    <div
+      className="aviso"
+      onPointerEnter={() => setEmUso((u) => ({ ...u, mouse: true }))}
+      onPointerLeave={() => setEmUso((u) => ({ ...u, mouse: false }))}
+      onFocus={() => setEmUso((u) => ({ ...u, foco: true }))}
+      onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setEmUso((u) => ({ ...u, foco: false }))}
+    >
+      <span>
+        <b>{a.titulo}</b>
+        <br />
+        <ComDestaque texto={a.corpo} destaque={a.destaque} />
+        {a.acao && (
+          <>
+            <br />
+            <button
+              className="mini-botao"
+              onClick={() => {
+                a.acao!.fazer()
+                fechar(a.id)
+              }}
+            >
+              {a.acao.rotulo}
+            </button>
+          </>
+        )}
+      </span>
+      <button className="discreto" onClick={() => fechar(a.id)} aria-label="Fechar aviso">
+        ×
+      </button>
+    </div>
+  )
+}
+
 function Avisos() {
   const { avisos, fechar } = useAvisos()
   if (avisos.length === 0) return null
   return (
     <div className="avisos" role="status" aria-live="polite">
       {avisos.map((a) => (
-        <div key={a.id} className="aviso">
-          <span>
-            <b>{a.titulo}</b>
-            <br />
-            <ComDestaque texto={a.corpo} destaque={a.destaque} />
-            {a.acao && (
-              <>
-                <br />
-                <button
-                  className="mini-botao"
-                  onClick={() => {
-                    a.acao!.fazer()
-                    fechar(a.id)
-                  }}
-                >
-                  {a.acao.rotulo}
-                </button>
-              </>
-            )}
-          </span>
-          <button className="discreto" onClick={() => fechar(a.id)} aria-label="Fechar aviso">
-            ×
-          </button>
-        </div>
+        <UmAviso key={a.id} aviso={a} fechar={fechar} />
       ))}
     </div>
   )
 }
 
+/** Ctrl+Z fora de um campo de texto: a ação do aviso mais recente (o Desfazer do motor), sem caçar o botão. */
+function desfazerUltimoAviso(e: KeyboardEvent) {
+  const alvo = e.target as HTMLElement | null
+  if (!e.ctrlKey || e.key.toLowerCase() !== 'z' || alvo?.closest('input, textarea, select, [contenteditable]')) return
+  const { avisos, fechar } = useAvisos.getState()
+  const ultimo = avisos.findLast((a) => a.acao?.rotulo === 'Desfazer')
+  if (!ultimo) return
+  e.preventDefault()
+  ultimo.acao!.fazer()
+  fechar(ultimo.id)
+}
+
 function CapturaRapida({ onFechar }: { onFechar: () => void }) {
   const [texto, setTexto] = useState('')
   const [exemplo] = useState(() => EXEMPLOS_DE_CAMPO[Math.floor(Math.random() * EXEMPLOS_DE_CAMPO.length)])
-  const ref = useRef<HTMLInputElement>(null)
-  useEffect(() => ref.current?.focus(), [])
+  const janela = useJanelaModal()
 
   return (
-    <div className="fundo">
-      {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, como no tutorial (ComoEscrever). */}
-      <button type="button" className="fundo-fechar" aria-label="Fechar a captura rápida" onClick={onFechar} />
-      <dialog open className="modal" aria-modal="true" aria-label="Captura rápida">
+    <dialog
+      ref={janela}
+      className="fundo"
+      aria-label="Captura rápida"
+      onCancel={(e) => {
+        e.preventDefault()
+        onFechar()
+      }}
+    >
+      <div className="modal">
         <form
           className="form"
           onSubmit={(e) => {
@@ -98,13 +143,15 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
             onFechar()
           }}
         >
-          <label className="rotulo">O que está na sua cabeça?</label>
+          <label className="rotulo" htmlFor="captura-rapida">
+            O que está na sua cabeça?
+          </label>
           <div className="linha">
+            {/* O aria-label repete o rótulo: sem ele, a WebView do Android entrega ao TalkBack só o exemplo como dica. */}
             <input
-              ref={ref}
+              id="captura-rapida"
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
-              onKeyDown={(e) => e.key === 'Escape' && onFechar()}
               placeholder={`Ex.: ${exemplo}`}
               aria-label="O que está na sua cabeça?"
             />
@@ -120,8 +167,10 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
             Guardar na caixa
           </button>
         </form>
-      </dialog>
-    </div>
+      </div>
+      {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, como no tutorial (ComoEscrever). */}
+      <button type="button" className="fundo-fechar" aria-label="Fechar a captura rápida" onClick={onFechar} />
+    </dialog>
   )
 }
 
@@ -134,13 +183,13 @@ export default function App() {
   useAgendador()
   useSincronizacao()
 
-  // Ctrl+Espaço abre a captura rápida.
+  // Ctrl+Espaço abre a captura rápida; Ctrl+Z desfaz o que o motor acabou de criar.
   useEffect(() => {
     const atalho = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === 'Space') {
         e.preventDefault()
         setCapturando(true)
-      }
+      } else desfazerUltimoAviso(e)
     }
     window.addEventListener('keydown', atalho)
     return () => window.removeEventListener('keydown', atalho)
@@ -180,10 +229,23 @@ export default function App() {
 
   const nomeDaAba = aba === 'ajustes' ? 'Ajustes' : ABAS.find((a) => a.id === aba)!.nome
 
+  // Ao trocar de seção, o título da janela diz onde se está e o foco vai para o título da seção: o leitor de tela
+  // lê o lugar novo (sem isso o foco fica no botão da aba e nada é anunciado) e o Tab segue a partir dali.
+  const titulo = useRef<HTMLHeadingElement>(null)
+  const primeiraVez = useRef(true)
+  useEffect(() => {
+    document.title = aba === 'agora' ? 'MeUsMe' : `${nomeDaAba} · MeUsMe`
+    if (primeiraVez.current) primeiraVez.current = false
+    else titulo.current?.focus({ preventScroll: true })
+  }, [aba, nomeDaAba])
+
   // Layout da navegação (abas, trilho ou barra lateral) definido em index.css.
   return (
     <div className="app">
       <nav className="abas" aria-label="Seções">
+        <a className="so-leitor pular" href="#conteudo">
+          Pular para o conteúdo
+        </a>
         <p className="marca">MeUsMe</p>
         <button className="primario nav-capturar" onClick={() => setCapturando(true)} title="Captura rápida (Ctrl+Espaço)">
           <span aria-hidden="true">+</span> Capturar <kbd>Ctrl+Espaço</kbd>
@@ -207,21 +269,26 @@ export default function App() {
 
       <div className="conteudo">
         <header className="topo">
-          <h1>
-            <span className="so-estreito">{aba === 'ajustes' ? 'Ajustes' : 'MeUsMe'}</span>
+          <h1 ref={titulo} tabIndex={-1}>
+            <span className="so-estreito">
+              {aba === 'ajustes' ? 'Ajustes' : 'MeUsMe'}
+              {/* No celular o título mostra a marca; quem não vê a aba acesa ouve qual é. */}
+              {aba !== 'ajustes' && <span className="so-leitor"> · {nomeDaAba}</span>}
+            </span>
             <span className="so-lateral">{nomeDaAba}</span>
           </h1>
           <button
             className={`discreto icone-botao so-estreito ${aba === 'ajustes' ? 'ativo' : ''}`}
             onClick={() => setAba(aba === 'ajustes' ? 'agora' : 'ajustes')}
             aria-label="Ajustes"
+            aria-current={aba === 'ajustes' ? 'page' : undefined}
             title="Ajustes"
           >
             <Icone nome="ajustes" />
           </button>
         </header>
 
-        <main>
+        <main id="conteudo" tabIndex={-1}>
           {!introducaoVista ? <Introducao /> : aba === 'agora' && <Agora />}
           {introducaoVista && (
             <>
@@ -238,7 +305,8 @@ export default function App() {
 
       <Avisos />
 
-      <button className="fab" aria-label="Captura rápida (Ctrl+Espaço)" title="Captura rápida (Ctrl+Espaço)" onClick={() => setCapturando(true)}>
+      {/* No celular não há Ctrl+Espaço: o leitor de tela não precisa anunciar um atalho que não existe ali. */}
+      <button className="fab" aria-label={ehAndroid() ? 'Captura rápida' : 'Captura rápida (Ctrl+Espaço)'} title="Captura rápida (Ctrl+Espaço)" onClick={() => setCapturando(true)}>
         +
       </button>
 
