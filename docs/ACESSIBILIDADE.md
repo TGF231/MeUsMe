@@ -11,6 +11,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
   - a opção escolhida é anunciada como "ativado" (`aria-pressed`, `aria-checked`) e a seção atual como "página atual" (`aria-current`);
   - símbolos como ✓, ★, 📅 e ●○○ não são lidos como "marca de seleção" ou "estrela preta": o leitor ouve "Feito", "Compromisso", "Energia baixa" ou nada, quando são só enfeite (componente `Simbolo`, em `src/components/Icone.tsx`).
 - **Títulos:** cada cartão e cada seção dentro dele tem um título de verdade (h2, h3), para pular de um a outro.
+- **Foco não se perde:** quando o botão usado some ("Já fiz", "Apagar", uma captura processada), o foco vai para o conteúdo principal em vez de voltar ao começo da página.
 - **Onde se está:** ao trocar de seção, o foco vai para o título e o título da janela muda ("Caixa · MeUsMe"). No celular, onde o título mostra só "MeUsMe", o leitor ouve "MeUsMe · Caixa".
 - **Avisos e erros:**
   - avisos, mensagens de ditado e mensagens de sincronização são lidos assim que aparecem (`role="status"`); erros, com prioridade (`role="alert"`);

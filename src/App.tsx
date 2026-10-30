@@ -207,6 +207,21 @@ export default function App() {
     return () => window.removeEventListener('keydown', atalho)
   }, [])
 
+  // Botão que some ao ser usado ("Já fiz", "Apagar", uma captura processada): o navegador joga o foco para o começo
+  // da página e o leitor de tela recomeça do topo. Aqui o foco vai para o conteúdo, onde a pessoa estava.
+  useEffect(() => {
+    const aoClicar = (e: MouseEvent) => {
+      const alvo = e.target instanceof Element ? e.target.closest('button, a') : null
+      if (!alvo) return
+      setTimeout(() => {
+        if (!alvo.isConnected && (document.activeElement === document.body || !document.activeElement))
+          document.getElementById('conteudo')?.focus({ preventScroll: true })
+      })
+    }
+    document.addEventListener('click', aoClicar)
+    return () => document.removeEventListener('click', aoClicar)
+  }, [])
+
   // Armazenamento quase cheio: gravações começariam a falhar sem aviso.
   useEffect(() => {
     if (usoDoArmazenamento() > 0.8)
