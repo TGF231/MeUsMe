@@ -101,7 +101,7 @@ function Modelos({ onCriado }: { onCriado: (id: string) => void }) {
   if (s.modelos.length === 0) return null
   return (
     <div className="cartao">
-      <p className="rotulo">Começar de um modelo</p>
+      <h2 className="rotulo">Começar de um modelo</h2>
       <div className="chips" role="group" aria-label="Começar de um modelo">
         {s.modelos.map((m) => (
           <button
@@ -248,7 +248,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
 
           {proximo ? (
             <div className="cartao foco">
-              <p className="rotulo">Próximo passo</p>
+              <h2 className="rotulo">Próximo passo</h2>
               <PassoEditavel key={proximo.id} passo={proximo} destaque />
             </div>
           ) : (

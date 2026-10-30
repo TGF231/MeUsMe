@@ -73,7 +73,7 @@ test('grupo de botões de escolha tem nome', () => {
   const semNome: string[] = []
   for (const { caminho, linhas } of arquivos)
     linhas.forEach((linha, i) => {
-      if (/className="(segmentado|chips)"/.test(linha) && !/aria-label(ledby)?=/.test(linha)) semNome.push(`${caminho}:${i + 1}`)
+      if (/className="(?:[^"]* )?(segmentado|chips)[ "]/.test(linha) && !/aria-label(ledby)?=/.test(linha)) semNome.push(`${caminho}:${i + 1}`)
     })
   assert.deepEqual(semNome, [], 'role="group" aria-label="…" com o mesmo texto do rótulo visível')
 })

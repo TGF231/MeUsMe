@@ -41,7 +41,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
       <p className="motivo">Cinco minutos para a semana não começar no escuro. Pule o que não fizer sentido.</p>
 
       <div className="etapa">
-        <p className="rotulo">1. Caixa</p>
+        <h3 className="rotulo">1. Caixa</h3>
         {s.capturas.length === 0 ? (
           <p>Vazia.</p>
         ) : (
@@ -55,7 +55,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
       </div>
 
       <div className="etapa">
-        <p className="rotulo">2. Um projeto para a semana</p>
+        <h3 className="rotulo">2. Um projeto para a semana</h3>
         {ativos.length === 0 ? (
           <p className="motivo">Nenhum projeto ativo. Uma captura da Caixa pode virar um.</p>
         ) : (
@@ -72,7 +72,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
 
       {semProximo.length > 0 && (
         <div className="etapa">
-          <p className="rotulo">3. Projetos sem próximo passo</p>
+          <h3 className="rotulo">3. Projetos sem próximo passo</h3>
           {semProximo.map((p) => (
             <div key={p.id} className="linha entre">
               <span>{p.titulo}</span>
@@ -83,7 +83,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
       )}
 
       <div className="etapa">
-        <p className="rotulo">{semProximo.length > 0 ? '4' : '3'}. Os próximos 7 dias</p>
+        <h3 className="rotulo">{semProximo.length > 0 ? '4' : '3'}. Os próximos 7 dias</h3>
         <div className="linha entre">
           <span>
             {compromissos === 0 ? 'Nenhum compromisso marcado.' : `${compromissos} compromisso${compromissos > 1 ? 's' : ''}.`}

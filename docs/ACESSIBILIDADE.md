@@ -10,6 +10,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
   - todo botão, campo e grupo de escolha tem nome;
   - a opção escolhida é anunciada como "ativado" (`aria-pressed`, `aria-checked`) e a seção atual como "página atual" (`aria-current`);
   - símbolos como ✓, ★, 📅 e ●○○ não são lidos como "marca de seleção" ou "estrela preta": o leitor ouve "Feito", "Compromisso", "Energia baixa" ou nada, quando são só enfeite (componente `Simbolo`, em `src/components/Icone.tsx`).
+- **Títulos:** cada cartão e cada seção dentro dele tem um título de verdade (h2, h3), para pular de um a outro.
 - **Onde se está:** ao trocar de seção, o foco vai para o título e o título da janela muda ("Caixa · MeUsMe"). No celular, onde o título mostra só "MeUsMe", o leitor ouve "MeUsMe · Caixa".
 - **Avisos e erros:**
   - avisos, mensagens de ditado e mensagens de sincronização são lidos assim que aparecem (`role="status"`); erros, com prioridade (`role="alert"`);
@@ -88,19 +89,20 @@ Vale testar com uma pessoa que use leitor de tela no dia a dia antes de publicar
    - o que acende com `className="ativo"` leva `aria-pressed`;
    - com `role="radio"`, leva `aria-checked`;
    - na navegação, `aria-current="page"`.
-2. **Grupo de botões** (`.segmentado`, `.chips`): `role="group"` e `aria-label` com o texto do rótulo visível.
-3. **Campo:**
+2. **Título de seção** com cara de rótulo: `<h2 className="rotulo">` (ou `h3` dentro de um cartão que já tem título), não `<p>`: quem usa leitor de tela pula de título em título.
+3. **Grupo de botões** (`.segmentado`, `.chips`): `role="group"` e `aria-label` com o texto do rótulo visível.
+4. **Campo:**
    - `aria-label`, ou `id` com `<label htmlFor>`, ou dentro do `<label>`;
    - placeholder não serve de nome: some ao digitar e a WebView do Android não o entrega como nome.
-4. **Símbolo no meio do texto:** `<Simbolo c="✓" diz="Feito" />`; sem `diz`, quando é só enfeite.
-5. **Botão só com ícone:** `aria-label` com o mesmo nome que a dica (`title`).
-6. **Janela sobre a tela:** `useJanelaModal` com `<dialog className="fundo">`, e `onCancel` para o Esc.
-7. **Mensagem que aparece depois de uma ação:** `role="status"`; erro, `role="alert"`.
-8. **Nada some sozinho sem respeitar "Avisos ficam até eu fechar".**
-9. **Tamanho:** fonte em `rem`; alvo novo com pelo menos 44 px (`min-height`), salvo em lista densa, onde o mínimo é 30 px.
-10. **Nada só por cor, só por som ou só por voz.**
-11. **Notificação no Android:** `channelId: CANAL` depois de `await garantirCanal()` (`src/notificacoes.ts`).
-12. **Cor nova:** token do MegUI, conferido também com o contraste alto ligado.
+5. **Símbolo no meio do texto:** `<Simbolo c="✓" diz="Feito" />`; sem `diz`, quando é só enfeite.
+6. **Botão só com ícone:** `aria-label` com o mesmo nome que a dica (`title`).
+7. **Janela sobre a tela:** `useJanelaModal` com `<dialog className="fundo">`, e `onCancel` para o Esc.
+8. **Mensagem que aparece depois de uma ação:** `role="status"`; erro, `role="alert"`.
+9. **Nada some sozinho sem respeitar "Avisos ficam até eu fechar".**
+10. **Tamanho:** fonte em `rem`; alvo novo com pelo menos 44 px (`min-height`), salvo em lista densa, onde o mínimo é 30 px.
+11. **Nada só por cor, só por som ou só por voz.**
+12. **Notificação no Android:** `channelId: CANAL` depois de `await garantirCanal()` (`src/notificacoes.ts`).
+13. **Cor nova:** token do MegUI, conferido também com o contraste alto ligado.
 
 Para auditar no navegador, com o app aberto (`npm run dev`), cole no console:
 

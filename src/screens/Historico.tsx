@@ -59,7 +59,7 @@ export function Historico() {
           <UsoDoComputador />
 
           <div className="cartao">
-            <p className="rotulo">Palpite × tempo real</p>
+            <h2 className="rotulo">Palpite × tempo real</h2>
             {cal ? (
               <>
                 <p>{explicarFator(cal.fator)}</p>
@@ -76,7 +76,7 @@ export function Historico() {
           </div>
 
           <div className="cartao">
-            <p className="rotulo">Últimos 7 dias</p>
+            <h2 className="rotulo">Últimos 7 dias</h2>
             <div className="numeros">
               <span>
                 <b>{feitos7.length}</b> passo{feitos7.length === 1 ? '' : 's'} feito{feitos7.length === 1 ? '' : 's'}
@@ -92,7 +92,7 @@ export function Historico() {
             </div>
             {ranking.length > 0 && (
               <>
-                <p className="rotulo">Onde o tempo foi</p>
+                <h3 className="rotulo">Onde o tempo foi</h3>
                 {ranking.map(([pid, m]) => (
                   <div key={pid} className="barra-linha">
                     <div className="linha entre">

@@ -73,7 +73,7 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
       <div className="col">
         <StatusBancos sync={sync} />
         <div className="cartao foco destaque">
-          <p className="rotulo">Livre para gastar por dia até o fim do mês</p>
+          <h2 className="rotulo">Livre para gastar por dia até o fim do mês</h2>
           <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
           <p className="motivo">
             Saldo {reais(p.saldo)} · a pagar {reais(p.aPagar)}
@@ -243,7 +243,7 @@ function Lancamentos() {
       {lista.length === 0 && <p className="vazio-texto">Nada neste mês.</p>}
       {dias.map((dia) => (
         <div key={dia} className="cartao">
-          <p className="rotulo">{nomeDoDia(dia)}</p>
+          <h2 className="rotulo">{nomeDoDia(dia)}</h2>
           {lista
             .filter((t) => t.data === dia)
             .map((t) => (

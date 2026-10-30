@@ -174,7 +174,7 @@ export function RestoDoDia() {
 
   return (
     <div className="cartao compacto resto-do-dia">
-      <p className="rotulo">Resto do dia</p>
+      <h2 className="rotulo">Resto do dia</h2>
       {itens.length === 0 && <p className="motivo">Nada mais marcado para hoje.</p>}
       {itens.slice(0, 8).map((i) => (
         <p key={i.id} className="linha-dia">
@@ -221,7 +221,7 @@ export function Agenda() {
       <div className="visao-semana">
         {dias.map((d) => (
           <div key={d} className={`cartao dia-semana ${d === inicioDoDia(agora) ? 'hoje' : ''}`}>
-            <p className="rotulo">{nomeDoDia(dataISO(d))}</p>
+            <h2 className="rotulo">{nomeDoDia(dataISO(d))}</h2>
             <ListaDoDia dia={d} />
           </div>
         ))}

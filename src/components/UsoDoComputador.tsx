@@ -27,8 +27,8 @@ export function UsoDoComputador() {
   return (
     <div className="cartao">
       <div className="linha entre">
-        <p className="rotulo">Tempo no computador</p>
-        <div className="segmentado mini-segmentado">
+        <h2 className="rotulo">Tempo no computador</h2>
+        <div className="segmentado mini-segmentado" role="group" aria-label="Período">
           <button className={periodo === 1 ? 'ativo' : ''} aria-pressed={periodo === 1} onClick={() => setPeriodo(1)}>
             Hoje
           </button>

@@ -1633,3 +1633,8 @@ button.perigo:hover {
   --borda: var(--megui-ink3);
   --borda-2: var(--megui-ink2);
 }
+
+/* Título de seção com cara de rótulo: <h2 className="rotulo"> para o leitor de tela pular por títulos, com a margem que o <p> tinha. */
+:is(h2, h3).rotulo {
+  margin: 1em 0;
+}
