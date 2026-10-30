@@ -15,7 +15,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
   - avisos, mensagens de ditado e mensagens de sincronização são lidos assim que aparecem (`role="status"`); erros, com prioridade (`role="alert"`);
   - nos tutoriais, ao avançar, o texto da tela nova é lido sem o foco sair do botão.
 - **Texto grande:**
-  - Ajustes → Acessibilidade → Tamanho do texto vai até 150%;
+  - Ajustes → Acessibilidade → Tamanho do texto vai até 150%; no app Windows, onde o zoom do WebView vem desligado, Ctrl + e Ctrl − também mudam o tamanho e Ctrl 0 volta ao normal;
   - soma com o tamanho de fonte do sistema: o Android já aumenta o texto da WebView sozinho (verificado no emulador com a fonte do sistema em 130%);
   - todo tamanho no CSS é em `rem`, então tudo cresce junto;
   - a 375 px de largura com 150%, nada corta na horizontal; os nomes da barra de baixo ganham reticências, mas o leitor de tela lê o nome inteiro.

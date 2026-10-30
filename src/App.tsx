@@ -1,5 +1,6 @@
 import { App as AppNativo } from '@capacitor/app'
 import { useEffect, useRef, useState } from 'react'
+import { proximoTamanho } from './acessibilidade'
 import { useAgendador } from './agendador'
 import { useJanelaModal } from './hooks'
 import { Icone } from './components/Icone'
@@ -10,7 +11,7 @@ import { EXEMPLOS_DE_CAMPO } from './motor/tutorial'
 import { useNavegacao, type Aba } from './navegacao'
 import { Captura, processarCapturas } from './nativo/captura'
 import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
-import { ehAndroid, ehNativo } from './nativo/plataforma'
+import { ehAndroid, ehDesktop, ehNativo } from './nativo/plataforma'
 import { Agenda } from './screens/Agenda'
 import { Agora } from './screens/Agora'
 import { Ajustes } from './screens/Ajustes'
@@ -189,6 +190,12 @@ export default function App() {
       if (e.ctrlKey && e.code === 'Space') {
         e.preventDefault()
         setCapturando(true)
+      } else if (ehDesktop() && e.ctrlKey && ['Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'Digit0', 'Numpad0'].includes(e.code)) {
+        // App Windows: o zoom do WebView vem desligado, então Ctrl + / Ctrl − / Ctrl 0 mudam o tamanho do texto do app.
+        e.preventDefault()
+        const { tamanhoTexto, ajustar } = useConfig.getState()
+        const mais = e.code === 'Equal' || e.code === 'NumpadAdd'
+        ajustar({ tamanhoTexto: e.code.endsWith('0') ? 1 : proximoTamanho(tamanhoTexto, mais ? 1 : -1) })
       } else if (e.altKey && !e.ctrlKey && /^Digit[1-7]$/.test(e.code)) {
         // Alt+1 a Alt+7: as seções na ordem da navegação, sem passar por todas com Tab.
         e.preventDefault()

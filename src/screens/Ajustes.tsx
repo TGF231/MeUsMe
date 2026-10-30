@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { TAMANHOS_TEXTO } from '../acessibilidade'
 import { lerBackup, montarBackup } from '../backup'
 import { ComoEscrever } from '../components/ComoEscrever'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
@@ -343,13 +344,6 @@ function Aparencia() {
   )
 }
 
-const TAMANHOS = [
-  [1, 'Normal'],
-  [1.15, 'Grande'],
-  [1.3, 'Maior'],
-  [1.5, 'Máximo'],
-] as const
-
 function Acessibilidade() {
   const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, ajustar } = useConfig()
   return (
@@ -359,13 +353,15 @@ function Acessibilidade() {
         Tamanho do texto
       </p>
       <div className="segmentado" role="group" aria-labelledby="tamanho-texto">
-        {TAMANHOS.map(([t, nome]) => (
+        {TAMANHOS_TEXTO.map(([t, nome]) => (
           <button key={t} className={tamanhoTexto === t ? 'ativo' : ''} aria-pressed={tamanhoTexto === t} onClick={() => ajustar({ tamanhoTexto: t })}>
             {nome}
           </button>
         ))}
       </div>
-      <p className="motivo">Vale só para este aparelho e soma com o tamanho de fonte do sistema.</p>
+      <p className="motivo">
+        Vale só para este aparelho e soma com o tamanho de fonte do sistema.{ehDesktop() && ' Ctrl + e Ctrl − também mudam, e Ctrl 0 volta ao normal.'}
+      </p>
       <label className="check">
         <input type="checkbox" checked={contrasteAlto} onChange={(e) => ajustar({ contrasteAlto: e.target.checked })} />
         <span>Contraste alto</span>

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { test } from 'node:test'
+import { proximoTamanho } from '../src/acessibilidade.ts'
 
 // Varre o JSX atrás do que o axe (auditoria automática) não pega: estado que só aparece na cor e símbolo lido em voz alta.
 // O que foi verificado à mão, e como, está em docs/ACESSIBILIDADE.md.
@@ -75,4 +76,14 @@ test('grupo de botões de escolha tem nome', () => {
       if (/className="(segmentado|chips)"/.test(linha) && !/aria-label(ledby)?=/.test(linha)) semNome.push(`${caminho}:${i + 1}`)
     })
   assert.deepEqual(semNome, [], 'role="group" aria-label="…" com o mesmo texto do rótulo visível')
+})
+
+test('Ctrl + e Ctrl − andam pelos tamanhos do texto e param nas pontas', () => {
+  assert.equal(proximoTamanho(1, 1), 1.15)
+  assert.equal(proximoTamanho(1.3, 1), 1.5)
+  assert.equal(proximoTamanho(1.5, 1), 1.5)
+  assert.equal(proximoTamanho(1.15, -1), 1)
+  assert.equal(proximoTamanho(1, -1), 1)
+  // Valor fora da lista anda a partir do mais próximo.
+  assert.equal(proximoTamanho(1.2, 1), 1.3)
 })
