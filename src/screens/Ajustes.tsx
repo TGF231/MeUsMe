@@ -351,7 +351,7 @@ const TAMANHOS = [
 ] as const
 
 function Acessibilidade() {
-  const { tamanhoTexto, alvosGrandes, avisosFicam, ajustar } = useConfig()
+  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, ajustar } = useConfig()
   return (
     <div className="cartao">
       <h2 className="titulo">Acessibilidade</h2>
@@ -366,6 +366,11 @@ function Acessibilidade() {
         ))}
       </div>
       <p className="motivo">Vale só para este aparelho e soma com o tamanho de fonte do sistema.</p>
+      <label className="check">
+        <input type="checkbox" checked={contrasteAlto} onChange={(e) => ajustar({ contrasteAlto: e.target.checked })} />
+        <span>Contraste alto</span>
+      </label>
+      <p className="motivo">Texto secundário no tom do texto principal e bordas mais fortes. Liga sozinho quando o sistema pede mais contraste.</p>
       <label className="check">
         <input type="checkbox" checked={alvosGrandes} onChange={(e) => ajustar({ alvosGrandes: e.target.checked })} />
         <span>Botões maiores</span>

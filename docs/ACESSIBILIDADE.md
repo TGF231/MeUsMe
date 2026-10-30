@@ -21,13 +21,16 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
   - a 375 px de largura com 150%, nada corta na horizontal; os nomes da barra de baixo ganham reticências, mas o leitor de tela lê o nome inteiro.
 - **Contraste:**
   - as cores vêm do MegUI: o contraste do texto passou no axe nos temas claro e escuro, e as marcas sem texto (anel de foco, borda de seleção) têm 3:1;
+  - **contraste alto** (Ajustes → Acessibilidade, ou sozinho quando o sistema pede mais contraste, `prefers-contrast: more`): o texto secundário vai para o tom do texto principal e as bordas para tons de texto;
+  - nada fica só na cor: limite estourado diz "passou do limite"; compromisso que já passou ou está acontecendo é anunciado ao leitor de tela;
   - no alto contraste do Windows (`forced-colors`), a opção escolhida, a aba atual e as barras de progresso ganham contorno ou a cor de destaque do sistema, porque os fundos coloridos somem nesse modo.
 
 ### Quem não ouve
 
 - Nenhum aviso depende de som:
   - com o app aberto, o lembrete aparece como aviso na tela;
-  - com o app fechado, vira notificação do sistema, que aparece na tela (e vibra, se o aparelho estiver configurado para isso).
+  - com o app fechado, vira notificação do sistema;
+  - no Android, a notificação usa um canal próprio ("Lembretes e compromissos", `CANAL` em `src/notificacoes.ts`), que aparece por cima da tela e vibra. O canal padrão do plugin só tocava som e ficava na barra de status.
 - O ditado vira texto na hora e mostra o que entendeu.
 - **Limitação:** o recado de voz gravado não é transcrito. A transcrição só existe no ditado, que já vira texto antes de ser guardado.
 
@@ -63,6 +66,9 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
 | Regras WCAG 2.2 A/AA e boas práticas | axe-core 4.10 no navegador, nas 7 seções, nos temas claro e escuro, com texto a 150% e botões maiores, e com cada formulário aberto (novo compromisso, novo lembrete, novo projeto, as 6 abas de Finanças, virar projeto na Caixa) | Sem violações |
 | Árvore de acessibilidade no Android | `uiautomator dump` no emulador (API 37): nomes, `ToggleButton` com o estado marcado, fundo fora da árvore com a captura aberta | Como esperado |
 | Fonte do sistema no Android | Emulador com `font_scale` 1.0 e 1.3 | A WebView acompanha sem código nativo |
+| Canal de notificação | `dumpsys notification` no emulador depois de agendar um lembrete | `avisos` com importância 4 e vibração (o `default` do plugin tem importância 3, sem vibração) |
+| Contraste e espaçamento | Compromisso que já passou injetado na Agenda; CSS de espaçamento da WCAG 1.4.12 (altura de linha 1,5, espaço entre letras 0,12em) nas 7 seções | De 2,5:1 para 6,4:1 depois da correção; nenhum texto cortado |
+| Rótulo no nome (controle por voz) | Regra `label-content-name-mismatch` do axe e comparação do texto visível com o `aria-label` de cada botão | O nome sempre contém o texto visível |
 | Teclado | Ctrl+Espaço, digitar, Enter, Esc, Ctrl+Z e o link de pular, no navegador | Foco certo em cada passo |
 | Regressão | `testes/acessibilidade.test.ts` varre o JSX: botão "ativo" sem estado, símbolo solto, campo sem nome, grupo sem nome | Roda no `npm test` |
 
@@ -91,6 +97,8 @@ Vale testar com uma pessoa que use leitor de tela no dia a dia antes de publicar
 8. **Nada some sozinho sem respeitar "Avisos ficam até eu fechar".**
 9. **Tamanho:** fonte em `rem`; alvo novo com pelo menos 44 px (`min-height`), salvo em lista densa, onde o mínimo é 30 px.
 10. **Nada só por cor, só por som ou só por voz.**
+11. **Notificação no Android:** `channelId: CANAL` depois de `await garantirCanal()` (`src/notificacoes.ts`).
+12. **Cor nova:** token do MegUI, conferido também com o contraste alto ligado.
 
 Para auditar no navegador, com o app aberto (`npm run dev`), cole no console:
 

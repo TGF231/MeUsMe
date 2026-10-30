@@ -41,12 +41,33 @@ export const abrirAjusteDeHorarioExato = () => LocalNotifications.changeExactNot
 
 const ICONE = `${import.meta.env.BASE_URL}icone.svg`
 
+/**
+ * Canal dos avisos no Android. O canal padrão do plugin tem importância média: toca som e fica só na barra de status,
+ * e quem não ouve perde o aviso. Este aparece por cima da tela e vibra; sem `sound`, o Android usa o som padrão.
+ * O Android não deixa mudar a importância de um canal já criado, por isso um id próprio em vez do padrão.
+ */
+export const CANAL = 'avisos'
+let canalCriado: Promise<void> | null = null
+export const garantirCanal = () =>
+  (canalCriado ??= LocalNotifications.createChannel({
+    id: CANAL,
+    name: 'Lembretes e compromissos',
+    description: 'Aparecem por cima da tela e vibram, para não depender do som.',
+    importance: 4,
+    visibility: 1,
+    vibration: true,
+    lights: true,
+  }).catch(() => {
+    canalCriado = null
+  }))
+
 /** Com o app em foco, mostra aviso interno; caso contrário, notificação do sistema. */
 export async function notificar(titulo: string, corpo: string, tag?: string) {
   const olhando = document.visibilityState === 'visible' && document.hasFocus()
   if (ehNativo()) {
     if (olhando) return useAvisos.getState().mostrar(titulo, corpo)
-    await LocalNotifications.schedule({ notifications: [{ id: Date.now() % 2_000_000_000, title: titulo, body: corpo, extra: { chave: tag } }] })
+    await garantirCanal()
+    await LocalNotifications.schedule({ notifications: [{ id: Date.now() % 2_000_000_000, channelId: CANAL, title: titulo, body: corpo, extra: { chave: tag } }] })
     return
   }
   if (ehDesktop()) {

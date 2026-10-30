@@ -13,14 +13,16 @@ export function temaEfetivo() {
   return tema === 'auto' ? (sistemaEscuro() ? 'escuro' : 'claro') : tema
 }
 
-/** Tamanho do texto (tudo no app é em rem, então cresce junto) e alvos grandes (data-alvos, em index.css). */
+/** Tamanho do texto (tudo no app é em rem, então cresce junto), alvos grandes e contraste alto (data-*, em index.css). */
 function aplicarAcessibilidade() {
-  const { tamanhoTexto, alvosGrandes } = useConfig.getState()
+  const { tamanhoTexto, alvosGrandes, contrasteAlto } = useConfig.getState()
   const raiz = document.documentElement
   if (tamanhoTexto === 1) raiz.style.removeProperty('font-size')
   else raiz.style.fontSize = `${tamanhoTexto * 100}%`
   if (alvosGrandes) raiz.dataset.alvos = 'grandes'
   else delete raiz.dataset.alvos
+  if (contrasteAlto) raiz.dataset.contraste = 'alto'
+  else delete raiz.dataset.contraste
 }
 
 /**
@@ -59,7 +61,8 @@ export function manterTema() {
   let anterior = useConfig.getState()
   const pararConfig = useConfig.subscribe((s) => {
     if (s.tema !== anterior.tema || s.acento !== anterior.acento) aplicarTema()
-    else if (s.tamanhoTexto !== anterior.tamanhoTexto || s.alvosGrandes !== anterior.alvosGrandes) aplicarAcessibilidade()
+    else if (s.tamanhoTexto !== anterior.tamanhoTexto || s.alvosGrandes !== anterior.alvosGrandes || s.contrasteAlto !== anterior.contrasteAlto)
+      aplicarAcessibilidade()
     anterior = s
   })
   const sistema = window.matchMedia('(prefers-color-scheme: dark)')

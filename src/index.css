@@ -1603,3 +1603,23 @@ button.perigo:hover {
     border: 1px solid CanvasText;
   }
 }
+
+/*
+ * Contraste alto: pedido pelo sistema (prefers-contrast) ou em Ajustes → Acessibilidade (data-contraste).
+ * Texto secundário vai para o tom principal e as bordas para tons de texto, sempre com os tokens do MegUI.
+ */
+@media (prefers-contrast: more) {
+  :root {
+    --suave: var(--megui-ink);
+    --apagado: var(--megui-ink2);
+    --borda: var(--megui-ink3);
+    --borda-2: var(--megui-ink2);
+  }
+}
+
+:root[data-contraste='alto'] {
+  --suave: var(--megui-ink);
+  --apagado: var(--megui-ink2);
+  --borda: var(--megui-ink3);
+  --borda-2: var(--megui-ink2);
+}

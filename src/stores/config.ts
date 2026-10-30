@@ -32,6 +32,8 @@ interface Estado {
   alvosGrandes: boolean
   /** Avisos só saem quando a pessoa fecha (sem os 12 s). Sincroniza. */
   avisosFicam: boolean
+  /** Texto secundário no tom principal e bordas fortes (também liga com prefers-contrast). Sincroniza. */
+  contrasteAlto: boolean
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -58,6 +60,7 @@ export const useConfig = create<Estado>()(
       tamanhoTexto: 1,
       alvosGrandes: false,
       avisosFicam: false,
+      contrasteAlto: false,
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>
