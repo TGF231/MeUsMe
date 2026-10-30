@@ -66,6 +66,8 @@ export function Introducao() {
               <button onClick={concluir}>Começar vazio</button>
             </div>
             <p className="motivo">O MeUsMe é um programa de organização de tarefas.</p>
+            {/* Quem precisa de texto maior, mais contraste ou mais tempo fica sabendo antes de esbarrar no problema. */}
+            <p className="motivo">Texto maior, contraste alto, botões maiores e avisos sem pressa ficam em Ajustes → Acessibilidade.</p>
           </>
         ) : (
           <div className="linha centralizada">
