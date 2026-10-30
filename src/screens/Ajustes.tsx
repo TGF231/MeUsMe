@@ -410,6 +410,7 @@ function Windows() {
       {atalho && !atalho.startsWith('super') && (
         <p className="dica">O Windows não liberou Win + Ctrl + Alt + Espaço; o atalho acima é o reserva.</p>
       )}
+      <p className="motivo">Difícil apertar tudo junto? Com as Teclas de Aderência do Windows (aperte Shift cinco vezes), vai uma tecla de cada vez.</p>
       <label className="check">
         <input
           type="checkbox"

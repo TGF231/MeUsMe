@@ -45,7 +45,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
 - **Teclado:**
   - tudo funciona sem mouse;
   - o primeiro Tab mostra o link "Pular para o conteúdo";
-  - Ctrl+Espaço abre a captura rápida;
+  - Ctrl+Espaço abre a captura rápida; no Windows, o atalho global (Win + Ctrl + Alt + Espaço) funciona uma tecla de cada vez com as Teclas de Aderência do sistema, como o cartão Windows em Ajustes explica;
   - Alt+1 a Alt+7 vão direto para cada seção, na ordem da navegação (Ajustes é o 7), e o leitor de tela anuncia o atalho de cada uma (`aria-keyshortcuts`);
   - Ctrl+Z, fora de um campo de texto, desfaz o que o app acabou de criar sozinho, sem precisar alcançar o botão Desfazer.
 - **Janelas** (captura rápida, tutorial):
