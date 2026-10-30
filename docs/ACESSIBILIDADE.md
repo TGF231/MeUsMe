@@ -73,7 +73,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
 | O quê | Como | Resultado |
 | --- | --- | --- |
 | Regras WCAG 2.2 A/AA e boas práticas | axe-core 4.10 no navegador, nas 7 seções, nos temas claro e escuro, com texto a 150% e botões maiores, e com cada formulário aberto (novo compromisso, novo lembrete, novo projeto, as 6 abas de Finanças, virar projeto na Caixa) | Sem violações |
-| Árvore de acessibilidade no Android | `uiautomator dump` no emulador (API 37): nomes, `ToggleButton` com o estado marcado, fundo fora da árvore com a captura aberta | Como esperado |
+| Árvore de acessibilidade no Android | `uiautomator dump` no emulador (API 37): nomes, `ToggleButton` com o estado marcado, fundo fora da árvore com a captura aberta | Como esperado na primeira leitura. Em leituras seguintes a WebView entregou uma árvore reduzida, sem estado nem para caixas de seleção nativas: o estado não dá para conferir sempre por esse caminho |
 | Fonte do sistema no Android | Emulador com `font_scale` 1.0 e 1.3 | A WebView acompanha sem código nativo |
 | Canal de notificação | `dumpsys notification` no emulador depois de agendar um lembrete | `avisos` com importância 4 e vibração (o `default` do plugin tem importância 3, sem vibração) |
 | Contraste e espaçamento | Compromisso que já passou injetado na Agenda; CSS de espaçamento da WCAG 1.4.12 (altura de linha 1,5, espaço entre letras 0,12em) nas 7 seções | De 2,5:1 para 6,4:1 depois da correção; nenhum texto cortado |
