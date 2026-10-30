@@ -60,6 +60,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
   - Ajustes → Acessibilidade → "Botões maiores" leva todos a 48 px (a medida do Android) e aumenta o espaço entre eles.
 - **Toque errado não perde nada:**
   - apagar captura de texto, ideia, passo, lembrete, lançamento ou conta fixa avisa com Desfazer (`apagarComDesfazer`, em `src/desfazer.ts`), que devolve o item ao mesmo lugar;
+  - "Já fiz" sem querer: o cartão de Feito tem "Não terminei: voltar para a fila";
   - o que leva outra coisa junto pede confirmação: o recado de voz (o áudio sai do aparelho) e a categoria (os lançamentos ficam sem ela);
   - os botões de apagar dizem qual item apagam ("Apagar lançamento mercado"), não só "Apagar".
 - **Gestos:** nenhum gesto de arrastar, deslizar, segurar ou tocar duas vezes; tudo é um toque.

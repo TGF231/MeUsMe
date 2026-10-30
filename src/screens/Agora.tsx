@@ -212,6 +212,16 @@ export function Agora() {
               Próximo
             </button>
           )}
+          {/* Toque errado no Feito (tremor, ponteira, acionador): o passo volta para a fila como estava. */}
+          <button
+            className="discreto"
+            onClick={() => {
+              s.atualizarPasso(passoId, { feitoEm: undefined })
+              setCelebrar(null)
+            }}
+          >
+            Não terminei: voltar para a fila
+          </button>
         </div>
         {rodape}
       </section>
