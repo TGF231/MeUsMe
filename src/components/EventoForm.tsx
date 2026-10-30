@@ -54,15 +54,15 @@ export function EventoForm({ inicial, rotulo = 'Criar compromisso', onPronto, on
         onPronto?.()
       }}
     >
-      <input autoFocus={!inicial?.titulo} value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="O quê?" aria-label="Título" />
+      <input required autoFocus={!inicial?.titulo} value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="O quê?" aria-label="Título" />
       <div className="linha">
-        <input type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Dia" className="flex" />
-        <input type="time" value={horaTexto} onChange={(e) => setHoraTexto(e.target.value)} aria-label="Hora" className="flex" />
+        <input required type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Dia" className="flex" />
+        <input required type="time" value={horaTexto} onChange={(e) => setHoraTexto(e.target.value)} aria-label="Hora" className="flex" />
       </div>
       <label className="rotulo">Duração</label>
-      <div className="chips">
+      <div className="chips" role="group" aria-label="Duração">
         {DURACOES.map((d) => (
-          <button key={d} type="button" className={minutos === d ? 'ativo' : ''} onClick={() => setMinutos(d)}>
+          <button key={d} type="button" className={minutos === d ? 'ativo' : ''} aria-pressed={minutos === d} onClick={() => setMinutos(d)}>
             {duracao(d)}
           </button>
         ))}

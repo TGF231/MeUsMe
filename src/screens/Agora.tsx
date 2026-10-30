@@ -15,6 +15,7 @@ import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import type { Energia, Evento, Projeto } from '../types'
 import { duracao, hora, inicioDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
+import { Simbolo } from '../components/Icone'
 
 const relogio = (ms: number) => {
   const s = Math.floor(ms / 1000)
@@ -37,14 +38,18 @@ function PendenciasDeHoje({ agora }: { agora: number }) {
     <div className="cartao compacto pendencias">
       {lembretes.map((l) => (
         <div key={l.id} className="linha entre">
-          <span>⏰ {l.texto}</span>
+          <span>
+            <Simbolo c="⏰" diz="Lembrete" />
+            {l.texto}
+          </span>
           <button onClick={() => agenda.concluirLembrete(l.id)}>Feito</button>
         </div>
       ))}
       {contas.map((f) => (
         <div key={f.id} className="linha entre">
           <span>
-            💸 {f.nome} · {reais(f.valor)}{' '}
+            <Simbolo c="💸" diz="Conta" />
+            {f.nome} · {reais(f.valor)}{' '}
             <span className="motivo">{diaDeVencimento(f) === diaHoje ? 'vence hoje' : `venceu dia ${diaDeVencimento(f)}`}</span>
           </span>
           <button onClick={() => fin.pagarFixa(f.id)}>Paguei</button>
@@ -207,6 +212,16 @@ export function Agora() {
               Próximo
             </button>
           )}
+          {/* Toque errado no Feito (tremor, ponteira, acionador): o passo volta para a fila como estava. */}
+          <button
+            className="discreto"
+            onClick={() => {
+              s.atualizarPasso(passoId, { feitoEm: undefined })
+              setCelebrar(null)
+            }}
+          >
+            Não terminei: voltar para a fila
+          </button>
         </div>
         {rodape}
       </section>
@@ -247,7 +262,7 @@ export function Agora() {
         >
           <label className="rotulo">Surgiu uma ideia? Estacione aqui e continue.</label>
           <div className="linha">
-            <input
+            <input aria-label="Ideia para estacionar"
               value={ideia}
               onChange={(e) => (setIdeia(e.target.value), setGuardada(''))}
               placeholder="A ideia fica guardada, sem desviar você"
@@ -256,7 +271,7 @@ export function Agora() {
           </div>
           {guardada && (
             <p className="motivo" role="status">
-              ✓ “{guardada}” guardada {projeto ? `em ${projeto.titulo}` : 'na Caixa'}. Pode voltar ao passo.
+              <Simbolo c="✓" />“{guardada}” guardada {projeto ? `em ${projeto.titulo}` : 'na Caixa'}. Pode voltar ao passo.
             </p>
           )}
         </form>

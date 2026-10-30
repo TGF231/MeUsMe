@@ -55,14 +55,14 @@ export function ListaDeEspera() {
       >
         <label className="rotulo">Vontade de comprar algo? Anote e espere antes de decidir.</label>
         <div className="linha">
-          <input className="flex" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Ex.: 250 fone novo" />
+          <input aria-label="O que você quer comprar" className="flex" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Ex.: 250 fone novo" />
           <button type="submit" className="primario">
             Esperar {nomePrazo(cfg.horasDeEspera)}
           </button>
         </div>
-        <div className="chips">
+        <div className="chips" role="group" aria-label="Quanto tempo esperar">
           {PRAZOS.map((h) => (
-            <button type="button" key={h} className={cfg.horasDeEspera === h ? 'ativo' : ''} onClick={() => cfg.ajustar({ horasDeEspera: h })}>
+            <button type="button" key={h} className={cfg.horasDeEspera === h ? 'ativo' : ''} aria-pressed={cfg.horasDeEspera === h} onClick={() => cfg.ajustar({ horasDeEspera: h })}>
               {nomePrazo(h)}
             </button>
           ))}

@@ -16,6 +16,8 @@ import {
 } from '../stores/financas'
 import type { ContaFixa, Transacao } from '../types'
 import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
+import { Simbolo } from '../components/Icone'
+import { apagarComDesfazer } from '../desfazer'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -72,7 +74,7 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
       <div className="col">
         <StatusBancos sync={sync} />
         <div className="cartao foco destaque">
-          <p className="rotulo">Livre para gastar por dia até o fim do mês</p>
+          <h2 className="rotulo">Livre para gastar por dia até o fim do mês</h2>
           <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
           <p className="motivo">
             Saldo {reais(p.saldo)} · a pagar {reais(p.aPagar)}
@@ -97,7 +99,7 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
           <>
             <h2>Contas de {nomeDoMes(mes).split(' ')[0].toLowerCase()}</h2>
             <div className="cartao">
-              {pendentes.length === 0 && <p className="motivo">Tudo pago este mês. ✓</p>}
+              {pendentes.length === 0 && <p className="motivo">Tudo pago este mês.</p>}
               {pendentes.map((x) => (
                 <div key={x.id} className="linha entre item">
                   <span>
@@ -112,13 +114,14 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
               ))}
               {pagas.length > 0 && (
                 <button className="discreto" onClick={() => setVerPagas(!verPagas)}>
-                  {verPagas ? 'Esconder' : `✓ ${pagas.length} já resolvida${pagas.length > 1 ? 's' : ''}`}
+                  {verPagas ? 'Esconder' : `${pagas.length} já resolvida${pagas.length > 1 ? 's' : ''}`}
                 </button>
               )}
               {verPagas &&
                 pagas.map((x) => (
                   <p key={x.id} className="feito">
-                    ✓ {x.nome} · {reais(x.valor)}
+                    <Simbolo c="✓" diz="Paga" />
+                    {x.nome} · {reais(x.valor)}
                   </p>
                 ))}
             </div>
@@ -142,6 +145,8 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
                   <span className={estourou ? 'atencao' : 'motivo'}>
                     {reais(c.gasto)}
                     {c.orcamento ? ` de ${reais(c.orcamento)}` : ''}
+                    {/* Não só pela cor: quem não distingue o tom de atenção lê que passou. */}
+                    {estourou && ' · passou do limite'}
                   </span>
                 </div>
                 <div className="barra">
@@ -188,8 +193,8 @@ function EditarLancamento({ t, onPronto }: { t: Transacao; onPronto: () => void 
     >
       <input value={descricao} onChange={(e) => setDescricao(e.target.value)} aria-label="Descrição" placeholder="Descrição" />
       <div className="linha">
-        <input className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
-        <input type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" />
+        <input required className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
+        <input required type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" />
       </div>
       <div className="linha">
         <button type="submit" className="primario">
@@ -232,14 +237,14 @@ function Lancamentos() {
         <span>Resultado {reais(receitas - gastos)}</span>
       </p>
       {semCategoria > 0 && (
-        <button className={soSemCategoria ? 'ativo' : ''} onClick={() => setSoSemCategoria(!soSemCategoria)}>
+        <button className={soSemCategoria ? 'ativo' : ''} aria-pressed={soSemCategoria} onClick={() => setSoSemCategoria(!soSemCategoria)}>
           {soSemCategoria ? 'Mostrar todos' : `${semCategoria} sem categoria: organizar`}
         </button>
       )}
       {lista.length === 0 && <p className="vazio-texto">Nada neste mês.</p>}
       {dias.map((dia) => (
         <div key={dia} className="cartao">
-          <p className="rotulo">{nomeDoDia(dia)}</p>
+          <h2 className="rotulo">{nomeDoDia(dia)}</h2>
           {lista
             .filter((t) => t.data === dia)
             .map((t) => (
@@ -271,7 +276,11 @@ function Lancamentos() {
                     <button className="discreto" onClick={() => setEditando(editando === t.id ? null : t.id)} aria-label="Editar lançamento">
                       Editar
                     </button>
-                    <button className="discreto" onClick={() => f.removerTransacao(t.id)} aria-label="Apagar lançamento">
+                    <button
+                      className="discreto"
+                      onClick={() => apagarComDesfazer(useFinancas, 'transacoes', t.id, `${t.descricao} · ${reais(t.valor)}`, () => f.removerTransacao(t.id))}
+                      aria-label={`Apagar lançamento ${t.descricao}`}
+                    >
                       Apagar
                     </button>
                   </span>
@@ -315,18 +324,18 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
         onPronto()
       }}
     >
-      <div className="segmentado">
-        <button type="button" className={tipo === 'gasto' ? 'ativo' : ''} onClick={() => setTipo('gasto')}>
+      <div className="segmentado" role="group" aria-label="Tipo">
+        <button type="button" className={tipo === 'gasto' ? 'ativo' : ''} aria-pressed={tipo === 'gasto'} onClick={() => setTipo('gasto')}>
           Conta a pagar
         </button>
-        <button type="button" className={tipo === 'receita' ? 'ativo' : ''} onClick={() => setTipo('receita')}>
+        <button type="button" className={tipo === 'receita' ? 'ativo' : ''} aria-pressed={tipo === 'receita'} onClick={() => setTipo('receita')}>
           Entrada fixa
         </button>
       </div>
-      <input autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder={tipo === 'gasto' ? 'Ex.: Aluguel, Internet' : 'Ex.: Salário'} />
+      <input required aria-label="Nome" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder={tipo === 'gasto' ? 'Ex.: Aluguel, Internet' : 'Ex.: Salário'} />
       <div className="linha">
-        <input className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} placeholder="Valor" />
-        <input className="flex" type="number" min={1} max={31} value={dia} onChange={(e) => setDia(e.target.value)} aria-label="Dia do mês" />
+        <input required aria-label="Valor" className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} placeholder="Valor" />
+        <input required className="flex" type="number" min={1} max={31} value={dia} onChange={(e) => setDia(e.target.value)} aria-label="Dia do mês" />
       </div>
       <div className="linha">
         <select className="flex" value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} aria-label="Categoria">
@@ -393,7 +402,11 @@ function Fixas() {
                     dia {x.dia} · {x.tipo === 'gasto' ? 'sai' : 'entra'} {reais(x.valor)}
                   </span>
                 </span>
-                <button className="discreto" onClick={() => f.removerFixa(x.id)}>
+                <button
+                  className="discreto"
+                  onClick={() => apagarComDesfazer(useFinancas, 'fixas', x.id, x.nome, () => f.removerFixa(x.id))}
+                  aria-label={`Remover ${x.nome}`}
+                >
                   Remover
                 </button>
               </div>
@@ -514,11 +527,11 @@ function OpenFinance({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
         </ol>
       </details>
       <label className="rotulo">Client ID</label>
-      <input value={clientId} onChange={(e) => setClientId(e.target.value.trim())} spellCheck={false} autoComplete="off" />
+      <input aria-label="Client ID" value={clientId} onChange={(e) => setClientId(e.target.value.trim())} spellCheck={false} autoComplete="off" />
       <label className="rotulo">Client Secret</label>
-      <input type="password" value={clientSecret} onChange={(e) => setClientSecret(e.target.value.trim())} spellCheck={false} autoComplete="off" />
+      <input aria-label="Client Secret" type="password" value={clientSecret} onChange={(e) => setClientSecret(e.target.value.trim())} spellCheck={false} autoComplete="off" />
       <label className="rotulo">Item IDs (um por linha)</label>
-      <textarea rows={3} value={itens} onChange={(e) => setItens(e.target.value)} spellCheck={false} />
+      <textarea aria-label="Item IDs, um por linha" rows={3} value={itens} onChange={(e) => setItens(e.target.value)} spellCheck={false} />
       <p className="dica neutra">
         O Client Secret fica salvo só neste aparelho e não vai para o backup. Não configure em computador compartilhado.
       </p>
@@ -564,6 +577,7 @@ function Importar() {
       </p>
       <div className="cartao">
         <input
+          aria-label="Arquivo CSV do extrato"
           type="file"
           accept=".csv,text/csv"
           onChange={async (e) => {
@@ -579,7 +593,7 @@ function Importar() {
         {linhas && (
           <>
             <label className="rotulo">Para qual conta?</label>
-            <select value={contaId} onChange={(e) => setContaId(e.target.value)}>
+            <select aria-label="Para qual conta" value={contaId} onChange={(e) => setContaId(e.target.value)}>
               {f.contas.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nome}
@@ -590,7 +604,7 @@ function Importar() {
             {(['data', 'valor', 'descricao'] as const).map((campo) => (
               <div key={campo} className="linha entre">
                 <span>{campo === 'descricao' ? 'Descrição' : campo === 'data' ? 'Data' : 'Valor'}</span>
-                <select
+                <select aria-label={`Coluna de ${campo === 'descricao' ? 'descrição' : campo}`}
                   className="mini"
                   value={colunas?.[campo] ?? -1}
                   onChange={(e) => setColunas({ data: 0, valor: 0, descricao: 0, ...colunas, [campo]: Number(e.target.value) })}
@@ -702,7 +716,7 @@ function AjustesFinancas() {
             setNovaConta('')
           }}
         >
-          <input value={novaConta} onChange={(e) => setNovaConta(e.target.value)} placeholder="Nova conta (ex.: Nubank, Cartão)" />
+          <input aria-label="Nova conta" value={novaConta} onChange={(e) => setNovaConta(e.target.value)} placeholder="Nova conta (ex.: Nubank, Cartão)" />
           <button type="submit">Adicionar</button>
         </form>
       </div>
@@ -726,7 +740,12 @@ function AjustesFinancas() {
                     aria-label={`Limite de ${c.nome}`}
                   />
                 )}
-                <button className="discreto" onClick={() => f.removerCategoria(c.id)} aria-label={`Apagar ${c.nome}`}>
+                {/* Apagar a categoria tira ela dos lançamentos também: confirma em vez de Desfazer. */}
+                <button
+                  className="discreto"
+                  onClick={() => confirm(`Apagar a categoria "${c.nome}"? Os lançamentos dela ficam sem categoria.`) && f.removerCategoria(c.id)}
+                  aria-label={`Apagar ${c.nome}`}
+                >
                   ×
                 </button>
               </span>
@@ -742,8 +761,8 @@ function AjustesFinancas() {
             setNovaCategoria('')
           }}
         >
-          <input value={novaCategoria} onChange={(e) => setNovaCategoria(e.target.value)} placeholder="Nova categoria" />
-          <select className="mini" value={tipoCategoria} onChange={(e) => setTipoCategoria(e.target.value as 'gasto' | 'receita')}>
+          <input aria-label="Nova categoria" value={novaCategoria} onChange={(e) => setNovaCategoria(e.target.value)} placeholder="Nova categoria" />
+          <select aria-label="Tipo da nova categoria" className="mini" value={tipoCategoria} onChange={(e) => setTipoCategoria(e.target.value as 'gasto' | 'receita')}>
             <option value="gasto">Gasto</option>
             <option value="receita">Receita</option>
           </select>

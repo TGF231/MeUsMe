@@ -21,9 +21,9 @@ export function CheckInForm({ onPronto }: { onPronto?: () => void }) {
       }}
     >
       <label className="rotulo">Como você está?</label>
-      <div className="segmentado">
+      <div className="segmentado" role="group" aria-label="Como você está">
         {([1, 2, 3, 4, 5] as CheckIn['humor'][]).map((h) => (
-          <button key={h} type="button" className={humor === h ? 'ativo' : ''} onClick={() => setHumor(h)}>
+          <button key={h} type="button" className={humor === h ? 'ativo' : ''} aria-pressed={humor === h} onClick={() => setHumor(h)}>
             {HUMORES[h]}
           </button>
         ))}

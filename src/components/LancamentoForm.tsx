@@ -44,15 +44,16 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
         onPronto?.(tipo)
       }}
     >
-      <div className="segmentado">
-        <button type="button" className={tipo === 'gasto' ? 'ativo' : ''} onClick={() => setTipo('gasto')}>
+      <div className="segmentado" role="group" aria-label="Tipo">
+        <button type="button" className={tipo === 'gasto' ? 'ativo' : ''} aria-pressed={tipo === 'gasto'} onClick={() => setTipo('gasto')}>
           Gastei
         </button>
-        <button type="button" className={tipo === 'receita' ? 'ativo' : ''} onClick={() => setTipo('receita')}>
+        <button type="button" className={tipo === 'receita' ? 'ativo' : ''} aria-pressed={tipo === 'receita'} onClick={() => setTipo('receita')}>
           Recebi
         </button>
       </div>
       <input
+        required
         className="valor-grande"
         inputMode="decimal"
         autoFocus={!inicial?.valor}
@@ -62,12 +63,12 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
         aria-label="Valor"
       />
       <input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Com o quê? (opcional)" aria-label="Descrição" />
-      <div className="chips">
+      <div className="chips" role="group" aria-label="Categoria">
         {categorias.map((c) => (
           <button
             key={c.id}
             type="button"
-            className={categoriaId === c.id ? 'ativo' : ''}
+            className={categoriaId === c.id ? 'ativo' : ''} aria-pressed={categoriaId === c.id}
             onClick={() => setCategoriaEscolhida(categoriaId === c.id ? null : c.id)}
           >
             {c.nome}

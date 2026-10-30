@@ -30,11 +30,11 @@ export function TempoGasto({ passo, perguntar = false }: { passo: Passo; pergunt
   return (
     <div className="pergunta-tempo">
       <span className="rotulo">{cronometrado ? 'Somar tempo feito fora do cronômetro:' : 'Quanto tempo levou, mais ou menos?'}</span>
-      <div className="chips">
+      <div className="chips" role="group" aria-label="Tempo">
         {OPCOES.map((m) => (
           <button
             key={m}
-            className={passo.minutosManuais === m ? 'ativo' : ''}
+            className={passo.minutosManuais === m ? 'ativo' : ''} aria-pressed={passo.minutosManuais === m}
             onClick={() => {
               atualizar(passo.id, { minutosManuais: m })
               setAberto(false)

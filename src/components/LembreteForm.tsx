@@ -34,14 +34,14 @@ export function LembreteForm({ inicial = '', onPronto, onCancelar }: Props) {
         onPronto?.()
       }}
     >
-      <input autoFocus={!inicial} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Me lembre de…" aria-label="Lembrete" />
+      <input required autoFocus={!inicial} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Me lembre de…" aria-label="Lembrete" />
       <div className="linha">
-        <input type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Dia" className="flex" />
-        <input type="time" value={horaTexto} onChange={(e) => setHoraTexto(e.target.value)} aria-label="Hora" className="flex" />
+        <input required type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Dia" className="flex" />
+        <input required type="time" value={horaTexto} onChange={(e) => setHoraTexto(e.target.value)} aria-label="Hora" className="flex" />
       </div>
-      <div className="chips">
+      <div className="chips" role="group" aria-label="Repetir">
         {(Object.keys(REPETIR) as Lembrete['repetir'][]).map((r) => (
-          <button key={r} type="button" className={repetir === r ? 'ativo' : ''} onClick={() => setRepetir(r)}>
+          <button key={r} type="button" className={repetir === r ? 'ativo' : ''} aria-pressed={repetir === r} onClick={() => setRepetir(r)}>
             {REPETIR[r]}
           </button>
         ))}

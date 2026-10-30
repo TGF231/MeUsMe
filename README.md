@@ -12,7 +12,9 @@ No primeiro uso, uma introdução de quatro telas oferece um projeto de exemplo.
 - **Finanças**: "livre para gastar por dia até o fim do mês", contas fixas com aviso de vencimento, limites por categoria, Open Finance pelo Meu Pluggy (gratuito para uso pessoal) e importação de extrato CSV (Nubank, Inter, Wallet…), sem duplicar e com categorização automática. **Antes de comprar**: a compra espera de 24h a 1 semana e o app pergunta de novo. O Open Finance só aparece em builds com `VITE_OPEN_FINANCE=ligado` (uso pessoal).
 - **Projetos**: todo projeto nasce com uma *linha de chegada*. Só o próximo passo fica visível, com o progresso de quanto já foi feito.
 - **Histórico**: check-in de 30 segundos (humor, energia, uma frase) e o que você fez em cada dia, com o tempo de cada passo e por projeto, e o quanto seus palpites de tempo batem com o real.
-- **Ajustes**: sincronização entre aparelhos, notificações (inclusive o dia da revisão semanal), conexão com o Google, backup e **Sobre** (por que o app funciona assim, privacidade, espaço usado e erros recentes).
+- **Ajustes**: sincronização entre aparelhos, notificações (inclusive o dia da revisão semanal), conexão com o Google, backup, **Acessibilidade** (tamanho do texto, contraste alto, botões maiores, avisos que só saem quando você fecha) e **Sobre** (por que o app funciona assim, privacidade, espaço usado e erros recentes).
+
+O app funciona inteiro pelo teclado e com leitor de tela, não depende de falar nem de ouvir e respeita o tamanho de fonte, o alto contraste e a redução de movimento do sistema. O que foi verificado e como está em [docs/ACESSIBILIDADE.md](docs/ACESSIBILIDADE.md).
 
 Os dados ficam no próprio aparelho (localStorage) e, se você ativar, são sincronizados entre aparelhos.
 
@@ -80,6 +82,7 @@ Cada tag `vX.Y.Z` enviada ao GitHub gera o instalador do Windows e o APK do Andr
 
 - [docs/GUIA-DE-ESTUDO.md](docs/GUIA-DE-ESTUDO.md): como o app funciona por dentro e trilhas de estudo de cada linguagem e ferramenta, com exercícios no próprio código.
 - [docs/ROADMAP.md](docs/ROADMAP.md): fases até a publicação, o que ainda não foi testado de verdade e as dívidas técnicas.
+- [docs/ACESSIBILIDADE.md](docs/ACESSIBILIDADE.md): o que o app oferece para quem não vê, não ouve, não fala ou tem dificuldade de movimento, como verificar e as regras para código novo.
 
 ## Publicar
 

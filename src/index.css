@@ -59,6 +59,50 @@
   outline-offset: 2px;
 }
 
+/* Só para o leitor de tela: fora da vista, mas lido (Simbolo, link para pular a navegação). */
+.so-leitor:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Com foco (Tab logo ao abrir), o link para pular a navegação aparece no canto. */
+.pular:focus {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 20;
+  padding: 10px 14px;
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--acento-linha);
+  border-radius: var(--raio);
+}
+
+/* Título e conteúdo recebem foco por código (troca de aba, link de pular): sem anel, que é para o que se alcança com Tab. */
+h1[tabindex='-1']:focus,
+main[tabindex='-1']:focus {
+  outline: none;
+}
+
+/* Alvos grandes (Ajustes → Acessibilidade): todo controle com 48 px, a medida do Android, e mais espaço entre eles. */
+:root[data-alvos='grandes'] :is(button, input, select, textarea, .amostra):not(.fundo-fechar, [type='checkbox'], [type='radio']) {
+  min-height: 48px;
+}
+
+:root[data-alvos='grandes'] :is(input[type='checkbox'], input[type='radio']) {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+}
+
+:root[data-alvos='grandes'] :is(.linha, .chips, .segmentado, .lista-simples) {
+  gap: 12px;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -139,11 +183,16 @@ button.discreto {
   min-height: 100dvh;
 }
 
+/* Foco não fica escondido (WCAG 2.4.11): o que recebe foco rola para cima da barra de abas e do botão +, que são fixos. */
+html {
+  scroll-padding-bottom: calc(150px + env(safe-area-inset-bottom));
+}
+
 .conteudo {
   max-width: 640px;
   margin: 0 auto;
-  /* Edge-to-edge no Android: respeita a área da barra de status. */
-  padding: env(safe-area-inset-top) 16px calc(96px + env(safe-area-inset-bottom));
+  /* Edge-to-edge no Android: respeita a área da barra de status. O fim passa do botão +, para o último item não ficar por baixo dele. */
+  padding: env(safe-area-inset-top) 16px calc(150px + env(safe-area-inset-bottom));
 }
 
 .topo {
@@ -392,6 +441,14 @@ h2.titulo {
   font-size: 0.7rem;
 }
 
+/* Com o texto grande (Ajustes → Acessibilidade ou fonte do sistema), o nome corta com reticências em vez de encostar no vizinho; o leitor de tela lê inteiro. */
+.abas button > span:not(.contador) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .abas button.ativo {
   color: var(--texto);
   background: var(--acento-leve);
@@ -455,15 +512,25 @@ h2.titulo {
   cursor: default;
 }
 
-/* <dialog open> sem os estilos do navegador (posição absoluta, margem, cores próprias). */
-dialog.modal {
-  position: relative;
-  inset: auto;
+/* O <dialog> aberto com showModal (useJanelaModal) é o próprio véu: sem a caixa, a margem e o tamanho máximo do navegador. */
+dialog.fundo {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
   margin: 0;
+  border: 0;
   color: inherit;
 }
 
+dialog.fundo::backdrop {
+  background: transparent;
+}
+
+/* A janela vem antes do botão do fundo (o foco cai nela primeiro) e fica por cima dele. */
 .modal {
+  position: relative;
+  z-index: 1;
   background: var(--superficie);
   border: 1px solid var(--borda-2);
   border-radius: var(--raio);
@@ -595,8 +662,9 @@ input.mini {
   border-bottom: none;
 }
 
+/* Já passou: texto no tom secundário. Opacidade derrubava o contraste para 2,5:1 (a WCAG pede 4,5:1). */
 .evento.passou {
-  opacity: 0.55;
+  color: var(--suave);
 }
 
 .evento.acontecendo .horario {
@@ -887,6 +955,11 @@ kbd {
   .conteudo {
     width: 100%;
     padding-bottom: 32px;
+  }
+
+  /* Abas ao lado: sobra só o botão +, no canto de baixo. */
+  html {
+    scroll-padding-bottom: 96px;
   }
 
   .so-estreito {
@@ -1510,4 +1583,58 @@ button.perigo:hover {
 
 .recado {
   width: 100%;
+}
+
+/*
+ * Alto contraste do Windows (forced-colors): o sistema troca todas as cores pelas do tema dele e some com os fundos.
+ * O que só se via pela cor de fundo (opção escolhida, aba atual, progresso) ganha contorno ou a cor de destaque do sistema.
+ */
+@media (forced-colors: active) {
+  .ativo,
+  [aria-pressed='true'],
+  [aria-checked='true'],
+  [aria-current='page'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .barra .cheia,
+  .pontinhos span.ativo {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+
+  .anel-bloco .andado {
+    stroke: Highlight;
+  }
+
+  .contador,
+  .selo {
+    border: 1px solid CanvasText;
+  }
+}
+
+/*
+ * Contraste alto: pedido pelo sistema (prefers-contrast) ou em Ajustes → Acessibilidade (data-contraste).
+ * Texto secundário vai para o tom principal e as bordas para tons de texto, sempre com os tokens do MegUI.
+ */
+@media (prefers-contrast: more) {
+  :root {
+    --suave: var(--megui-ink);
+    --apagado: var(--megui-ink2);
+    --borda: var(--megui-ink3);
+    --borda-2: var(--megui-ink2);
+  }
+}
+
+:root[data-contraste='alto'] {
+  --suave: var(--megui-ink);
+  --apagado: var(--megui-ink2);
+  --borda: var(--megui-ink3);
+  --borda-2: var(--megui-ink2);
+}
+
+/* Título de seção com cara de rótulo: <h2 className="rotulo"> para o leitor de tela pular por títulos, com a margem que o <p> tinha. */
+:is(h2, h3).rotulo {
+  margin: 1em 0;
 }

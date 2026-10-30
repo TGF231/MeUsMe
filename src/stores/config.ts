@@ -26,6 +26,14 @@ interface Estado {
   organizarSozinho: boolean
   /** Tutorial "Como escrever rápido" visto neste aparelho. Não sincroniza. */
   tutorialCapturaVisto: boolean
+  /** Tamanho do texto, em relação ao normal (1). Não sincroniza: depende da tela. */
+  tamanhoTexto: number
+  /** Controles com 48 px e mais espaço entre eles. Sincroniza. */
+  alvosGrandes: boolean
+  /** Avisos só saem quando a pessoa fecha (sem os 12 s). Sincroniza. */
+  avisosFicam: boolean
+  /** Texto secundário no tom principal e bordas fortes (também liga com prefers-contrast). Sincroniza. */
+  contrasteAlto: boolean
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -49,6 +57,10 @@ export const useConfig = create<Estado>()(
       horasDeEspera: 48,
       organizarSozinho: true,
       tutorialCapturaVisto: false,
+      tamanhoTexto: 1,
+      alvosGrandes: false,
+      avisosFicam: false,
+      contrasteAlto: false,
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>
@@ -63,7 +75,7 @@ export const useConfig = create<Estado>()(
   ),
 )
 
-/** Avisos exibidos dentro do app. Não persistidos. */
+/** Avisos exibidos dentro do app. Não persistidos. Quem tira da tela depois de AVISO_MS é o próprio aviso (App.tsx), que para de contar enquanto está em uso. */
 interface Aviso extends OpcoesAviso {
   id: number
   titulo: string
@@ -77,13 +89,14 @@ export interface OpcoesAviso {
   acao?: { rotulo: string; fazer: () => void }
 }
 
+export const AVISO_MS = 12_000
+
 export const useAvisos = create<{ avisos: Aviso[]; mostrar: (t: string, c: string, o?: OpcoesAviso) => void; fechar: (id: number) => void }>()(
   (set) => ({
     avisos: [],
     mostrar: (titulo, corpo, opcoes) => {
       const id = Date.now() + Math.random()
       set((s) => ({ avisos: [...s.avisos, { id, titulo, corpo, ...opcoes }] }))
-      setTimeout(() => set((s) => ({ avisos: s.avisos.filter((a) => a.id !== id) })), 12_000)
     },
     fechar: (id) => set((s) => ({ avisos: s.avisos.filter((a) => a.id !== id) })),
   }),

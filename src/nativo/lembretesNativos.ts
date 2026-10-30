@@ -1,5 +1,6 @@
 import { LocalNotifications } from '@capacitor/local-notifications'
 import { avisosEntre } from '../agendador'
+import { CANAL, garantirCanal } from '../notificacoes'
 import { useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
@@ -28,9 +29,11 @@ export async function reagendarNotificacoes() {
   const pendentes = await LocalNotifications.getPending()
   if (pendentes.notifications.length) await LocalNotifications.cancel({ notifications: pendentes.notifications.map((n) => ({ id: n.id })) })
   if (!proximos.length) return
+  await garantirCanal()
   await LocalNotifications.schedule({
     notifications: proximos.map((a) => ({
       id: idDe(a.chave),
+      channelId: CANAL,
       title: a.titulo,
       body: a.corpo,
       schedule: { at: new Date(a.quando), allowWhileIdle: true },

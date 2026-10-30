@@ -46,8 +46,11 @@ export function Introducao() {
   return (
     <section className="tela centro introducao">
       <div className="cartao celebra">
-        <p className="grande">{TELAS[i].titulo}</p>
-        <p>{TELAS[i].texto}</p>
+        {/* Ao avançar, o leitor de tela lê a tela nova sem o foco sair do botão. */}
+        <div aria-live="polite">
+          <p className="grande">{TELAS[i].titulo}</p>
+          <p>{TELAS[i].texto}</p>
+        </div>
         <div className="pontinhos" role="img" aria-label={`Tela ${i + 1} de ${TELAS.length}`}>
           {TELAS.map((_, j) => (
             <span key={j} className={j === i ? 'ativo' : ''} />
@@ -56,12 +59,15 @@ export function Introducao() {
         {fim ? (
           <>
             <div className="linha centralizada">
-              <button className="primario" onClick={criarExemplo}>
+              {/* O Continuar some na última tela: o foco passa para cá em vez de cair no começo da página. */}
+              <button className="primario" autoFocus onClick={criarExemplo}>
                 Começar com um projeto de exemplo
               </button>
               <button onClick={concluir}>Começar vazio</button>
             </div>
             <p className="motivo">O MeUsMe é um programa de organização de tarefas.</p>
+            {/* Quem precisa de texto maior, mais contraste ou mais tempo fica sabendo antes de esbarrar no problema. */}
+            <p className="motivo">Texto maior, contraste alto, botões maiores e avisos sem pressa ficam em Ajustes → Acessibilidade.</p>
           </>
         ) : (
           <div className="linha centralizada">

@@ -5,9 +5,11 @@ import { BarraProgresso } from '../components/Progresso'
 import { PontosEditaveis } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { useNavegacao } from '../navegacao'
+import { apagarComDesfazer } from '../desfazer'
 import { minutosDoPasso, pendentes, useStore } from '../store'
 import type { Passo, Projeto } from '../types'
 import { duracao } from '../util'
+import { Simbolo } from '../components/Icone'
 
 function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
   const criar = useStore((s) => s.criarProjeto)
@@ -23,9 +25,9 @@ function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
       }}
     >
       <label className="rotulo">Nome do projeto</label>
-      <input autoFocus value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+      <input required aria-label="Nome do projeto" autoFocus value={titulo} onChange={(e) => setTitulo(e.target.value)} />
       <label className="rotulo">Linha de chegada: como você vai saber que terminou?</label>
-      <input
+      <input required aria-label="Linha de chegada"
         value={chegada}
         onChange={(e) => setChegada(e.target.value)}
         placeholder="Algo que dá para ver, não um sentimento"
@@ -67,10 +69,14 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   const energia = <PontosEditaveis energia={passo.energia} onChange={(e) => s.atualizarPasso(passo.id, { energia: e })} />
   const acoes = (
     <span className="linha">
-      <button className="discreto" onClick={() => (setTexto(passo.texto), setEditando(true))}>
+      <button className="discreto" onClick={() => (setTexto(passo.texto), setEditando(true))} aria-label={`Editar ${passo.texto}`}>
         Editar
       </button>
-      <button className="discreto" onClick={() => s.removerPasso(passo.id)}>
+      <button
+        className="discreto"
+        onClick={() => apagarComDesfazer(useStore, 'passos', passo.id, passo.texto, () => s.removerPasso(passo.id))}
+        aria-label={`Remover ${passo.texto}`}
+      >
         Remover
       </button>
     </span>
@@ -100,8 +106,8 @@ function Modelos({ onCriado }: { onCriado: (id: string) => void }) {
   if (s.modelos.length === 0) return null
   return (
     <div className="cartao">
-      <p className="rotulo">Começar de um modelo</p>
-      <div className="chips">
+      <h2 className="rotulo">Começar de um modelo</h2>
+      <div className="chips" role="group" aria-label="Começar de um modelo">
         {s.modelos.map((m) => (
           <button
             key={m.id}
@@ -144,9 +150,9 @@ function EditarProjeto({ projeto, onPronto, onApagado }: { projeto: Projeto; onP
       }}
     >
       <label className="rotulo">Nome do projeto</label>
-      <input autoFocus value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+      <input required aria-label="Nome do projeto" autoFocus value={titulo} onChange={(e) => setTitulo(e.target.value)} />
       <label className="rotulo">Linha de chegada</label>
-      <input value={chegada} onChange={(e) => setChegada(e.target.value)} />
+      <input required aria-label="Linha de chegada" value={chegada} onChange={(e) => setChegada(e.target.value)} />
       <div className="linha">
         <button type="submit" className="primario">
           Salvar
@@ -187,7 +193,8 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
   return (
     <section className="tela">
       <button className="discreto" onClick={onVoltar}>
-        ← Projetos
+        <Simbolo c="←" />
+        Voltar para Projetos
       </button>
       <div className="colunas">
         <div className="col">
@@ -207,8 +214,9 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                     <button onClick={() => s.reabrirProjeto(id)}>Reabrir projeto</button>
                   ) : (
                     <>
-                      <button className={s.focoId === id ? 'ativo' : ''} onClick={() => s.definirFoco(s.focoId === id ? null : id)}>
-                        {s.focoId === id ? '★ Em foco' : '☆ Colocar em foco'}
+                      <button className={s.focoId === id ? 'ativo' : ''} aria-pressed={s.focoId === id} onClick={() => s.definirFoco(s.focoId === id ? null : id)}>
+                        <Simbolo c={s.focoId === id ? '★' : '☆'} />
+                        {s.focoId === id ? 'Em foco' : 'Colocar em foco'}
                       </button>
                       <button
                         onClick={() => {
@@ -235,7 +243,8 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                 </div>
                 {salvoComoModelo && (
                   <p className="motivo" role="status">
-                    ✓ Modelo salvo. Em Projetos, “{projeto.titulo}” aparece para começar de novo com um toque.
+                    <Simbolo c="✓" />
+                    Modelo salvo. Em Projetos, “{projeto.titulo}” aparece para começar de novo com um toque.
                   </p>
                 )}
               </>
@@ -244,7 +253,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
 
           {proximo ? (
             <div className="cartao foco">
-              <p className="rotulo">Próximo passo</p>
+              <h2 className="rotulo">Próximo passo</h2>
               <PassoEditavel key={proximo.id} passo={proximo} destaque />
             </div>
           ) : (
@@ -283,7 +292,10 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
               <div className="cartao">
                 {feitos.map((p) => (
                   <div key={p.id} className="registro">
-                    <span className="flex feito">✓ {p.texto}</span>
+                    <span className="flex feito">
+                      <Simbolo c="✓" />
+                      {p.texto}
+                    </span>
                     <TempoGasto passo={p} />
                     {!projeto.concluidoEm && <DeNovo passo={p} />}
                   </div>
@@ -298,7 +310,11 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
               {ideias.map((i) => (
                 <div key={i.id} className="cartao linha entre">
                   <span>{i.texto}</span>
-                  <button className="discreto" onClick={() => s.removerIdeia(i.id)}>
+                  <button
+                    className="discreto"
+                    onClick={() => apagarComDesfazer(useStore, 'ideias', i.id, i.texto, () => s.removerIdeia(i.id))}
+                    aria-label={`Apagar ${i.texto}`}
+                  >
                     Apagar
                   </button>
                 </div>
@@ -348,10 +364,17 @@ export function Projetos() {
           return (
             <button key={p.id} className="cartao clicavel" onClick={() => setAberto(p.id)}>
               <span className="projeto">
-                {p.id === s.focoId && '★ '}
+                {p.id === s.focoId && <Simbolo c="★" diz="Em foco" />}
                 {p.titulo}
               </span>
-              <span className="passo pequeno">{proximo ? `→ ${proximo.texto}` : 'Sem próximo passo definido'}</span>
+              <span className="passo pequeno">{proximo ? (
+                  <>
+                    <Simbolo c="→" diz="Próximo passo" />
+                    {proximo.texto}
+                  </>
+                ) : (
+                  'Sem próximo passo definido'
+                )}</span>
               {feitos + pendentes(s.passos, p.id).length > 0 ? (
                 <BarraProgresso passos={s.passos} projetoId={p.id} />
               ) : (
@@ -380,7 +403,8 @@ export function Projetos() {
           <div className="grade-cartoes">
             {concluidos.map((p) => (
               <button key={p.id} className="cartao clicavel feito" onClick={() => setAberto(p.id)}>
-                ✓ {p.titulo}
+                <Simbolo c="✓" diz="Concluído" />
+                {p.titulo}
               </button>
             ))}
           </div>

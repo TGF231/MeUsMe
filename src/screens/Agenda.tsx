@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { Simbolo } from '../components/Icone'
 import { EventoForm } from '../components/EventoForm'
 import { LembreteForm } from '../components/LembreteForm'
 import { conectarGoogle, ErroGoogle, removerDoGoogle, sincronizarGoogle, temToken } from '../google'
 import { useAgora } from '../hooks'
+import { apagarComDesfazer } from '../desfazer'
 import { useStore } from '../store'
 import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
 import type { Evento } from '../types'
@@ -69,7 +71,12 @@ function BarraGoogle() {
             ? `Google sincronizado às ${hora(agenda.ultimaSync)}`
             : 'Google conectado'
           : 'Google Agenda não conectado'}
-        {erro && <span className="atencao"> · {erro}</span>}
+        {erro && (
+          <span className="atencao" role="alert">
+            {' · '}
+            {erro}
+          </span>
+        )}
       </span>
       <button onClick={() => sincronizar(true)} disabled={estado === 'sincronizando'}>
         {estado === 'sincronizando' ? 'Sincronizando…' : agenda.googleConectado ? 'Sincronizar' : 'Conectar'}
@@ -88,10 +95,18 @@ function LinhaEvento({ e, agora }: { e: Evento; agora: number }) {
     <div className={`evento ${passou ? 'passou' : ''} ${e.inicio <= agora && e.fim > agora ? 'acontecendo' : ''}`}>
       <span className="horario">{e.diaInteiro ? 'Dia todo' : `${hora(e.inicio)}–${hora(e.fim)}`}</span>
       <span className="flex">
+        {/* O tom apagado e o horário em negrito não chegam ao leitor de tela. */}
+        {passou && <span className="so-leitor">Já passou: </span>}
+        {e.inicio <= agora && e.fim > agora && <span className="so-leitor">Acontecendo agora: </span>}
         {e.titulo}
-        {passo && <span className="motivo"> · {passo.feitoEm ? 'passo feito ✓' : 'horário reservado para um passo'}</span>}
+        {passo && <span className="motivo"> · {passo.feitoEm ? 'passo feito' : 'horário reservado para um passo'}</span>}
         {e.origem === 'google' && <span className="selo">Google</span>}
-        {erro && <span className="atencao"> {erro}</span>}
+        {erro && (
+          <span className="atencao" role="alert">
+            {' '}
+            {erro}
+          </span>
+        )}
       </span>
       <button
         className="discreto"
@@ -153,17 +168,19 @@ export function RestoDoDia() {
       quando: e.diaInteiro ? 0 : e.inicio,
       horario: e.diaInteiro ? 'Dia todo' : `${hora(e.inicio)}–${hora(e.fim)}`,
       texto: e.titulo,
+      lembrete: false,
     })),
-    ...lembretes.map((l) => ({ id: l.id, quando: l.quando, horario: hora(l.quando), texto: `⏰ ${l.texto}` })),
+    ...lembretes.map((l) => ({ id: l.id, quando: l.quando, horario: hora(l.quando), texto: l.texto, lembrete: true })),
   ].sort((a, b) => a.quando - b.quando)
 
   return (
     <div className="cartao compacto resto-do-dia">
-      <p className="rotulo">Resto do dia</p>
+      <h2 className="rotulo">Resto do dia</h2>
       {itens.length === 0 && <p className="motivo">Nada mais marcado para hoje.</p>}
       {itens.slice(0, 8).map((i) => (
         <p key={i.id} className="linha-dia">
-          <span className="horario">{i.horario}</span> {i.texto}
+          <span className="horario">{i.horario}</span> {i.lembrete && <Simbolo c="⏰" diz="Lembrete" />}
+          {i.texto}
         </p>
       ))}
     </div>
@@ -191,7 +208,7 @@ export function Agenda() {
       <div className="visao-dia">
         <div className="dias">
           {dias.map((d) => (
-            <button key={d} className={d === dia ? 'ativo' : ''} onClick={() => setDia(d)}>
+            <button key={d} className={d === dia ? 'ativo' : ''} aria-pressed={d === dia} onClick={() => setDia(d)}>
               {nomeDoDia(dataISO(d))}
             </button>
           ))}
@@ -205,7 +222,7 @@ export function Agenda() {
       <div className="visao-semana">
         {dias.map((d) => (
           <div key={d} className={`cartao dia-semana ${d === inicioDoDia(agora) ? 'hoje' : ''}`}>
-            <p className="rotulo">{nomeDoDia(dataISO(d))}</p>
+            <h2 className="rotulo">{nomeDoDia(dataISO(d))}</h2>
             <ListaDoDia dia={d} />
           </div>
         ))}
@@ -250,7 +267,11 @@ export function Agenda() {
                     </span>
                     <span className="linha">
                       <button onClick={() => agenda.concluirLembrete(l.id)}>Feito</button>
-                      <button className="discreto" onClick={() => agenda.removerLembrete(l.id)} aria-label="Apagar lembrete">
+                      <button
+                        className="discreto"
+                        onClick={() => apagarComDesfazer(useAgenda, 'lembretes', l.id, l.texto, () => agenda.removerLembrete(l.id))}
+                        aria-label={`Apagar lembrete ${l.texto}`}
+                      >
                         ×
                       </button>
                     </span>

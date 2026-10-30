@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { guardarAudio, lerAudio } from '../audios'
 import { useStore } from '../store'
 import { novoId } from '../util'
+import { Simbolo } from './Icone'
 
 // Recado é para tirar da cabeça, não para ditar um texto longo.
 const LIMITE_S = 120
@@ -68,11 +69,13 @@ export function GravarRecado() {
     <div className="linha">
       {gravando ? (
         <button type="button" className="primario" onClick={gravando.parar}>
-          ■ Parar e guardar · {relogio(passados)}
+          <Simbolo c="■" />
+          Parar e guardar · {relogio(passados)}
         </button>
       ) : (
         <button type="button" onClick={comecar}>
-          🎙 Gravar um recado
+          <Simbolo c="🎙" />
+          Gravar um recado
         </button>
       )}
       {aviso && (

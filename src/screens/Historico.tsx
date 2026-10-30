@@ -9,6 +9,7 @@ import { HUMORES } from '../rotulos'
 import { minutosDoPasso, useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { dataISO, duracao, hora, hoje, nomeDoDia } from '../util'
+import { Simbolo } from '../components/Icone'
 
 const DIA = 86_400_000
 
@@ -58,7 +59,7 @@ export function Historico() {
           <UsoDoComputador />
 
           <div className="cartao">
-            <p className="rotulo">Palpite × tempo real</p>
+            <h2 className="rotulo">Palpite × tempo real</h2>
             {cal ? (
               <>
                 <p>{explicarFator(cal.fator)}</p>
@@ -75,7 +76,7 @@ export function Historico() {
           </div>
 
           <div className="cartao">
-            <p className="rotulo">Últimos 7 dias</p>
+            <h2 className="rotulo">Últimos 7 dias</h2>
             <div className="numeros">
               <span>
                 <b>{feitos7.length}</b> passo{feitos7.length === 1 ? '' : 's'} feito{feitos7.length === 1 ? '' : 's'}
@@ -91,7 +92,7 @@ export function Historico() {
             </div>
             {ranking.length > 0 && (
               <>
-                <p className="rotulo">Onde o tempo foi</p>
+                <h3 className="rotulo">Onde o tempo foi</h3>
                 {ranking.map(([pid, m]) => (
                   <div key={pid} className="barra-linha">
                     <div className="linha entre">
@@ -146,7 +147,8 @@ export function Historico() {
                 {feitos.map((p) => (
                   <div key={p.id} className="registro">
                     <span className="flex">
-                      ✓ {p.texto}
+                      <Simbolo c="✓" diz="Feito" />
+                      {p.texto}
                       <span className="motivo"> · {projetoDe(p.projetoId)?.titulo ?? 'tarefa solta'} · {hora(p.feitoEm!)}</span>
                     </span>
                     <TempoGasto passo={p} />
@@ -156,7 +158,8 @@ export function Historico() {
                 {trabalhados.map(({ passo, minutos }) => (
                   <div key={passo!.id} className="registro andamento">
                     <span className="flex">
-                      ⏱ {passo!.texto}
+                      <Simbolo c="⏱" diz="Em andamento" />
+                      {passo!.texto}
                       <span className="motivo"> · {passo!.feitoEm ? 'concluído em outro dia' : 'ainda em andamento'}</span>
                     </span>
                     <span className="tempo">{duracao(minutos)}</span>
@@ -165,7 +168,8 @@ export function Historico() {
                 {compromissos.map((e) => (
                   <div key={e.id} className="registro compromisso">
                     <span className="flex">
-                      📅 {e.titulo}
+                      <Simbolo c="📅" diz="Compromisso" />
+                      {e.titulo}
                       <span className="motivo"> · {hora(e.inicio)}</span>
                     </span>
                     <span className="tempo">{duracao((e.fim - e.inicio) / 60_000)}</span>
