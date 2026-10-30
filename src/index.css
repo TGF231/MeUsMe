@@ -183,11 +183,16 @@ button.discreto {
   min-height: 100dvh;
 }
 
+/* Foco não fica escondido (WCAG 2.4.11): o que recebe foco rola para cima da barra de abas e do botão +, que são fixos. */
+html {
+  scroll-padding-bottom: calc(150px + env(safe-area-inset-bottom));
+}
+
 .conteudo {
   max-width: 640px;
   margin: 0 auto;
-  /* Edge-to-edge no Android: respeita a área da barra de status. */
-  padding: env(safe-area-inset-top) 16px calc(96px + env(safe-area-inset-bottom));
+  /* Edge-to-edge no Android: respeita a área da barra de status. O fim passa do botão +, para o último item não ficar por baixo dele. */
+  padding: env(safe-area-inset-top) 16px calc(150px + env(safe-area-inset-bottom));
 }
 
 .topo {
@@ -950,6 +955,11 @@ kbd {
   .conteudo {
     width: 100%;
     padding-bottom: 32px;
+  }
+
+  /* Abas ao lado: sobra só o botão +, no canto de baixo. */
+  html {
+    scroll-padding-bottom: 96px;
   }
 
   .so-estreito {

@@ -69,6 +69,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
 | Fonte do sistema no Android | Emulador com `font_scale` 1.0 e 1.3 | A WebView acompanha sem código nativo |
 | Canal de notificação | `dumpsys notification` no emulador depois de agendar um lembrete | `avisos` com importância 4 e vibração (o `default` do plugin tem importância 3, sem vibração) |
 | Contraste e espaçamento | Compromisso que já passou injetado na Agenda; CSS de espaçamento da WCAG 1.4.12 (altura de linha 1,5, espaço entre letras 0,12em) nas 7 seções | De 2,5:1 para 6,4:1 depois da correção; nenhum texto cortado |
+| Foco não escondido (WCAG 2.4.11) | Foco em cada controle de Ajustes, Caixa e Agenda a 375 px, medindo a sobreposição com a barra de abas e o botão + | Sem a correção, 4 ficavam por baixo; com `scroll-padding-bottom`, nenhum |
 | Rótulo no nome (controle por voz) | Regra `label-content-name-mismatch` do axe e comparação do texto visível com o `aria-label` de cada botão | O nome sempre contém o texto visível |
 | Teclado | Ctrl+Espaço, digitar, Enter, Esc, Ctrl+Z e o link de pular, no navegador | Foco certo em cada passo |
 | Regressão | `testes/acessibilidade.test.ts` varre o JSX: botão "ativo" sem estado, símbolo solto, campo sem nome, grupo sem nome | Roda no `npm test` |
