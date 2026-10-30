@@ -42,7 +42,15 @@ export function JanelaCaptura() {
         onKeyDown={(e) => e.key === 'Escape' && fechar()}
         placeholder={guardado ? 'Guardado na Caixa.' : 'O que está na sua cabeça? (Enter guarda, Esc fecha)'}
         aria-label="Captura rápida"
+        aria-describedby="captura-como"
       />
+      {/* Placeholder não é lido com confiança: as instruções e a confirmação vão também para o leitor de tela. */}
+      <span id="captura-como" className="so-leitor">
+        Enter guarda na Caixa, Esc fecha.
+      </span>
+      <span className="so-leitor" role="status">
+        {guardado ? 'Guardado na Caixa.' : ''}
+      </span>
     </form>
   )
 }
