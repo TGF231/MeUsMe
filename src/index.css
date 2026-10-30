@@ -657,8 +657,9 @@ input.mini {
   border-bottom: none;
 }
 
+/* Já passou: texto no tom secundário. Opacidade derrubava o contraste para 2,5:1 (a WCAG pede 4,5:1). */
 .evento.passou {
-  opacity: 0.55;
+  color: var(--suave);
 }
 
 .evento.acontecendo .horario {

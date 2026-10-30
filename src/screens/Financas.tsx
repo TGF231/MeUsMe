@@ -144,6 +144,8 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
                   <span className={estourou ? 'atencao' : 'motivo'}>
                     {reais(c.gasto)}
                     {c.orcamento ? ` de ${reais(c.orcamento)}` : ''}
+                    {/* Não só pela cor: quem não distingue o tom de atenção lê que passou. */}
+                    {estourou && ' · passou do limite'}
                   </span>
                 </div>
                 <div className="barra">

@@ -94,6 +94,9 @@ function LinhaEvento({ e, agora }: { e: Evento; agora: number }) {
     <div className={`evento ${passou ? 'passou' : ''} ${e.inicio <= agora && e.fim > agora ? 'acontecendo' : ''}`}>
       <span className="horario">{e.diaInteiro ? 'Dia todo' : `${hora(e.inicio)}–${hora(e.fim)}`}</span>
       <span className="flex">
+        {/* O tom apagado e o horário em negrito não chegam ao leitor de tela. */}
+        {passou && <span className="so-leitor">Já passou: </span>}
+        {e.inicio <= agora && e.fim > agora && <span className="so-leitor">Acontecendo agora: </span>}
         {e.titulo}
         {passo && <span className="motivo"> · {passo.feitoEm ? 'passo feito' : 'horário reservado para um passo'}</span>}
         {e.origem === 'google' && <span className="selo">Google</span>}
