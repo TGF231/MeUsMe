@@ -10,6 +10,7 @@ import { organizar } from '../motor/executar'
 import { lerDinheiro, type Dinheiro } from '../motor/extratores'
 import { aplicarRegras, prepararCompromisso } from '../motor/regras'
 import { EXEMPLOS_DE_CAMPO } from '../motor/tutorial'
+import { apagarComDesfazer } from '../desfazer'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
@@ -203,7 +204,15 @@ function AcoesDaCaptura({ ctx }: Readonly<{ ctx: Contexto }>) {
         {sugestao !== 'compromisso' && <button onClick={() => setModo({ tipo: 'evento' })}>Compromisso</button>}
         {sugestao !== 'lembrete' && <button onClick={() => setModo({ tipo: 'lembrete' })}>Lembrete</button>}
         {!captura.audio && sugestao !== 'ideia' && <button onClick={ideia}>É só uma ideia</button>}
-        <button className="discreto" onClick={() => s.descartarCaptura(captura.id)}>
+        <button
+          className="discreto"
+          onClick={() =>
+            // O áudio sai do aparelho junto e não dá para devolver: confirma antes. Texto volta pelo Desfazer.
+            captura.audio
+              ? confirm('Apagar este recado de voz? O áudio não tem como voltar.') && s.descartarCaptura(captura.id)
+              : apagarComDesfazer(useStore, 'capturas', captura.id, captura.texto, () => s.descartarCaptura(captura.id))
+          }
+        >
           Apagar
         </button>
       </div>
@@ -305,7 +314,11 @@ export function Caixa() {
                     >
                       Agir nela
                     </button>
-                    <button className="discreto" onClick={() => s.removerIdeia(i.id)}>
+                    <button
+                      className="discreto"
+                      onClick={() => apagarComDesfazer(useStore, 'ideias', i.id, i.texto, () => s.removerIdeia(i.id))}
+                      aria-label={`Apagar ${i.texto}`}
+                    >
                       Apagar
                     </button>
                   </span>

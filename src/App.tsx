@@ -110,7 +110,7 @@ function Avisos() {
 
 /** Ctrl+Z fora de um campo de texto: a ação do aviso mais recente (o Desfazer do motor), sem caçar o botão. */
 function desfazerUltimoAviso(e: KeyboardEvent) {
-  const alvo = e.target as HTMLElement | null
+  const alvo = e.target instanceof Element ? e.target : null
   if (!e.ctrlKey || e.key.toLowerCase() !== 'z' || alvo?.closest('input, textarea, select, [contenteditable]')) return
   const { avisos, fechar } = useAvisos.getState()
   const ultimo = avisos.findLast((a) => a.acao?.rotulo === 'Desfazer')

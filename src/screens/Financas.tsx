@@ -17,6 +17,7 @@ import {
 import type { ContaFixa, Transacao } from '../types'
 import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 import { Simbolo } from '../components/Icone'
+import { apagarComDesfazer } from '../desfazer'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -275,7 +276,11 @@ function Lancamentos() {
                     <button className="discreto" onClick={() => setEditando(editando === t.id ? null : t.id)} aria-label="Editar lançamento">
                       Editar
                     </button>
-                    <button className="discreto" onClick={() => f.removerTransacao(t.id)} aria-label="Apagar lançamento">
+                    <button
+                      className="discreto"
+                      onClick={() => apagarComDesfazer(useFinancas, 'transacoes', t.id, `${t.descricao} · ${reais(t.valor)}`, () => f.removerTransacao(t.id))}
+                      aria-label={`Apagar lançamento ${t.descricao}`}
+                    >
                       Apagar
                     </button>
                   </span>
@@ -397,7 +402,11 @@ function Fixas() {
                     dia {x.dia} · {x.tipo === 'gasto' ? 'sai' : 'entra'} {reais(x.valor)}
                   </span>
                 </span>
-                <button className="discreto" onClick={() => f.removerFixa(x.id)}>
+                <button
+                  className="discreto"
+                  onClick={() => apagarComDesfazer(useFinancas, 'fixas', x.id, x.nome, () => f.removerFixa(x.id))}
+                  aria-label={`Remover ${x.nome}`}
+                >
                   Remover
                 </button>
               </div>
@@ -731,7 +740,12 @@ function AjustesFinancas() {
                     aria-label={`Limite de ${c.nome}`}
                   />
                 )}
-                <button className="discreto" onClick={() => f.removerCategoria(c.id)} aria-label={`Apagar ${c.nome}`}>
+                {/* Apagar a categoria tira ela dos lançamentos também: confirma em vez de Desfazer. */}
+                <button
+                  className="discreto"
+                  onClick={() => confirm(`Apagar a categoria "${c.nome}"? Os lançamentos dela ficam sem categoria.`) && f.removerCategoria(c.id)}
+                  aria-label={`Apagar ${c.nome}`}
+                >
                   ×
                 </button>
               </span>

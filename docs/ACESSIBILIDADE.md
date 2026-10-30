@@ -58,6 +58,10 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
 - **Alvos:**
   - todo controle tem pelo menos 30 px, acima dos 24 px que a WCAG 2.2 pede; botões e campos comuns têm 44 px;
   - Ajustes → Acessibilidade → "Botões maiores" leva todos a 48 px (a medida do Android) e aumenta o espaço entre eles.
+- **Toque errado não perde nada:**
+  - apagar captura de texto, ideia, passo, lembrete, lançamento ou conta fixa avisa com Desfazer (`apagarComDesfazer`, em `src/desfazer.ts`), que devolve o item ao mesmo lugar;
+  - o que leva outra coisa junto pede confirmação: o recado de voz (o áudio sai do aparelho) e a categoria (os lançamentos ficam sem ela);
+  - os botões de apagar dizem qual item apagam ("Apagar lançamento mercado"), não só "Apagar".
 - **Gestos:** nenhum gesto de arrastar, deslizar, segurar ou tocar duas vezes; tudo é um toque.
 - **Movimento:** com "reduzir movimento" ligado no sistema, as transições somem (o MegUI zera `--megui-mov-*`).
 
@@ -98,11 +102,12 @@ Vale testar com uma pessoa que use leitor de tela no dia a dia antes de publicar
 6. **Botão só com ícone:** `aria-label` com o mesmo nome que a dica (`title`).
 7. **Janela sobre a tela:** `useJanelaModal` com `<dialog className="fundo">`, e `onCancel` para o Esc.
 8. **Mensagem que aparece depois de uma ação:** `role="status"`; erro, `role="alert"`.
-9. **Nada some sozinho sem respeitar "Avisos ficam até eu fechar".**
-10. **Tamanho:** fonte em `rem`; alvo novo com pelo menos 44 px (`min-height`), salvo em lista densa, onde o mínimo é 30 px.
-11. **Nada só por cor, só por som ou só por voz.**
-12. **Notificação no Android:** `channelId: CANAL` depois de `await garantirCanal()` (`src/notificacoes.ts`).
-13. **Cor nova:** token do MegUI, conferido também com o contraste alto ligado.
+9. **Apagar:** `apagarComDesfazer`; se a remoção leva outra coisa junto, `confirm`. O botão diz o nome do item.
+10. **Nada some sozinho sem respeitar "Avisos ficam até eu fechar".**
+11. **Tamanho:** fonte em `rem`; alvo novo com pelo menos 44 px (`min-height`), salvo em lista densa, onde o mínimo é 30 px.
+12. **Nada só por cor, só por som ou só por voz.**
+13. **Notificação no Android:** `channelId: CANAL` depois de `await garantirCanal()` (`src/notificacoes.ts`).
+14. **Cor nova:** token do MegUI, conferido também com o contraste alto ligado.
 
 Para auditar no navegador, com o app aberto (`npm run dev`), cole no console:
 

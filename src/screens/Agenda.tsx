@@ -4,6 +4,7 @@ import { EventoForm } from '../components/EventoForm'
 import { LembreteForm } from '../components/LembreteForm'
 import { conectarGoogle, ErroGoogle, removerDoGoogle, sincronizarGoogle, temToken } from '../google'
 import { useAgora } from '../hooks'
+import { apagarComDesfazer } from '../desfazer'
 import { useStore } from '../store'
 import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
 import type { Evento } from '../types'
@@ -266,7 +267,11 @@ export function Agenda() {
                     </span>
                     <span className="linha">
                       <button onClick={() => agenda.concluirLembrete(l.id)}>Feito</button>
-                      <button className="discreto" onClick={() => agenda.removerLembrete(l.id)} aria-label="Apagar lembrete">
+                      <button
+                        className="discreto"
+                        onClick={() => apagarComDesfazer(useAgenda, 'lembretes', l.id, l.texto, () => agenda.removerLembrete(l.id))}
+                        aria-label={`Apagar lembrete ${l.texto}`}
+                      >
                         ×
                       </button>
                     </span>

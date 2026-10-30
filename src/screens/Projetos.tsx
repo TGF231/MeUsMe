@@ -5,6 +5,7 @@ import { BarraProgresso } from '../components/Progresso'
 import { PontosEditaveis } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { useNavegacao } from '../navegacao'
+import { apagarComDesfazer } from '../desfazer'
 import { minutosDoPasso, pendentes, useStore } from '../store'
 import type { Passo, Projeto } from '../types'
 import { duracao } from '../util'
@@ -68,10 +69,14 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   const energia = <PontosEditaveis energia={passo.energia} onChange={(e) => s.atualizarPasso(passo.id, { energia: e })} />
   const acoes = (
     <span className="linha">
-      <button className="discreto" onClick={() => (setTexto(passo.texto), setEditando(true))}>
+      <button className="discreto" onClick={() => (setTexto(passo.texto), setEditando(true))} aria-label={`Editar ${passo.texto}`}>
         Editar
       </button>
-      <button className="discreto" onClick={() => s.removerPasso(passo.id)}>
+      <button
+        className="discreto"
+        onClick={() => apagarComDesfazer(useStore, 'passos', passo.id, passo.texto, () => s.removerPasso(passo.id))}
+        aria-label={`Remover ${passo.texto}`}
+      >
         Remover
       </button>
     </span>
@@ -305,7 +310,11 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
               {ideias.map((i) => (
                 <div key={i.id} className="cartao linha entre">
                   <span>{i.texto}</span>
-                  <button className="discreto" onClick={() => s.removerIdeia(i.id)}>
+                  <button
+                    className="discreto"
+                    onClick={() => apagarComDesfazer(useStore, 'ideias', i.id, i.texto, () => s.removerIdeia(i.id))}
+                    aria-label={`Apagar ${i.texto}`}
+                  >
                     Apagar
                   </button>
                 </div>
