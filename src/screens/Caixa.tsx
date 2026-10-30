@@ -54,9 +54,9 @@ function NovoProjeto({ ctx }: Readonly<{ ctx: Contexto }>) {
       }}
     >
       <label className="rotulo">Nome do projeto</label>
-      <input aria-label="Nome do projeto" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+      <input required aria-label="Nome do projeto" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
       <label className="rotulo">Linha de chegada: como você vai saber que terminou?</label>
-      <input aria-label="Linha de chegada" autoFocus value={chegada} onChange={(e) => setChegada(e.target.value)} placeholder="Ex.: currículo enviado para 3 vagas" />
+      <input required aria-label="Linha de chegada" autoFocus value={chegada} onChange={(e) => setChegada(e.target.value)} placeholder="Ex.: currículo enviado para 3 vagas" />
       <div className="linha">
         <button type="submit" className="primario">
           Criar projeto

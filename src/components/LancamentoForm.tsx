@@ -53,6 +53,7 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
         </button>
       </div>
       <input
+        required
         className="valor-grande"
         inputMode="decimal"
         autoFocus={!inicial?.valor}

@@ -193,8 +193,8 @@ function EditarLancamento({ t, onPronto }: { t: Transacao; onPronto: () => void 
     >
       <input value={descricao} onChange={(e) => setDescricao(e.target.value)} aria-label="Descrição" placeholder="Descrição" />
       <div className="linha">
-        <input className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
-        <input type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" />
+        <input required className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
+        <input required type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" />
       </div>
       <div className="linha">
         <button type="submit" className="primario">
@@ -332,10 +332,10 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
           Entrada fixa
         </button>
       </div>
-      <input aria-label="Nome" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder={tipo === 'gasto' ? 'Ex.: Aluguel, Internet' : 'Ex.: Salário'} />
+      <input required aria-label="Nome" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder={tipo === 'gasto' ? 'Ex.: Aluguel, Internet' : 'Ex.: Salário'} />
       <div className="linha">
-        <input aria-label="Valor" className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} placeholder="Valor" />
-        <input className="flex" type="number" min={1} max={31} value={dia} onChange={(e) => setDia(e.target.value)} aria-label="Dia do mês" />
+        <input required aria-label="Valor" className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} placeholder="Valor" />
+        <input required className="flex" type="number" min={1} max={31} value={dia} onChange={(e) => setDia(e.target.value)} aria-label="Dia do mês" />
       </div>
       <div className="linha">
         <select className="flex" value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} aria-label="Categoria">

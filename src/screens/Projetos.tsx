@@ -25,9 +25,9 @@ function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
       }}
     >
       <label className="rotulo">Nome do projeto</label>
-      <input aria-label="Nome do projeto" autoFocus value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+      <input required aria-label="Nome do projeto" autoFocus value={titulo} onChange={(e) => setTitulo(e.target.value)} />
       <label className="rotulo">Linha de chegada: como você vai saber que terminou?</label>
-      <input aria-label="Linha de chegada"
+      <input required aria-label="Linha de chegada"
         value={chegada}
         onChange={(e) => setChegada(e.target.value)}
         placeholder="Algo que dá para ver, não um sentimento"
@@ -150,9 +150,9 @@ function EditarProjeto({ projeto, onPronto, onApagado }: { projeto: Projeto; onP
       }}
     >
       <label className="rotulo">Nome do projeto</label>
-      <input aria-label="Nome do projeto" autoFocus value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+      <input required aria-label="Nome do projeto" autoFocus value={titulo} onChange={(e) => setTitulo(e.target.value)} />
       <label className="rotulo">Linha de chegada</label>
-      <input aria-label="Linha de chegada" value={chegada} onChange={(e) => setChegada(e.target.value)} />
+      <input required aria-label="Linha de chegada" value={chegada} onChange={(e) => setChegada(e.target.value)} />
       <div className="linha">
         <button type="submit" className="primario">
           Salvar

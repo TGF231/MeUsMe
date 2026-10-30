@@ -13,6 +13,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
 - **Títulos:** cada cartão e cada seção dentro dele tem um título de verdade (h2, h3), para pular de um a outro.
 - **Foco não se perde:** quando o botão usado some ("Já fiz", "Apagar", uma captura processada), o foco vai para o conteúdo principal em vez de voltar ao começo da página.
 - **Onde se está:** ao trocar de seção, o foco vai para o título e o título da janela muda ("Caixa · MeUsMe"). No celular, onde o título mostra só "MeUsMe", o leitor ouve "MeUsMe · Caixa".
+- **Campo obrigatório:** em formulário de vários campos (projeto, compromisso, lembrete, conta fixa, lançamento), o que falta é marcado com `required`: o leitor de tela anuncia "obrigatório", e enviar sem ele leva o foco ao campo com "Preencha este campo", em vez de não acontecer nada.
 - **Avisos e erros:**
   - avisos, mensagens de ditado e mensagens de sincronização são lidos assim que aparecem (`role="status"`); erros, com prioridade (`role="alert"`);
   - nos tutoriais, ao avançar, o texto da tela nova é lido sem o foco sair do botão.
@@ -98,6 +99,7 @@ Vale testar com uma pessoa que use leitor de tela no dia a dia antes de publicar
 2. **Título de seção** com cara de rótulo: `<h2 className="rotulo">` (ou `h3` dentro de um cartão que já tem título), não `<p>`: quem usa leitor de tela pula de título em título.
 3. **Grupo de botões** (`.segmentado`, `.chips`): `role="group"` e `aria-label` com o texto do rótulo visível.
 4. **Campo:**
+   - obrigatório em formulário de vários campos: `required`;
    - `aria-label`, ou `id` com `<label htmlFor>`, ou dentro do `<label>`;
    - placeholder não serve de nome: some ao digitar e a WebView do Android não o entrega como nome.
 5. **Símbolo no meio do texto:** `<Simbolo c="✓" diz="Feito" />`; sem `diz`, quando é só enfeite.
