@@ -189,6 +189,11 @@ export default function App() {
       if (e.ctrlKey && e.code === 'Space') {
         e.preventDefault()
         setCapturando(true)
+      } else if (e.altKey && !e.ctrlKey && /^Digit[1-7]$/.test(e.code)) {
+        // Alt+1 a Alt+7: as seções na ordem da navegação, sem passar por todas com Tab.
+        e.preventDefault()
+        const n = Number(e.code.slice(-1))
+        useNavegacao.getState().ir(n <= ABAS.length ? ABAS[n - 1].id : 'ajustes')
       } else desfazerUltimoAviso(e)
     }
     window.addEventListener('keydown', atalho)
@@ -228,6 +233,8 @@ export default function App() {
   }, [])
 
   const nomeDaAba = aba === 'ajustes' ? 'Ajustes' : ABAS.find((a) => a.id === aba)!.nome
+  // Atalhos de teclado só fazem sentido (e só são anunciados) fora do celular.
+  const teclado = !ehAndroid()
 
   // Ao trocar de seção, o título da janela diz onde se está e o foco vai para o título da seção: o leitor de tela
   // lê o lugar novo (sem isso o foco fica no botão da aba e nada é anunciado) e o Tab segue a partir dali.
@@ -250,8 +257,15 @@ export default function App() {
         <button className="primario nav-capturar" onClick={() => setCapturando(true)} title="Captura rápida (Ctrl+Espaço)">
           <span aria-hidden="true">+</span> Capturar <kbd>Ctrl+Espaço</kbd>
         </button>
-        {ABAS.map((a) => (
-          <button key={a.id} className={aba === a.id ? 'ativo' : ''} onClick={() => setAba(a.id)} aria-current={aba === a.id ? 'page' : undefined}>
+        {ABAS.map((a, i) => (
+          <button
+            key={a.id}
+            className={aba === a.id ? 'ativo' : ''}
+            onClick={() => setAba(a.id)}
+            aria-current={aba === a.id ? 'page' : undefined}
+            title={teclado ? `${a.nome} (Alt+${i + 1})` : undefined}
+            aria-keyshortcuts={teclado ? `Alt+${i + 1}` : undefined}
+          >
             <Icone nome={a.id} />
             <span>{a.nome}</span>
             {a.id === 'caixa' && naCaixa > 0 && <span className="contador">{naCaixa}</span>}
@@ -261,6 +275,8 @@ export default function App() {
           className={`nav-ajustes ${aba === 'ajustes' ? 'ativo' : ''}`}
           onClick={() => setAba('ajustes')}
           aria-current={aba === 'ajustes' ? 'page' : undefined}
+          title={teclado ? `Ajustes (Alt+${ABAS.length + 1})` : undefined}
+          aria-keyshortcuts={teclado ? `Alt+${ABAS.length + 1}` : undefined}
         >
           <Icone nome="ajustes" />
           <span>Ajustes</span>

@@ -45,6 +45,7 @@ O MeUsMe tem que servir para quem não enxerga ou enxerga pouco, para quem não 
   - tudo funciona sem mouse;
   - o primeiro Tab mostra o link "Pular para o conteúdo";
   - Ctrl+Espaço abre a captura rápida;
+  - Alt+1 a Alt+7 vão direto para cada seção, na ordem da navegação (Ajustes é o 7), e o leitor de tela anuncia o atalho de cada uma (`aria-keyshortcuts`);
   - Ctrl+Z, fora de um campo de texto, desfaz o que o app acabou de criar sozinho, sem precisar alcançar o botão Desfazer.
 - **Janelas** (captura rápida, tutorial):
   - são modais de verdade (`<dialog>` com `showModal`, hook `useJanelaModal` em `src/hooks.ts`): o foco fica preso dentro e o resto da página fica inerte;

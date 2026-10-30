@@ -384,7 +384,7 @@ function Acessibilidade() {
         {avisosFicam
           ? 'Nenhum aviso some sozinho, nem o Desfazer depois de organizar uma captura.'
           : 'Os avisos somem em 12 segundos, mas param de contar enquanto o mouse ou o foco está neles.'}{' '}
-        No computador, Ctrl+Z (fora de um campo de texto) desfaz o que o app acabou de criar.
+        No computador, Ctrl+Z (fora de um campo de texto) desfaz o que o app acabou de criar e Alt+1 a Alt+7 trocam de seção.
       </p>
       <p className="motivo">
         O app funciona inteiro pelo teclado e com leitor de tela (TalkBack, NVDA, Narrador). Falar é sempre opcional: o ditado e os recados de voz têm um
