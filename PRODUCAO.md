@@ -75,6 +75,7 @@ Gera `android/app/build/outputs/bundle/release/app-release.aab`, o arquivo que v
 - **Política de privacidade**: falta escrever e publicar (ver seção 7).
 - **Leitura de notificações**: declare o uso e explique na listagem. O app mostra a explicação antes de pedir o acesso; a revisão do Google pode pedir mais detalhes.
 - Declaração de **recursos financeiros**: o app mostra saldos e gastos.
+- **Compras dentro do app** (ver o [Modelo de preço](docs/ROADMAP.md#modelo-de-preço)): o app é publicado como gratuito (um app gratuito não pode virar pago depois; os pacotes e a assinatura vêm pela cobrança da Play, com taxa de 15%). Precisa de **perfil de pagamentos** no Play Console; como pessoa física, a renda entra no carnê-leão. Cadastre os pacotes como produtos de compra única e a sincronização como assinatura, com preços próprios em reais.
 
 ## 4. Windows
 
@@ -112,4 +113,5 @@ Precisa de um Mac com Xcode e da conta Apple Developer (US$ 99 por ano). O Capac
 | Google Play | US$ 25, uma vez |
 | Microsoft Store | grátis (conta); certificado US$ 150–300/ano para enviar o instalador |
 | Apple | US$ 99/ano + um Mac |
+| Conferência das compras | Edge Function própria ou RevenueCat (grátis até certa receita; confira o limite) |
 | Pluggy comercial | a partir de R$ 2.500/mês, só se quiser Open Finance para outras pessoas |

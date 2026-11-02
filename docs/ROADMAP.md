@@ -133,7 +133,7 @@ O que o app já tem, visto pelo seu perfil. Quando o item citado é de [CONCORRE
 - **Fase 3 (produto para outras pessoas).**
   - Open Finance: em 28/10 você disse que ele exige robustez empresarial e que quer evitar infraestrutura gigante; a recomendação é não contratar o plano comercial e ficar com notificações, OFX ou CSV e saúde da conexão (D25).
   - Google Agenda: decida entre a verificação do Google e o .ics só depois de conferir a sua permissão na agenda da equipe; um .ics não ajuda se você não a administra.
-  - Perfis prontos e módulos (D13, D14) antes de convidar outras pessoas, e a decisão do que fica sempre gratuito (D22).
+  - Perfis prontos e módulos (D13, D14) antes de convidar outras pessoas, e a decisão do que fica sempre gratuito (D22, decidida: ver [Modelo de preço](#modelo-de-preço)).
 - **Captura por assistente de voz** ([CONCORRENTES.md](CONCORRENTES.md#captura-por-assistente-de-voz-gemini-e-siri)).
   - Agora (A1): link e atalho do app "Capturar por voz", para "Hey Google, abrir MeUsMe" cair direto na gravação. Entra junto com V03.
   - Fase 8, iPhone (A3): App Shortcut "Anotar no MeUsMe" com App Intents. O Atalho do iPhone que dita e abre um link (A2) é o degrau mais barato antes disso.
@@ -212,6 +212,7 @@ Objetivo: tirar tudo da coluna "nunca testado com o serviço real".
 - Domínio próprio e um site simples com o app web, a política de privacidade, os termos de uso e a página "como apagar sua conta" (exigida pelo Google Play).
 - ~~Política de privacidade cobrindo LGPD~~: escrita em [public/privacidade.html](../public/privacidade.html), com a seção de exclusão de conta. Os termos de uso estão em [public/termos.html](../public/termos.html). Falta publicar os dois num endereço fixo e revisar com quem entende de LGPD.
 - E-mail de suporte.
+- Página de preços com as regras públicas do [Modelo de preço](#modelo-de-preço), e a política de privacidade cobrindo a conta opcional (e-mail e lista de compras).
 - ~~Link para a política dentro do app (Ajustes).~~ Feito (Ajustes → Sobre).
 
 **Linha de chegada:** os três links (política, termos, exclusão de conta) estão públicos e acessíveis de dentro do app.
@@ -222,6 +223,8 @@ Objetivo: tirar tudo da coluna "nunca testado com o serviço real".
 - Conta no Play Console; teste fechado com **12 testadores por 14 dias**.
 - Formulário de segurança dos dados; declaração da leitura de notificações e de recursos financeiros.
 - Ficha da loja: textos, capturas de tela, ícone.
+- **Compras** ([Modelo de preço](#modelo-de-preço)): perfil de pagamentos na Play; pacotes como produtos de compra única e a sincronização como assinatura, pela cobrança da Play; liberar sem internet; "Restaurar compras" em Ajustes.
+- **Conta opcional** separada da assinatura: entrar só para guardar compras; conferência da compra no servidor (Edge Function ou RevenueCat) antes de gravar na conta.
 
 **Linha de chegada:** o MeUsMe aparece na busca da Play Store.
 
@@ -237,10 +240,54 @@ Objetivo: tirar tudo da coluna "nunca testado com o serviço real".
 - Rotina de versão: `npm run versao` → testes → builds → checklist manual curto → publicar → anotar o que mudou.
 - Acompanhar o uso e os custos do Supabase; backup diário (no plano Pro há restauração para qualquer momento).
 - Responder suporte; transformar cada relato em teste antes de consertar.
+- Acompanhar se as assinaturas pagam o servidor; revisar os preços uma vez por ano, sem nunca cobrar pelo que já é grátis.
+- Assinatura vencida: aviso antes, 30 dias para baixar o que está na nuvem, nada apagado do aparelho.
 
 ### Fase 8: iPhone (opcional)
 
 Mac com Xcode, conta Apple Developer, `npx cap add ios`. Sem leitura de notificações de banco (o iOS não permite). Notificações agendadas funcionam com o mesmo plugin.
+
+---
+
+## Modelo de preço
+
+Decidido em 2/11/2026 (D22). Nada é cobrado antes da fase 5: até lá o app é grátis, sem anúncios, com um botão de apoio opcional que não libera nada. Os testadores do teste fechado da Play ganham tudo de graça para sempre.
+
+| Nível | O que entra | Preço de partida |
+|---|---|---|
+| **Grátis para sempre** | Tudo que roda só no aparelho: captura (voz, compartilhar, bloco, widget), Agora, passos, prazos, repetição, lembretes, Caixa, finanças manuais, CSV e OFX, notificações do banco, busca e backup em arquivo | R$ 0 |
+| **Pacotes (compra única)** | O que não gera custo mensal, em poucos pacotes por tema: captura avançada (voz por cima de outros apps, janela no Windows), visual e conforto (temas, linha do tempo), relatórios (revisões e gráficos mais longos). Um pacote **Completo**, mais barato que a soma, inclui os que vierem depois | R$ 49 a R$ 79 o Completo |
+| **Assinatura de sincronização** | Só o que gera conta todo mês: sincronização entre aparelhos e backup na nuvem. Se um dia houver Open Finance, é plano à parte | cerca de R$ 7,90/mês ou R$ 59/ano |
+
+**Regras públicas** (publicar no site e na ficha da loja):
+
+- O que é grátis hoje nunca vira pago.
+- Exportar e restaurar o backup em arquivo é sempre grátis.
+- Se a assinatura acabar, nada é apagado: os dados ficam no aparelho, só a sincronização para, e há 30 dias para baixar o que está na nuvem.
+- As compras valem sem internet. O app não confere a licença a cada abertura e não limita o número de aparelhos.
+
+**Conta opcional.** A conta (o login por código no e-mail que já existe) fica separada da assinatura:
+
+| | Conta | Assinatura de sincronização |
+|---|---|---|
+| Obrigatória? | Não | Não |
+| Preço | Grátis | Paga |
+| Para que serve | Guardar o que a pessoa comprou e liberar nos outros aparelhos | Copiar os dados entre aparelhos e guardar o backup na nuvem |
+| O que fica no servidor | E-mail e lista de compras | Os dados do app |
+
+- Primeira vez: abre e usa, sem cadastro.
+- Primeira compra: compra pela Play sem conta e libera no aparelho; depois, uma oferta opcional: "Quer usar em outros aparelhos? Entre com seu e-mail".
+- Ajustes: "Entrar" e "Restaurar compras" sempre à mão. Ao entrar, as compras feitas antes passam para a conta.
+- A conta só é exigida para assinar a sincronização. Apagar a conta não apaga os dados do aparelho.
+
+**Por quê.** Mensalidade só onde há custo mensal é fácil de explicar e evita a queixa mais comum contra Todoist e TickTick (plano grátis que encolhe, D22). Uma compra única não vira cobrança esquecida (V29) e combina com "nada se move sozinho" (D03). A conta do servidor fecha cedo: o Supabase Pro custa cerca de US$ 25/mês, e a R$ 7,90, depois dos 15% da Play, umas 20 a 25 assinaturas pagam o servidor. Os preços acima são de partida: revise com os preços dos concorrentes no momento da fase 5.
+
+**O que decidir antes de cobrar:**
+
+- **Conferir a compra no servidor** antes de gravar na conta: Edge Function própria com uma credencial do Google (mais servidor, contra D1) **ou** RevenueCat, que confere Play, Microsoft Store, Apple e web e liga tudo a um id de conta (confira o limite do plano gratuito).
+- **Vender sem CNPJ:** a Play aceita perfil de pagamentos de pessoa física; a renda entra no carnê-leão. Confirme com um contador antes da primeira venda.
+- **Preço por país:** valores próprios em reais na Play, não conversão do dólar.
+- **Ordem das lojas:** começar só pela Play. Microsoft Store e pagamento na web (PWA, que não tem loja) vêm depois; o iPhone só quando a receita cobrir os US$ 99/ano da Apple.
 
 ---
 
@@ -253,3 +300,4 @@ Mac com Xcode, conta Apple Developer, `npx cap add ios`. Sem leitura de notifica
 | Bancos mudam o texto das notificações | gastos vão para a Caixa em vez de registrar | casos de teste com textos reais; Caixa como rede de segurança |
 | Custo do servidor cresce | conta mensal | localStorage/IndexedDB primeiro; sincronização só de mudanças; monitorar |
 | Verificação do Google demora meses | Agenda indisponível para o público | alternativa iCal (só leitura) |
+| Compra feita numa loja não aparece em outro aparelho | reclamação e reembolso | conta opcional com a compra conferida no servidor; "Restaurar compras" |
