@@ -76,6 +76,29 @@ export function horariosLivres(minutos: number, eventos: Evento[], faixas: [numb
   return achados
 }
 
+/**
+ * Capacidade do dia (V14 em docs/CONCORRENTES.md): os passos com prazo hoje, sem horário reservado, cabem no tempo
+ * livre até `ate`? A duração é o palpite corrigido pelo seu ritmo; o tempo livre desconta compromissos e reservas.
+ */
+export function capacidadeDoDia(passos: Passo[], sessoes: Sessao[], eventos: Evento[], agora: number, ate: number) {
+  const dia = dataISO(new Date(agora))
+  const reservados = new Set(eventos.filter((e) => e.passoId && e.fim > agora).map((e) => e.passoId!))
+  const fator = Math.min(2, Math.max(0.5, calibracao(passos, sessoes)?.fator ?? 1))
+  const deHoje = passos.filter((p) => !p.feitoEm && p.prazo === dia && !reservados.has(p.id) && (!p.aPartirDe || p.aPartirDe <= dia))
+  const precisaMin = deHoje.reduce((t, p) => t + duracaoPrevista(p, fator), 0)
+  // Tempo livre: o intervalo menos os compromissos, sem contar duas vezes o que se sobrepõe.
+  let ocupado = 0
+  let cursor = agora
+  for (const e of eventos.filter((e) => !e.diaInteiro && e.fim > agora && e.inicio < ate).sort((a, b) => a.inicio - b.inicio)) {
+    const comeco = Math.max(e.inicio, cursor)
+    const fim = Math.min(e.fim, ate)
+    if (fim > comeco) ocupado += fim - comeco
+    cursor = Math.max(cursor, fim)
+  }
+  const livreMin = Math.max(0, Math.round((ate - agora - ocupado) / MIN))
+  return { passos: deHoje, precisaMin, livreMin, cabe: precisaMin <= livreMin }
+}
+
 export interface Proposta extends Bloco {
   passo: Passo
   projeto: Projeto | null

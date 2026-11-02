@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { calibracao, diasDesde, revisaoPendente, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
+import { calibracao, diasDesde, revisaoPendente, somarDias, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
@@ -9,7 +9,7 @@ import { RevisaoSemana } from '../components/RevisaoSemana'
 import { PontosEditaveis, SeletorEnergia } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { escolherPasso, type Escolha } from '../escolher'
-import { duracaoPrevista, horariosLivres, montarDia, refazerResto } from '../montarDia'
+import { capacidadeDoDia, duracaoPrevista, horariosLivres, montarDia, refazerResto } from '../montarDia'
 import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
 import { chaveEvento, useAgenda } from '../stores/agenda'
 import { useAvisos, useConfig } from '../stores/config'
@@ -178,6 +178,40 @@ function MontarDia({ energia, agora }: Readonly<{ energia: Energia; agora: numbe
         )}
         <button onClick={() => setAberto(false)}>{propostas.length ? 'Agora não' : 'Ok'}</button>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Capacidade do dia (V14 em docs/CONCORRENTES.md): quando os passos com prazo hoje passam do tempo livre, pergunta
+ * o que fica para amanhã. Nada muda sem você tocar; "Está bom assim" esconde o aviso até reabrir o app.
+ */
+function CapacidadeDoDia({ agora }: Readonly<{ agora: number }>) {
+  const s = useStore()
+  const eventos = useAgenda((a) => a.eventos)
+  const [dispensado, setDispensado] = useState(false)
+  const c = capacidadeDoDia(s.passos, s.sessoes, eventos, agora, inicioDoDia(agora) + FIM_DO_DIA_H * 3_600_000)
+  if (dispensado || c.cabe || c.passos.length < 2) return null
+  const amanha = somarDias(hoje(), 1)
+
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Hoje não cabe tudo</h2>
+      <p className="motivo">
+        Os passos com prazo hoje pedem cerca de {duracao(c.precisaMin)}, e sobram {duracao(c.livreMin)} livres até as {FIM_DO_DIA_H}h. O que fica para
+        amanhã?
+      </p>
+      <ul className="lista-simples">
+        {c.passos.map((p) => (
+          <li key={p.id} className="linha entre">
+            <span>{p.texto}</span>
+            <button className="discreto" onClick={() => s.atualizarPasso(p.id, { prazo: amanha })}>
+              Para amanhã
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button onClick={() => setDispensado(true)}>Está bom assim</button>
     </div>
   )
 }
@@ -640,6 +674,7 @@ export function Agora() {
         {!cfg.modulosDesligados.includes('agenda') && (
           <>
             <RefazerResto agora={agora} />
+            <CapacidadeDoDia agora={agora} />
             <MontarDia energia={energia} agora={agora} />
             <RestoDoDia />
           </>

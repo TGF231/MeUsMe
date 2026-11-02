@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { duracaoPrevista, encaixar, horariosLivres, montarDia, refazerResto } from '../src/montarDia.ts'
+import { capacidadeDoDia, duracaoPrevista, encaixar, horariosLivres, montarDia, refazerResto } from '../src/montarDia.ts'
 import type { Evento, Passo, Projeto } from '../src/types.ts'
 
 const H = 3_600_000
@@ -116,4 +116,21 @@ test('horariosLivres: até três horários espaçados, pulando compromissos e pa
     r.map((b) => b.inicio),
     [as(19), as(24 + 8), as(24 + 9)],
   )
+})
+
+test('capacidadeDoDia soma os passos com prazo hoje sem reserva e compara com o tempo livre', () => {
+  const dia = '2026-11-02'
+  const passos = [
+    passo('a', 1, { prazo: dia, estimativaMin: 60 }),
+    passo('b', 2, { prazo: dia, energia: 3 }),
+    passo('reservado', 3, { prazo: dia, estimativaMin: 90 }),
+    passo('amanha', 4, { prazo: '2026-11-03' }),
+    passo('feito', 5, { prazo: dia, feitoEm: as(8) }),
+  ]
+  const eventos = [ev('reuniao', as(20), as(21)), ev('r', as(21), as(21, 30), { passoId: 'reservado' })]
+  const c = capacidadeDoDia(passos, [], eventos, as(19), as(22))
+  assert.deepEqual(c.passos.map((p) => p.id), ['a', 'b'])
+  assert.equal(c.precisaMin, 60 + 45)
+  assert.equal(c.livreMin, 180 - 90)
+  assert.equal(c.cabe, false)
 })
