@@ -77,6 +77,7 @@ Toda semana, no dia escolhido: esvaziar a Caixa, escolher **um** projeto em foco
 
 - **Mantida:** aviso de conta fixa na véspera e no dia, e o botão "Paguei" na tela Agora (10).
 - **Mantida:** gastos lançados sozinhos pelas notificações do banco, sem depender de lembrar (8, 10).
+- **Nova:** **de onde chegam os lançamentos**: quando cada fonte (notificações de cada banco, Open Finance, extrato) trouxe dado pela última vez e o ritmo de costume. Se uma fonte automática passa bem do próprio ritmo (nunca menos de 7 dias), o Resumo avisa em tom neutro, para o buraco não ser descoberto só no fim do mês (8, 10).
 - **Nova:** **Antes de comprar**, uma lista de espera de 24h a 1 semana. Quando o prazo passa, o app pergunta se ainda quer, e mostra quanto ficou no bolso com as desistências (4, 10).
 
 ### Windows
