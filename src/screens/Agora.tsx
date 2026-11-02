@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { calibracao, diasDesde, revisaoPendente, somarDias, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
+import { calibracao, diasDesde, marcoDePassos, revisaoPendente, somarDias, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
@@ -403,10 +403,12 @@ export function Agora() {
     const { passoId, projeto, restantes } = celebrar
     const passoFeito = s.passos.find((p) => p.id === passoId)
     const feitosNoProjeto = projeto ? s.passos.filter((p) => p.projetoId === projeto.id && p.feitoEm).length : 0
+    const marco = marcoDePassos(s.passos.filter((p) => p.feitoEm).length)
     return (
       <section className="tela centro">
         <div className="cartao celebra">
           <p className="grande">Feito.</p>
+          {cfg.marcos && marco && <p className="motivo centralizado">{marco}</p>}
           {passoFeito && (
             <div className="linha centralizada">
               <span className="motivo">Tempo neste passo:</span>

@@ -441,7 +441,7 @@ function Aparencia() {
 
 /** Seções do app (D14) e perfis prontos (D13): desligar só tira do menu, os dados continuam. */
 function Secoes() {
-  const { modulosDesligados, ajustar } = useConfig()
+  const { modulosDesligados, marcos, ajustar } = useConfig()
   const perfilAtual = PERFIS.find((p) => p.desligados.length === modulosDesligados.length && p.desligados.every((d) => modulosDesligados.includes(d)))
   const alternar = (id: Aba, ligar: boolean) =>
     ajustar({ modulosDesligados: ligar ? modulosDesligados.filter((d) => d !== id) : [...modulosDesligados, id] })
@@ -475,6 +475,12 @@ function Secoes() {
       <p className="motivo">
         Agora, Caixa e Ajustes ficam sempre. Desligar só tira a seção do menu e da tela Agora: nada é apagado, e ligar de novo traz tudo de volta.
       </p>
+      <label className="check">
+        <input type="checkbox" checked={marcos} onChange={(e) => ajustar({ marcos: e.target.checked })} />
+        <span>
+          Marcos <span className="motivo">· uma linha na comemoração do 1º, 10º, 50º, 100º passo… Sem pontos nem sequência.</span>
+        </span>
+      </label>
     </div>
   )
 }

@@ -48,6 +48,8 @@ interface Estado {
   ultimoBackupAuto: number
   /** Assinaturas que você disse que ainda usa (V29): não perguntam de novo. Não sincroniza. */
   assinaturasOk: string[]
+  /** Marcos raros na comemoração do passo (D12). Sincroniza. */
+  marcos: boolean
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -81,6 +83,7 @@ export const useConfig = create<Estado>()(
       ultimoBackup: 0,
       ultimoBackupAuto: 0,
       assinaturasOk: [],
+      marcos: true,
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>

@@ -6,6 +6,7 @@ import {
   diasDesde,
   explicarFator,
   inicioDaSemana,
+  marcoDePassos,
   ordemAntesDe,
   paradas,
   passosParaModelo,
@@ -204,4 +205,11 @@ test('paradas também serve para ideias com outra validade (90 dias)', () => {
     { id: 'nova', texto: 'b', projetoId: null, criadoEm: agora - 60 * 86_400_000 },
   ]
   assert.deepEqual(paradas(ideias, agora, 90).map((i) => i.id), ['velha'])
+})
+
+test('marcos só no primeiro passo e em totais redondos e raros', () => {
+  assert.equal(marcoDePassos(1), 'O primeiro passo feito no MeUsMe.')
+  assert.equal(marcoDePassos(100), '100 passos feitos desde o começo.')
+  assert.equal(marcoDePassos(2), null)
+  assert.equal(marcoDePassos(99), null)
 })
