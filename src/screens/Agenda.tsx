@@ -100,7 +100,7 @@ function LinhaEvento({ e, agora }: { e: Evento; agora: number }) {
         {e.inicio <= agora && e.fim > agora && <span className="so-leitor">Acontecendo agora: </span>}
         {e.titulo}
         {passo && <span className="motivo"> · {passo.feitoEm ? 'passo feito' : 'horário reservado para um passo'}</span>}
-        {e.origem === 'google' && <span className="selo">Google</span>}
+        {e.origem === 'google' && <span className="selo">{e.agendaGoogle ?? 'Google'}</span>}
         {erro && (
           <span className="atencao" role="alert">
             {' '}
@@ -108,21 +108,24 @@ function LinhaEvento({ e, agora }: { e: Evento; agora: number }) {
           </span>
         )}
       </span>
-      <button
-        className="discreto"
-        aria-label={`Apagar ${e.titulo}`}
-        onClick={async () => {
-          if (!confirm(e.origem === 'google' ? `Apagar "${e.titulo}" também do Google Agenda?` : `Apagar "${e.titulo}"?`)) return
-          try {
-            if (e.googleId) await removerDoGoogle(e.googleId)
-            remover(e.id)
-          } catch (x) {
-            setErro((x as Error).message)
-          }
-        }}
-      >
-        ×
-      </button>
+      {/* Evento de outra agenda (ex.: a da equipe) é só leitura: apagar aqui ele voltaria na próxima sincronização. */}
+      {!e.agendaGoogle && (
+        <button
+          className="discreto"
+          aria-label={`Apagar ${e.titulo}`}
+          onClick={async () => {
+            if (!confirm(e.origem === 'google' ? `Apagar "${e.titulo}" também do Google Agenda?` : `Apagar "${e.titulo}"?`)) return
+            try {
+              if (e.googleId) await removerDoGoogle(e.googleId)
+              remover(e.id)
+            } catch (x) {
+              setErro((x as Error).message)
+            }
+          }}
+        >
+          ×
+        </button>
+      )}
     </div>
   )
 }

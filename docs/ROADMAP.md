@@ -24,7 +24,7 @@ Ideias de produto vindas de uma pesquisa com 30 vantagens e 30 desvantagens de c
 |---|---|---|
 | Sincronização com Supabase | servidor ainda não existe | alto: é onde mora o risco de perder dados |
 | Open Finance (Pluggy) | só com respostas simuladas | médio |
-| Google Agenda | sem Client ID | médio; no Windows o login pode nem funcionar |
+| Google Agenda | sem Client ID | médio; no Windows o login pode nem funcionar. A leitura de outras agendas pelo ID (D08) também só foi conferida com dados simulados |
 | Notificações reais dos 5 bancos | textos de exemplo, não reais | médio: o que não for entendido vai para a Caixa |
 | Login por código | só com servidor simulado | médio |
 | Barra de título do Windows acompanhando o tema | não foi aberto depois da mudança | baixo |

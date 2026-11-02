@@ -136,6 +136,64 @@ function Google() {
   return <GoogleNavegador />
 }
 
+/**
+ * Outras agendas do Google lidas junto com a principal, como a compartilhada com a equipe (D08). Só leitura, pelo ID:
+ * listar as agendas da conta pediria outro escopo e nova verificação do Google.
+ */
+function OutrasAgendas({ onMensagem }: { onMensagem: (m: string) => void }) {
+  const agenda = useAgenda()
+  const [nome, setNome] = useState('')
+  const [id, setId] = useState('')
+  const salvar = async (lista: { id: string; nome: string }[]) => {
+    agenda.configurarGoogle({ googleAgendas: lista })
+    try {
+      const n = await sincronizarGoogle()
+      onMensagem(`Sincronizado: ${n} compromisso${n === 1 ? '' : 's'} nos próximos 30 dias.`)
+    } catch (e) {
+      onMensagem((e as Error).message)
+    }
+  }
+  return (
+    <details open={agenda.googleAgendas.length > 0}>
+      <summary>Outras agendas (só leitura)</summary>
+      <p className="motivo">
+        Para ver junto uma agenda que não é a sua principal, como a compartilhada com colegas: no Google Agenda, abra Configurações da agenda →
+        Integrar agenda e copie o <b>ID da agenda</b>. Os compromissos dela aparecem aqui com o nome que você der, e não são alterados.
+      </p>
+      {agenda.googleAgendas.map((a) => (
+        <div key={a.id} className="linha entre item">
+          <span>
+            {a.nome} <span className="motivo">· {a.id}</span>
+          </span>
+          <button className="discreto" aria-label={`Parar de ler ${a.nome}`} onClick={() => void salvar(agenda.googleAgendas.filter((x) => x.id !== a.id))}>
+            Remover
+          </button>
+        </div>
+      ))}
+      <form
+        className="form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!nome.trim() || !id.trim() || agenda.googleAgendas.some((a) => a.id === id.trim())) return
+          void salvar([...agenda.googleAgendas, { id: id.trim(), nome: nome.trim() }])
+          setNome('')
+          setId('')
+        }}
+      >
+        <label className="rotulo" htmlFor="agenda-nome">
+          Nome (como vai aparecer)
+        </label>
+        <input id="agenda-nome" required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Equipe" />
+        <label className="rotulo" htmlFor="agenda-id">
+          ID da agenda
+        </label>
+        <input id="agenda-id" required value={id} onChange={(e) => setId(e.target.value)} placeholder="xxxx@group.calendar.google.com" spellCheck={false} />
+        <button type="submit">Ler esta agenda</button>
+      </form>
+    </details>
+  )
+}
+
 function GoogleNavegador() {
   const agenda = useAgenda()
   const [clientId, setClientId] = useState(agenda.googleClientId)
@@ -161,6 +219,7 @@ function GoogleNavegador() {
         <>
           <p className="motivo">Conectado. Seus compromissos aparecem na Agenda e na tela Agora, e o que você agenda aqui vai para o Google.</p>
           <button onClick={() => (desconectarGoogle(), setMensagem('Desconectado.'))}>Desconectar</button>
+          <OutrasAgendas onMensagem={setMensagem} />
         </>
       ) : (
         <>

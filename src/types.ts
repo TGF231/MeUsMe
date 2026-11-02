@@ -145,6 +145,8 @@ export interface Evento {
   diaInteiro?: boolean
   origem: 'local' | 'google'
   googleId?: string
+  /** Nome da agenda do Google, quando não é a principal: só leitura, não se apaga daqui. */
+  agendaGoogle?: string
   /** Passo associado a este horário reservado. */
   passoId?: string
 }
