@@ -388,7 +388,9 @@ export function Projetos() {
       <div className="grade-cartoes">
         {ativos.map((p) => {
           const feitos = s.passos.filter((x) => x.projetoId === p.id && x.feitoEm).length
-          const proximo = pendentes(s.passos, p.id)[0]
+          // O próximo de verdade: um passo com "só a partir de" no futuro dá a vez ao seguinte, como no Agora.
+          const fila = pendentes(s.passos, p.id)
+          const proximo = fila.find((x) => !x.aPartirDe || x.aPartirDe <= hoje()) ?? fila[0]
           return (
             <button key={p.id} className="cartao clicavel" onClick={() => setAberto(p.id)}>
               <span className="projeto">
