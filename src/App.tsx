@@ -8,6 +8,7 @@ import { Introducao } from './components/Introducao'
 import { usoDoArmazenamento } from './erros'
 import { organizar } from './motor/executar'
 import { EXEMPLOS_DE_CAMPO } from './motor/tutorial'
+import { lerEntrada } from './entrada'
 import { useNavegacao, type Aba } from './navegacao'
 import { Captura, processarCapturas } from './nativo/captura'
 import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
@@ -32,6 +33,9 @@ const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'projetos', nome: 'Projetos' },
   { id: 'historico', nome: 'Histórico' },
 ]
+
+/** Links de entrada já tratados: o mesmo compartilhamento não entra duas vezes na Caixa. */
+const recebidas = new Set<string>()
 
 /** Abas do menu sem as seções desligadas em Ajustes (D14). */
 const abasVisiveis = (desligados: Aba[]) => ABAS.filter((a) => !desligados.includes(a.id))
@@ -123,7 +127,7 @@ function desfazerUltimoAviso(e: KeyboardEvent) {
   fechar(ultimo.id)
 }
 
-function CapturaRapida({ onFechar }: { onFechar: () => void }) {
+function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; comVoz?: boolean }) {
   const [texto, setTexto] = useState('')
   const [exemplo] = useState(() => EXEMPLOS_DE_CAMPO[Math.floor(Math.random() * EXEMPLOS_DE_CAMPO.length)])
   const janela = useJanelaModal()
@@ -161,6 +165,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
             />
             {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
             <BotaoVoz
+              iniciar={comVoz}
               onTexto={(falado) => {
                 void organizar([texto.trim(), falado].filter(Boolean).join(' '))
                 onFechar()
@@ -185,6 +190,7 @@ export default function App() {
   const desligados = useConfig((c) => c.modulosDesligados)
   const abas = abasVisiveis(desligados)
   const [capturando, setCapturando] = useState(false)
+  const [comVoz, setComVoz] = useState(false)
   const naCaixa = useStore((s) => s.capturas.length)
   useAgendador()
   useSincronizacao()
@@ -245,6 +251,32 @@ export default function App() {
     ]
     return () => ouvintes.forEach((o) => void o.then((h) => h.remove()))
   }, [])
+  // Compartilhar e o atalho "Capturar por voz" (Android) e o compartilhar do app instalado na web chegam como link.
+  useEffect(() => {
+    const receber = (url?: string | null) => {
+      const e = url && !recebidas.has(url) ? lerEntrada(url) : null
+      if (!e || !url) return
+      recebidas.add(url)
+      if (e.texto) {
+        useStore.getState().capturar(e.texto)
+        useAvisos.getState().mostrar('Guardado na Caixa', e.texto.length > 80 ? `${e.texto.slice(0, 80)}…` : e.texto)
+      }
+      if (e.voz || e.abrir) {
+        setComVoz(Boolean(e.voz))
+        setCapturando(true)
+      }
+    }
+    if (!ehNativo()) {
+      const url = location.href
+      if (lerEntrada(url)) history.replaceState(null, '', location.pathname)
+      receber(url)
+      return
+    }
+    void AppNativo.getLaunchUrl().then((r) => receber(r?.url))
+    const ouvinte = AppNativo.addListener('appUrlOpen', (r) => receber(r.url))
+    return () => void ouvinte.then((h) => h.remove())
+  }, [])
+
   const estado = useRef({ aba, capturando })
   useEffect(() => {
     estado.current = { aba, capturando }
@@ -359,7 +391,7 @@ export default function App() {
         +
       </button>
 
-      {capturando && <CapturaRapida onFechar={() => setCapturando(false)} />}
+      {capturando && <CapturaRapida comVoz={comVoz} onFechar={() => (setCapturando(false), setComVoz(false))} />}
     </div>
   )
 }

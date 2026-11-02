@@ -39,6 +39,7 @@ Avisos de compromissos, lembretes, contas a vencer, check-in e tempo de foco. No
 O mesmo código, empacotado com [Capacitor](https://capacitorjs.com) (pasta `android/`). Além do que a web faz:
 
 - **Avisos com o app fechado**: os da próxima semana ficam agendados no Android.
+- **Capturar sem abrir o app**: "Compartilhar → MeUsMe" em qualquer app guarda o texto ou o link na Caixa; o bloco **Capturar** nas Configurações rápidas abre a captura de qualquer tela; e o atalho **Capturar por voz** (tocar e segurar o ícone) abre a captura já ouvindo. Instalado pelo navegador, o app também aparece no Compartilhar do sistema.
 - **Gastos pelas notificações do banco** (Nubank, Inter, Mercado Pago, PicPay, Next e outros que você marcar): viram lançamentos provisórios na hora; quando o Open Finance traz o oficial, ele substitui o provisório. O que não der para entender com segurança vai para a Caixa.
 - O Google não permite login dentro do app: os compromissos do Google chegam pela sincronização com o PC.
 

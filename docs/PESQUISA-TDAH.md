@@ -56,6 +56,7 @@ Valem para tudo o que entrar no app, e vêm dos achados acima e da pesquisa de c
 
 - **Mantida:** captura em um toque, por atalho global no Windows e pelas notificações de banco no Android (8). "Organizar fica para depois" separa capturar de decidir.
 - **Nova:** "Quero comprar: esperar 48h" manda a vontade para a lista de espera (4, 10).
+- **Nova:** capturar sem abrir o app: Compartilhar → MeUsMe (texto e links vão para a Caixa), o bloco Capturar nas Configurações rápidas e o atalho Capturar por voz no ícone (8).
 - **Nova:** captura sem digitar: microfone para ditar e recado de voz gravado direto na Caixa (8). Escrever é atrito na hora em que a ideia aparece; o recado tira da cabeça em um toque e deixa o organizar para depois.
 
 ### Projetos

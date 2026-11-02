@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ErroDeVoz, comoDitar, ditar } from '../nativo/voz'
 
-/** Botão de microfone ao lado de um campo: o que for falado vai para `onTexto`. */
-export function BotaoVoz({ onTexto }: { onTexto: (texto: string) => void }) {
+/**
+ * Botão de microfone ao lado de um campo: o que for falado vai para `onTexto`. Com `iniciar`, começa a ouvir ao
+ * aparecer (atalho "Capturar por voz" do Android, A1); no navegador o ditado pede um toque, então só o botão aparece.
+ */
+export function BotaoVoz({ onTexto, iniciar = false }: { onTexto: (texto: string) => void; iniciar?: boolean }) {
   const [ouvindo, setOuvindo] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
   const como = comoDitar()
-  if (!como) return null
+  const jaIniciou = useRef(false)
 
   const ouvir = async () => {
     if (como === 'windows') return setAviso('No Windows, clique no campo e aperte Win + H para ditar.')
@@ -22,6 +25,14 @@ export function BotaoVoz({ onTexto }: { onTexto: (texto: string) => void }) {
       setOuvindo(false)
     }
   }
+
+  useEffect(() => {
+    if (!iniciar || jaIniciou.current || como !== 'nativo') return
+    jaIniciou.current = true
+    void ouvir()
+  })
+
+  if (!como) return null
 
   return (
     <>

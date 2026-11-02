@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Atalhos do ícone do MeUsMe (tocar e segurar). O link segue para src/entrada.ts. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="capturar_voz"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/atalho_voz"
+        android:shortcutLongLabel="@string/atalho_voz_longo">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="meusme://captura?voz=1"
+            android:targetPackage="app.meusme"
+            android:targetClass="app.meusme.MainActivity" />
+    </shortcut>
+</shortcuts>
