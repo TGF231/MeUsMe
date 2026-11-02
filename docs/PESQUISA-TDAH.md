@@ -25,6 +25,15 @@ O que a pesquisa diz, o que isso muda no MeUsMe e até onde a evidência vai. Re
 | 11 | O esforço **aumenta perto da meta** (gradiente de meta), e progresso já marcado acelera o fim. | estudos de campo (fora do TDAH) | [Kivetz et al. 2006](https://business.columbia.edu/faculty/research/goal-gradient-hypothesis-resurrected-purchase-acceleration-illusionary-goal) |
 | 12 | Ritmo circadiano **atrasado** em boa parte dos adultos (cronotipo vespertino). | revisão sistemática (62 estudos) | [Coogan & McGowan 2017](https://mural.maynoothuniversity.ie/11298) |
 
+## Regras para funções novas
+
+Valem para tudo o que entrar no app, e vêm dos achados acima e da pesquisa de concorrentes ([CONCORRENTES.md](CONCORRENTES.md)).
+
+- **Nada se move sozinho (D03).** O app pode propor uma data, um horário ou uma ordem, mas sempre diz o motivo em uma frase e espera você aceitar. Reagendar por conta própria tira a sensação de controle, que é o que já falta quando as prioridades parecem aleatórias (1, 7). Exemplos: a escolha do Agora mostra o motivo; os passos vencidos ganham datas sugeridas, aplicadas só com "Usar estas datas".
+- **Sem vermelho nem placar de atraso (D04).** Data que passou vira "para reagendar", nunca contagem de dias perdidos (7).
+- **Nunca bloquear o começo.** Campos novos são opcionais e ficam recolhidos; palpite, prazo e datas não podem ser exigidos para começar um passo (6, 8).
+- **Desligar só esconde (D14).** Nada é apagado por uma preferência.
+
 ## Revisão de cada função
 
 **Mantida** quando já estava de acordo com a pesquisa, **ajustada** quando mudou, **nova** quando foi criada nesta revisão.
