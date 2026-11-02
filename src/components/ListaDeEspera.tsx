@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useAgora } from '../hooks'
 import { useConfig } from '../stores/config'
-import { useFinancas } from '../stores/financas'
+import { efeitoDaCompra } from '../compra'
+import { previsaoDoMes, useFinancas } from '../stores/financas'
 import type { Desejo } from '../types'
 import { lerDinheiro } from '../motor/extratores'
 import { dataISO, hora, lerValor, nomeDoDia, reais } from '../util'
@@ -23,6 +24,7 @@ export function ListaDeEspera() {
 
   const esperando = f.desejos.filter((d) => !d.decisao).sort((a, b) => a.decidirEm - b.decidirEm)
   const desistidos = f.desejos.filter((d) => d.decisao === 'desisti')
+  const previsao = previsaoDoMes(f.contas, f.transacoes, f.fixas)
   const economia = desistidos.reduce((t, d) => t + (d.valor ?? 0), 0)
 
   if (comprando)
@@ -78,6 +80,7 @@ export function ListaDeEspera() {
               {d.texto}
               {d.valor ? ` · ${reais(d.valor)}` : ''}
               <br />
+              {d.valor ? <EfeitoDaCompra valor={d.valor} previsao={previsao} /> : null}
               <span className="motivo">
                 {pronto ? 'O prazo passou. Ainda quer?' : `Decida a partir de ${nomeDoDia(dataISO(d.decidirEm)).toLowerCase()} às ${hora(d.decidirEm)}`}
               </span>
@@ -108,5 +111,18 @@ export function ListaDeEspera() {
         </div>
       )}
     </>
+  )
+}
+
+/** Efeito da compra no "livre por dia" até o fim do mês, antes de decidir (D27). Em tom neutro: é informação, não bronca. */
+function EfeitoDaCompra({ valor, previsao }: { valor: number; previsao: ReturnType<typeof previsaoDoMes> }) {
+  const e = efeitoDaCompra(previsao, valor)
+  return (
+    <span className="motivo">
+      {e.falta > 0
+        ? `Passa do que está livre no mês em ${reais(e.falta)}.`
+        : `Se comprar, o livre por dia vai de ${reais(e.porDiaAntes)} para ${reais(e.porDiaDepois)}${e.diasDeLivre ? ` (≈ ${String(e.diasDeLivre).replace('.', ',')} dias do livre de hoje)` : ''}.`}
+      <br />
+    </span>
   )
 }

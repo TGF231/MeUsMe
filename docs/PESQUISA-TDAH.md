@@ -91,7 +91,7 @@ Toda semana, no dia escolhido: esvaziar a Caixa, escolher **um** projeto em foco
 - **Mantida:** gastos lançados sozinhos pelas notificações do banco, sem depender de lembrar (8, 10).
 - **Nova:** importação de extrato **OFX**, o formato que quase todo banco exporta, sem escolher colunas: um caminho que não depende da notificação do banco nem de Open Finance (8, 10).
 - **Nova:** **de onde chegam os lançamentos**: quando cada fonte (notificações de cada banco, Open Finance, extrato) trouxe dado pela última vez e o ritmo de costume. Se uma fonte automática passa bem do próprio ritmo (nunca menos de 7 dias), o Resumo avisa em tom neutro, para o buraco não ser descoberto só no fim do mês (8, 10).
-- **Nova:** **Antes de comprar**, uma lista de espera de 24h a 1 semana. Quando o prazo passa, o app pergunta se ainda quer, e mostra quanto ficou no bolso com as desistências (4, 10).
+- **Nova:** **Antes de comprar**, uma lista de espera de 24h a 1 semana. Cada item mostra o efeito no "livre por dia" até o fim do mês ("de R$ 146 para R$ 136, ≈ 2 dias do livre de hoje"), para a espera ter um número concreto (4). Quando o prazo passa, o app pergunta se ainda quer, e mostra quanto ficou no bolso com as desistências (4, 10).
 
 ### Windows
 
