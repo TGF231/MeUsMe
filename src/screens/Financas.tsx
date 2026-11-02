@@ -5,6 +5,7 @@ import { ListaDeEspera } from '../components/ListaDeEspera'
 import { useAgora } from '../hooks'
 import { converterExtrato, detectarColunas, lerCSV, type Colunas } from '../csv'
 import { haQuanto, saudeDasFontes } from '../fontes'
+import { lerOFX, pareceOFX } from '../ofx'
 import { apagarConfigPluggy, lerConfigPluggy, salvarConfigPluggy, sincronizarPluggy } from '../pluggy'
 import {
   diaDeVencimento,
@@ -614,32 +615,47 @@ function Importar() {
   const [contaId, setContaId] = useState(f.contas[0]?.id ?? '')
   const [inverter, setInverter] = useState(false)
   const [resultado, setResultado] = useState('')
+  // OFX dispensa escolher colunas: o texto fica guardado e é lido de novo se a conta mudar.
+  const [textoOFX, setTextoOFX] = useState<string | null>(null)
 
   const cabecalho = linhas?.[0] ?? []
-  const convertido = linhas && colunas ? converterExtrato(linhas.slice(1), colunas, inverter, contaId) : null
+  const deOFX = textoOFX ? lerOFX(textoOFX, contaId) : null
+  const convertido = deOFX
+    ? { ...deOFX, ok: inverter ? deOFX.ok.map((l) => ({ ...l, valor: -l.valor })) : deOFX.ok }
+    : linhas && colunas
+      ? converterExtrato(linhas.slice(1), colunas, inverter, contaId)
+      : null
 
   return (
     <div className="estreito">
       <p className="vazio-texto">
-        Exporte o extrato do banco em CSV (Nubank, Inter, Wallet e a maioria dos bancos têm essa opção) e traga aqui. Reimportar o mesmo
-        arquivo não duplica nada.
+        Exporte o extrato do banco em OFX ou CSV (Nubank, Inter, Wallet e a maioria dos bancos têm essa opção) e traga aqui. O OFX entra
+        direto, sem escolher colunas. Reimportar o mesmo arquivo não duplica nada.
       </p>
       <div className="cartao">
         <input
-          aria-label="Arquivo CSV do extrato"
+          aria-label="Arquivo do extrato (OFX ou CSV)"
           type="file"
-          accept=".csv,text/csv"
+          accept=".ofx,.csv,text/csv,application/x-ofx"
           onChange={async (e) => {
             const arquivo = e.target.files?.[0]
             if (!arquivo) return
-            const l = lerCSV(await lerArquivoTexto(arquivo))
-            setLinhas(l)
-            setColunas(l.length ? detectarColunas(l[0]) : null)
+            const texto = await lerArquivoTexto(arquivo)
+            if (pareceOFX(texto)) {
+              setTextoOFX(texto)
+              setLinhas(null)
+              setColunas(null)
+            } else {
+              const l = lerCSV(texto)
+              setTextoOFX(null)
+              setLinhas(l)
+              setColunas(l.length ? detectarColunas(l[0]) : null)
+            }
             setInverter(/fatura|cartao|card|nubank_\d{4}-\d{2}-\d{2}/i.test(arquivo.name))
             setResultado('')
           }}
         />
-        {linhas && (
+        {(linhas || textoOFX) && (
           <>
             <label className="rotulo">Para qual conta?</label>
             <select aria-label="Para qual conta" value={contaId} onChange={(e) => setContaId(e.target.value)}>
@@ -649,8 +665,8 @@ function Importar() {
                 </option>
               ))}
             </select>
-            <label className="rotulo">Colunas do arquivo</label>
-            {(['data', 'valor', 'descricao'] as const).map((campo) => (
+            {linhas && <label className="rotulo">Colunas do arquivo</label>}
+            {(linhas ? (['data', 'valor', 'descricao'] as const) : []).map((campo) => (
               <div key={campo} className="linha entre">
                 <span>{campo === 'descricao' ? 'Descrição' : campo === 'data' ? 'Data' : 'Valor'}</span>
                 <select aria-label={`Coluna de ${campo === 'descricao' ? 'descrição' : campo}`}
@@ -706,6 +722,7 @@ function Importar() {
               const repetidas = convertido.ok.length - novas
               setResultado(`${novas} lançamento${novas === 1 ? '' : 's'} importado${novas === 1 ? '' : 's'}${repetidas ? `, ${repetidas} já existiam` : ''}.`)
               setLinhas(null)
+              setTextoOFX(null)
             }}
           >
             Importar {convertido.ok.length} lançamentos
