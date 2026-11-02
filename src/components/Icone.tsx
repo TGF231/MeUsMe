@@ -36,6 +36,12 @@ const CAMINHOS = {
       <path d="M12 7.5V12l3 2" />
     </>
   ),
+  buscar: (
+    <>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="m15.5 15.5 5 5" />
+    </>
+  ),
   ajustes: (
     <>
       <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />

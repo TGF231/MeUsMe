@@ -14,6 +14,8 @@ No primeiro uso, uma introdução de quatro telas oferece um projeto de exemplo.
 - **Histórico**: check-in de 30 segundos (humor, energia, uma frase) e o que você fez em cada dia, com o tempo de cada passo e por projeto, e o quanto seus palpites de tempo batem com o real.
 - **Ajustes**: **seções do app** (desligar Agenda, Finanças, Projetos ou Histórico tira a seção do menu sem apagar nada; a introdução oferece três perfis prontos), sincronização entre aparelhos, notificações (inclusive o dia da revisão semanal), conexão com o Google, backup, **Acessibilidade** (tamanho do texto, contraste alto, botões maiores, avisos que só saem quando você fecha) e **Sobre** (por que o app funciona assim, privacidade, espaço usado e erros recentes).
 
+A lupa do topo (ou Ctrl+K) busca em tudo: passos, projetos, ideias, Caixa, lançamentos, compromissos e lembretes, sem se importar com acento.
+
 O app funciona inteiro pelo teclado e com leitor de tela, não depende de falar nem de ouvir e respeita o tamanho de fonte, o alto contraste e a redução de movimento do sistema. O que foi verificado e como está em [docs/ACESSIBILIDADE.md](docs/ACESSIBILIDADE.md).
 
 Os dados ficam no próprio aparelho (localStorage) e, se você ativar, são sincronizados entre aparelhos.

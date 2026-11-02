@@ -119,7 +119,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
       </div>
     </>
   ) : (
-    <div className="linha entre item">
+    <div className="linha entre item passo-item">
       <span>
         {energia} {passo.texto} <DatasDoPasso passo={passo} />
       </span>

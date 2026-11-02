@@ -98,6 +98,8 @@ Toda semana, no dia escolhido: esvaziar a Caixa, escolher **um** projeto em foco
 
 ### Seções e perfis
 
+- **Nova:** busca em tudo (lupa ou Ctrl+K). Com tudo num lugar só, achar uma coisa não pode depender de lembrar onde ela foi parar (8).
+
 - **Nova:** **perfis prontos** na introdução (só tarefas; tarefas e agenda; tudo com dinheiro) em vez de montar o sistema, e **seções que se desligam** em Ajustes. Menos telas e menos decisões reduzem a demanda (8); desligar só esconde, nada é apagado.
 
 ## O que não entrou, e por quê

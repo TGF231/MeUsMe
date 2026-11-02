@@ -397,6 +397,19 @@ h2.titulo {
   border-bottom: 1px solid var(--borda);
 }
 
+/* Passo com três ações: no celular o texto fica com a largura e as ações descem para a linha de baixo. */
+.linha.entre.passo-item {
+  flex-wrap: wrap;
+}
+
+.passo-item > span:first-child {
+  flex: 1 1 14rem;
+}
+
+.passo-item > .linha {
+  margin-left: auto;
+}
+
 .segmentado {
   display: flex;
   gap: 6px;
@@ -1646,5 +1659,18 @@ button.perigo:hover {
   border: 0;
   padding: 0;
   margin: 0 0 12px;
+  text-align: left;
+}
+
+.resultados-busca {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.resultados-busca button {
+  width: 100%;
   text-align: left;
 }

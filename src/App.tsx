@@ -24,6 +24,7 @@ import { useStore } from './store'
 import { AVISO_MS, useAvisos, useConfig } from './stores/config'
 import { useSincronizacao } from './sync/motor'
 import { BotaoVoz } from './components/BotaoVoz'
+import { Busca } from './components/Busca'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -191,6 +192,7 @@ export default function App() {
   const abas = abasVisiveis(desligados)
   const [capturando, setCapturando] = useState(false)
   const [comVoz, setComVoz] = useState(false)
+  const [buscando, setBuscando] = useState(false)
   const naCaixa = useStore((s) => s.capturas.length)
   useAgendador()
   useSincronizacao()
@@ -201,6 +203,10 @@ export default function App() {
       if (e.ctrlKey && e.code === 'Space') {
         e.preventDefault()
         setCapturando(true)
+      } else if (e.ctrlKey && e.code === 'KeyK') {
+        // Ctrl+K: buscar em tudo (V07).
+        e.preventDefault()
+        setBuscando(true)
       } else if (ehDesktop() && e.ctrlKey && ['Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'Digit0', 'Numpad0'].includes(e.code)) {
         // App Windows: o zoom do WebView vem desligado, então Ctrl + / Ctrl − / Ctrl 0 mudam o tamanho do texto do app.
         e.preventDefault()
@@ -358,15 +364,26 @@ export default function App() {
             </span>
             <span className="so-lateral">{nomeDaAba}</span>
           </h1>
-          <button
-            className={`discreto icone-botao so-estreito ${aba === 'ajustes' ? 'ativo' : ''}`}
-            onClick={() => setAba(aba === 'ajustes' ? 'agora' : 'ajustes')}
-            aria-label="Ajustes"
-            aria-current={aba === 'ajustes' ? 'page' : undefined}
-            title="Ajustes"
-          >
-            <Icone nome="ajustes" />
-          </button>
+          <span className="linha">
+            <button
+              className="discreto icone-botao"
+              onClick={() => setBuscando(true)}
+              aria-label="Buscar"
+              title={teclado ? 'Buscar (Ctrl+K)' : 'Buscar'}
+              aria-keyshortcuts={teclado ? 'Control+K' : undefined}
+            >
+              <Icone nome="buscar" />
+            </button>
+            <button
+              className={`discreto icone-botao so-estreito ${aba === 'ajustes' ? 'ativo' : ''}`}
+              onClick={() => setAba(aba === 'ajustes' ? 'agora' : 'ajustes')}
+              aria-label="Ajustes"
+              aria-current={aba === 'ajustes' ? 'page' : undefined}
+              title="Ajustes"
+            >
+              <Icone nome="ajustes" />
+            </button>
+          </span>
         </header>
 
         <main id="conteudo" tabIndex={-1}>
@@ -391,6 +408,7 @@ export default function App() {
         +
       </button>
 
+      {buscando && <Busca onFechar={() => setBuscando(false)} />}
       {capturando && <CapturaRapida comVoz={comVoz} onFechar={() => (setCapturando(false), setComVoz(false))} />}
     </div>
   )
