@@ -44,7 +44,7 @@ function criar(r: Interpretacao): (() => void) | null {
       valor: r.valor,
       descricao: r.titulo,
       data: r.data ?? dataISO(),
-      categoriaId: r.valor < 0 ? sugerirCategoria(r.titulo, f.transacoes, f.categorias) : null,
+      categoriaId: r.valor < 0 ? sugerirCategoria(r.titulo, f.transacoes, f.categorias, f.regras) : null,
     })
     return () => useFinancas.getState().removerTransacao(id)
   }

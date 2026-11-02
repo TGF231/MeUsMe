@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Categoria, Conta, ContaFixa, Desejo, Transacao } from '../types'
-import { diasNoMes, hoje, mesISO, novoId } from '../util'
+import type { Categoria, Conta, ContaFixa, Desejo, RegraCategoria, Transacao } from '../types'
+import { diasNoMes, hoje, mesISO, novoId } from '../util.ts'
 
 const categorias = (tipo: Categoria['tipo'], lista: [string, string][]): Categoria[] =>
   lista.map(([id, nome]) => ({ id: `cat-${id}`, nome, tipo }))
@@ -36,6 +36,7 @@ interface Estado {
   transacoes: Transacao[]
   fixas: ContaFixa[]
   desejos: Desejo[]
+  regras: RegraCategoria[]
 
   salvarConta: (c: Omit<Conta, 'id'> & { id?: string }) => void
   removerConta: (id: string) => void
@@ -57,6 +58,9 @@ interface Estado {
   adiarCompra: (texto: string, valor: number | undefined, horas: number) => void
   decidirCompra: (id: string, decisao: Desejo['decisao']) => void
   removerDesejo: (id: string) => void
+  /** Cria a regra e aplica nos lançamentos sem categoria que já batem com ela; devolve quantos mudaram. */
+  criarRegra: (contem: string, categoriaId: string) => number
+  removerRegra: (id: string) => void
 }
 
 export const useFinancas = create<Estado>()(
@@ -67,6 +71,7 @@ export const useFinancas = create<Estado>()(
       transacoes: [],
       fixas: [],
       desejos: [],
+      regras: [],
 
       salvarConta: (c) =>
         set((s) =>
@@ -155,6 +160,18 @@ export const useFinancas = create<Estado>()(
       decidirCompra: (id, decisao) =>
         set((s) => ({ desejos: s.desejos.map((d) => (d.id === id ? { ...d, decisao, decididoEm: Date.now() } : d)) })),
       removerDesejo: (id) => set((s) => ({ desejos: s.desejos.filter((d) => d.id !== id) })),
+
+      criarRegra: (contem, categoriaId) => {
+        const regra = { id: novoId(), contem: normalizarTexto(contem), categoriaId, criadoEm: Date.now() }
+        const bate = (t: Transacao) => !t.categoriaId && normalizarTexto(t.descricao).includes(regra.contem)
+        const aplicadas = get().transacoes.filter(bate).length
+        set((s) => ({
+          regras: [regra, ...s.regras.filter((r) => r.contem !== regra.contem)],
+          transacoes: s.transacoes.map((t) => (bate(t) ? { ...t, categoriaId } : t)),
+        }))
+        return aplicadas
+      },
+      removerRegra: (id) => set((s) => ({ regras: s.regras.filter((r) => r.id !== id) })),
     }),
     {
       name: 'meusme-financas',
@@ -226,8 +243,28 @@ const PALAVRAS: [RegExp, string][] = [
 
 const normalizar = (s: string) => s.toLowerCase().replace(/\d+/g, '').replace(/\s+/g, ' ').trim()
 
-/** Usa a categoria de lançamentos anteriores com a mesma descrição; senão, palavras-chave. */
-export function sugerirCategoria(descricao: string, transacoes: Transacao[], categorias: Categoria[]) {
+/** Sem acento e em minúsculas, para as regras de categoria. */
+export const normalizarTexto = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+/** Primeira palavra de uma descrição que serve de regra ("UBER *TRIP 1234" → "uber"), ou null. */
+export function palavraDaRegra(descricao: string) {
+  return normalizarTexto(descricao).split(/[^a-z0-9]+/).find((p) => p.length >= 3 && !/^\d+$/.test(p)) ?? null
+}
+
+/**
+ * Categoria sugerida, nesta ordem: as suas regras (V28), a categoria de lançamentos anteriores com a mesma
+ * descrição e, por fim, palavras-chave.
+ */
+export function sugerirCategoria(descricao: string, transacoes: Transacao[], categorias: Categoria[], regras: RegraCategoria[] = []) {
+  const texto = normalizarTexto(descricao)
+  const regra = regras.find((r) => texto.includes(r.contem) && categorias.some((c) => c.id === r.categoriaId))
+  if (regra) return regra.categoriaId
   const alvo = normalizar(descricao)
   const anterior = transacoes.find((t) => t.categoriaId && normalizar(t.descricao) === alvo)
   if (anterior) return anterior.categoriaId

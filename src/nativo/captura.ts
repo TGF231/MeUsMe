@@ -63,7 +63,7 @@ export async function processarCapturas() {
         valor: lido.valor,
         descricao: lido.descricao,
         data: dataISO(c.quando),
-        categoriaId: sugerirCategoria(lido.descricao, useFinancas.getState().transacoes, fin.categorias),
+        categoriaId: sugerirCategoria(lido.descricao, useFinancas.getState().transacoes, fin.categorias, fin.regras),
         chaveImport: `notificacao:${c.pacote}:${c.quando}:${lido.valor}`,
         provisoria: true,
       },

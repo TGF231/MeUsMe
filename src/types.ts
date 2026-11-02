@@ -116,6 +116,15 @@ export interface Transacao {
   provisoria?: boolean
 }
 
+/** "Se a descrição contém X, a categoria é Y" (V28): criada ao trocar a categoria de um lançamento. Vence o resto. */
+export interface RegraCategoria {
+  id: string
+  /** Trecho procurado na descrição, sem acento e sem diferença de maiúsculas. */
+  contem: string
+  categoriaId: string
+  criadoEm: number
+}
+
 /** Compra adiada: espera um prazo antes de decidir (contra a compra por impulso). */
 export interface Desejo {
   id: string

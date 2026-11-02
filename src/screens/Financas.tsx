@@ -10,6 +10,7 @@ import { apagarConfigPluggy, lerConfigPluggy, salvarConfigPluggy, sincronizarPlu
 import {
   diaDeVencimento,
   fixaPagaNoMes,
+  palavraDaRegra,
   previsaoDoMes,
   resumoDoMes,
   saldoDaConta,
@@ -20,6 +21,7 @@ import type { ContaFixa, Transacao } from '../types'
 import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 import { Simbolo } from '../components/Icone'
 import { apagarComDesfazer } from '../desfazer'
+import { useAvisos } from '../stores/config'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -211,6 +213,27 @@ function EditarLancamento({ t, onPronto }: { t: Transacao; onPronto: () => void 
   )
 }
 
+/**
+ * Depois de trocar a categoria de um lançamento, oferece a regra "sempre que a descrição tiver X" (V28 em
+ * docs/CONCORRENTES.md). Só com um toque em "Sempre assim"; a regra também arruma os lançamentos sem categoria.
+ */
+function oferecerRegra(t: Transacao, categoriaId: string | null) {
+  const f = useFinancas.getState()
+  const palavra = palavraDaRegra(t.descricao)
+  const categoria = f.categorias.find((c) => c.id === categoriaId)
+  if (!palavra || !categoria || f.regras.some((r) => r.contem === palavra && r.categoriaId === categoria.id)) return
+  const avisar = useAvisos.getState().mostrar
+  avisar('Categoria trocada', `Usar ${categoria.nome} sempre que a descrição tiver "${palavra}"?`, {
+    acao: {
+      rotulo: 'Sempre assim',
+      fazer: () => {
+        const n = useFinancas.getState().criarRegra(palavra, categoria.id)
+        avisar('Regra criada', n ? `${n} lançamento${n === 1 ? '' : 's'} sem categoria também ${n === 1 ? 'mudou' : 'mudaram'}.` : 'Vale para os próximos lançamentos.')
+      },
+    },
+  })
+}
+
 function Lancamentos() {
   const f = useFinancas()
   const [mes, setMes] = useState(mesISO())
@@ -263,7 +286,10 @@ function Lancamentos() {
                   <select
                     className="mini"
                     value={t.categoriaId ?? ''}
-                    onChange={(e) => f.atualizarTransacao(t.id, { categoriaId: e.target.value || null })}
+                    onChange={(e) => {
+                      f.atualizarTransacao(t.id, { categoriaId: e.target.value || null })
+                      oferecerRegra(t, e.target.value || null)
+                    }}
                     aria-label="Categoria"
                   >
                     <option value="">Sem categoria</option>
@@ -321,7 +347,7 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
           valor: Math.abs(valor),
           dia: d,
           tipo,
-          categoriaId: categoriaId || sugerirCategoria(nome, f.transacoes, f.categorias),
+          categoriaId: categoriaId || sugerirCategoria(nome, f.transacoes, f.categorias, f.regras),
           contaId,
         })
         onPronto()
@@ -712,7 +738,7 @@ function Importar() {
               const novas = f.importar(
                 convertido.ok.map((l) => ({
                   contaId,
-                  categoriaId: sugerirCategoria(l.descricao, f.transacoes, f.categorias),
+                  categoriaId: sugerirCategoria(l.descricao, f.transacoes, f.categorias, f.regras),
                   valor: l.valor,
                   descricao: l.descricao,
                   data: l.data,
@@ -834,6 +860,24 @@ function AjustesFinancas() {
           </select>
           <button type="submit">Adicionar</button>
         </form>
+        {f.regras.length > 0 && (
+          <>
+            <h2>Suas regras</h2>
+            <p className="vazio-texto">Criadas ao trocar a categoria de um lançamento. Valem antes das sugestões automáticas.</p>
+            <div className="cartao">
+              {f.regras.map((r) => (
+                <div key={r.id} className="linha entre item">
+                  <span>
+                    Contém "{r.contem}" <span className="motivo">→ {f.categorias.find((c) => c.id === r.categoriaId)?.nome ?? 'categoria apagada'}</span>
+                  </span>
+                  <button className="discreto" onClick={() => apagarComDesfazer(useFinancas, 'regras', r.id, r.contem, () => f.removerRegra(r.id))} aria-label={`Apagar a regra ${r.contem}`}>
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

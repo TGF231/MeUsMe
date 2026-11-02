@@ -22,7 +22,7 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
 
   const valor = lerValor(valorTexto)
   const categorias = f.categorias.filter((c) => c.tipo === tipo)
-  const sugerida = descricao ? sugerirCategoria(descricao, f.transacoes, f.categorias) : null
+  const sugerida = descricao ? sugerirCategoria(descricao, f.transacoes, f.categorias, f.regras) : null
   const categoriaId = categoriaEscolhida ?? (categorias.some((c) => c.id === sugerida) ? sugerida : null)
 
   if (f.contas.length === 0) return <p className="dica">Crie uma conta em Finanças → Contas e categorias antes de lançar.</p>
