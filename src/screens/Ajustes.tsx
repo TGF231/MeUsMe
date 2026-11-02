@@ -486,7 +486,7 @@ function Secoes() {
 }
 
 function Acessibilidade() {
-  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, ajustar } = useConfig()
+  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, densidade, ajustar } = useConfig()
   return (
     <div className="cartao">
       <h2 className="titulo">Acessibilidade</h2>
@@ -503,6 +503,22 @@ function Acessibilidade() {
       <p className="motivo">
         Vale só para este aparelho e soma com o tamanho de fonte do sistema.{ehDesktop() && ' Ctrl + e Ctrl − também mudam, e Ctrl 0 volta ao normal.'}
       </p>
+      <p className="rotulo" id="densidade">
+        Densidade
+      </p>
+      <div className="segmentado" role="group" aria-labelledby="densidade">
+        {(
+          [
+            ['confortavel', 'Confortável'],
+            ['compacta', 'Compacta'],
+          ] as const
+        ).map(([v, nome]) => (
+          <button key={v} className={densidade === v ? 'ativo' : ''} aria-pressed={densidade === v} onClick={() => ajustar({ densidade: v })}>
+            {nome}
+          </button>
+        ))}
+      </div>
+      <p className="motivo">Compacta mostra mais de uma vez, com menos espaço entre os cartões. Vale só para este aparelho.</p>
       <label className="check">
         <input type="checkbox" checked={contrasteAlto} onChange={(e) => ajustar({ contrasteAlto: e.target.checked })} />
         <span>Contraste alto</span>

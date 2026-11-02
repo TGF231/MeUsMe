@@ -50,6 +50,8 @@ interface Estado {
   assinaturasOk: string[]
   /** Marcos raros na comemoração do passo (D12). Sincroniza. */
   marcos: boolean
+  /** Menos espaço entre e dentro dos cartões (D17). Não sincroniza: depende da tela. */
+  densidade: 'confortavel' | 'compacta'
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -84,6 +86,7 @@ export const useConfig = create<Estado>()(
       ultimoBackupAuto: 0,
       assinaturasOk: [],
       marcos: true,
+      densidade: 'confortavel',
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>
