@@ -18,7 +18,7 @@ for (const i of [...itens(D.vantagens), ...itens(D.desvantagens)]) {
   i.perfil = P2.itens[i.id]
 }
 // Itens já construídos (branch onda1, 2/11/2026).
-const FEITOS = new Set(['V09', 'D04', 'D25', 'D14', 'D13', 'V27', 'V20', 'D03', 'D08', 'V03', 'V02', 'V07', 'V08', 'D27', 'D23', 'V12', 'V24', 'D01', 'D02', 'V18', 'V01'])
+const FEITOS = new Set(['V09', 'D04', 'D25', 'D14', 'D13', 'V27', 'V20', 'D03', 'D08', 'V03', 'V02', 'V07', 'V08', 'D27', 'D23', 'V12', 'V24', 'D01', 'D02', 'V18', 'V01', 'V13'])
 const todas = [...itens(D.vantagens), ...itens(D.desvantagens)]
 for (const i of todas) i.feito = FEITOS.has(i.id)
 const nV = itens(D.vantagens).length, nD = itens(D.desvantagens).length

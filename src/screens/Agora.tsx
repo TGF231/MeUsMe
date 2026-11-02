@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { diasDesde, revisaoPendente, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
+import { calibracao, diasDesde, revisaoPendente, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
@@ -9,12 +9,12 @@ import { RevisaoSemana } from '../components/RevisaoSemana'
 import { PontosEditaveis, SeletorEnergia } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { escolherPasso, type Escolha } from '../escolher'
-import { montarDia, refazerResto } from '../montarDia'
+import { duracaoPrevista, horariosLivres, montarDia, refazerResto } from '../montarDia'
 import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
 import { chaveEvento, useAgenda } from '../stores/agenda'
 import { useAvisos, useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
-import type { Energia, Evento, Projeto } from '../types'
+import type { Energia, Evento, Passo, Projeto } from '../types'
 import { duracao, hora, inicioDoDia, nomeDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 import { Simbolo } from '../components/Icone'
@@ -179,6 +179,43 @@ function MontarDia({ energia, agora }: Readonly<{ energia: Energia; agora: numbe
         <button onClick={() => setAberto(false)}>{propostas.length ? 'Agora não' : 'Ok'}</button>
       </div>
     </div>
+  )
+}
+
+/**
+ * Horários livres para o passo (V13 em docs/CONCORRENTES.md): três propostas no resto de hoje e amanhã, com a
+ * duração prevista. Tocar numa delas reserva; o formulário abaixo continua para escolher outro horário.
+ */
+function HorariosLivres({ passo, agora, onPronto }: Readonly<{ passo: Passo; agora: number; onPronto: () => void }>) {
+  const s = useStore()
+  const agenda = useAgenda()
+  const avisar = useAvisos((a) => a.mostrar)
+  const hoje0 = inicioDoDia(agora)
+  const amanha0 = inicioDoDia(hoje0 + 36 * 3_600_000)
+  const fator = Math.min(2, Math.max(0.5, calibracao(s.passos, s.sessoes)?.fator ?? 1))
+  const minutos = duracaoPrevista(passo, fator)
+  const livres = horariosLivres(minutos, agenda.eventos, [
+    [agora, hoje0 + FIM_DO_DIA_H * 3_600_000],
+    [amanha0 + 8 * 3_600_000, amanha0 + FIM_DO_DIA_H * 3_600_000],
+  ])
+  if (livres.length === 0) return null
+  const reservar = (inicio: number, fim: number) => {
+    agenda.criarEvento({ titulo: passo.texto, inicio, fim, passoId: passo.id, origem: 'local' })
+    avisar('Horário reservado', `${inicio < amanha0 ? 'Hoje' : 'Amanhã'}, ${hora(inicio)}–${hora(fim)}.`)
+    onPronto()
+  }
+
+  return (
+    <>
+      <p className="motivo">Horários livres para {duracao(minutos)}:</p>
+      <div className="chips" role="group" aria-label="Horários livres">
+        {livres.map((b) => (
+          <button key={b.inicio} onClick={() => reservar(b.inicio, b.fim)}>
+            {b.inicio < amanha0 ? 'Hoje' : 'Amanhã'} {hora(b.inicio)}
+          </button>
+        ))}
+      </div>
+    </>
   )
 }
 
@@ -548,6 +585,7 @@ export function Agora() {
             ) : modo === 'agendando' ? (
               <>
                 <p className="rotulo">Reservar um horário para este passo. Quando chegar a hora, ele aparece aqui primeiro.</p>
+                <HorariosLivres passo={escolha.passo} agora={agora} onPronto={() => setModo('normal')} />
                 <EventoForm
                   inicial={{ titulo: escolha.passo.texto, passoId: escolha.passo.id }}
                   rotulo="Reservar horário"

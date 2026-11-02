@@ -174,7 +174,7 @@ Ganho e custo de cada item **para você**. Resumo: 20 itens de encaixe alto, 23 
 | # | Item | Encaixe | Ganho para você | Custo ou risco para você | Esforço · infraestrutura · trilha | Onda (pesquisa → você) |
 |---|---|---|---|---|---|---|
 | V12 | **Linha do tempo visual do dia** ✅ feito | **alto** | Ver o dia inteiro de relance, como você pediu da agenda (U8). | Gráfico é mais difícil de tornar acessível (teclado e leitor de tela); a lista com folgas já existe. | M · só no aparelho · trilha 4 (React) | 1 → 2 |
-| V13 | **Encaixar passos no tempo livre** | **alto** | O app propõe quando fazer (U4), em vez de você decidir sozinho (U1). | Só é bom com palpites de tempo, que são opcionais; nunca mover sozinho (D03). | M · só no aparelho · trilha 5 (Estado e dados locais) | 2 → 2 |
+| V13 | **Encaixar passos no tempo livre** ✅ feito | **alto** | O app propõe quando fazer (U4), em vez de você decidir sozinho (U1). | Só é bom com palpites de tempo, que são opcionais; nunca mover sozinho (D03). | M · só no aparelho · trilha 5 (Estado e dados locais) | 2 → 2 |
 | V14 | **Capacidade do dia** | **alto** | Avisa que "não cabe hoje" usando o seu palpite × real (U1, U9). | Depende de palpites e de prazo (V09); sem dados parece chute. | P · só no aparelho · trilha 5 (Estado e dados locais) | 2 → 2 |
 | V15 | **Ritual de encerrar o dia** | médio | Fecha o dia sem culpa e leva o que sobrou para amanhã (U2). | Já existe o check-in das 21h; é quase a mesma coisa e pode virar mais um aviso (U6). | P · só no aparelho · trilha 4 (React) | 2 → 3 |
 | V16 | **Rotinas com cronômetro por etapa** | baixo | Manhã e noite em etapas com tempo. | Sem sinal no seu uso, e se sobrepõe aos passos que se repetem (V08). | M · só no aparelho · trilha 4 (React) | 2 → 3 |

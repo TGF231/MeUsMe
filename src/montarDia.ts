@@ -58,6 +58,24 @@ export function encaixar(itens: { id: string; minutos: number }[], ocupados: Eve
   return { blocos, semEspaco }
 }
 
+/**
+ * Até `quantos` horários livres para um passo (V13 em docs/CONCORRENTES.md), espaçados de pelo menos 1 hora,
+ * em cada faixa dada (por exemplo, o resto de hoje e amanhã). Só propõe: quem marca é você.
+ */
+export function horariosLivres(minutos: number, eventos: Evento[], faixas: [number, number][], quantos = 3) {
+  const achados: Bloco[] = []
+  for (const [de, ate] of faixas) {
+    let desde = de
+    while (achados.length < quantos) {
+      const { blocos } = encaixar([{ id: String(achados.length), minutos }], eventos, desde, ate)
+      if (!blocos.length) break
+      achados.push(blocos[0])
+      desde = Math.max(blocos[0].fim, blocos[0].inicio + 60 * MIN)
+    }
+  }
+  return achados
+}
+
 export interface Proposta extends Bloco {
   passo: Passo
   projeto: Projeto | null

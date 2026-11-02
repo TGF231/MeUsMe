@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { duracaoPrevista, encaixar, montarDia, refazerResto } from '../src/montarDia.ts'
+import { duracaoPrevista, encaixar, horariosLivres, montarDia, refazerResto } from '../src/montarDia.ts'
 import type { Evento, Passo, Projeto } from '../src/types.ts'
 
 const H = 3_600_000
@@ -106,4 +106,14 @@ test('refazerResto: o que não cabe até o fim do dia volta para a fila', () => 
   assert.equal(r.passaram, 1)
   assert.deepEqual(r.mover, [])
   assert.deepEqual(r.naoCabem.map((e) => e.id), ['ra'])
+})
+
+test('horariosLivres: até três horários espaçados, pulando compromissos e passando para o dia seguinte', () => {
+  const amanha: [number, number] = [as(24 + 8), as(24 + 22)]
+  const r = horariosLivres(30, [ev('reuniao', as(20, 30), as(21, 30))], [[as(19), as(22)], amanha])
+  // 19h; 20h já encosta na folga da reunião (20h20), então vai para 21h40, que não cabe até 22h; o terceiro fica para amanhã às 8h.
+  assert.deepEqual(
+    r.map((b) => b.inicio),
+    [as(19), as(24 + 8), as(24 + 9)],
+  )
 })
