@@ -35,3 +35,17 @@ export function linhaDoTempo(eventos: Evento[], de: number, ate: number) {
   }
   return { faixas, livreMin: Math.round((total - ocupado) / 60_000) }
 }
+
+/**
+ * Compromissos colados (D05 em docs/CONCORRENTES.md): para cada compromisso seguido de outro em menos de `folgaMin`,
+ * os minutos até o próximo (negativo quando o próximo começa antes de este terminar). Reservas de passo ficam de fora.
+ */
+export function apertos(eventos: Evento[], folgaMin = 15) {
+  const lista = eventos.filter((e) => !e.diaInteiro && !e.passoId).sort((a, b) => a.inicio - b.inicio)
+  const r = new Map<string, number>()
+  for (let i = 0; i + 1 < lista.length; i++) {
+    const folga = Math.round((lista[i + 1].inicio - lista[i].fim) / 60_000)
+    if (folga < folgaMin) r.set(lista[i].id, folga)
+  }
+  return r
+}

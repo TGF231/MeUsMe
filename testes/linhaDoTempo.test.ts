@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { linhaDoTempo } from '../src/linhaDoTempo.ts'
+import { apertos, linhaDoTempo } from '../src/linhaDoTempo.ts'
 import type { Evento } from '../src/types.ts'
 
 const H = 3_600_000
@@ -16,4 +16,17 @@ test('evento que começou antes de agora é cortado no começo da faixa', () => 
   const { faixas } = linhaDoTempo([ev('a', 1, 3)], 2 * H, 12 * H)
   assert.equal(faixas[0].inicio, 0)
   assert.equal(faixas[0].largura, 10)
+})
+
+test('apertos: menos de 15 min entre compromissos, sobreposição negativa, reservas e dia inteiro de fora', () => {
+  const M = H / 60
+  const r = apertos([
+    ev('a', 9, 10),
+    ev('b', 10 + 5 * M / H, 11),
+    ev('c', 10.75, 12),
+    ev('reserva', 12, 13, { passoId: 'p' }),
+    ev('d', 12.25, 13),
+    ev('dia', 0, 24, { diaInteiro: true }),
+  ])
+  assert.deepEqual([...r.entries()], [['a', 5], ['b', -15]])
 })
