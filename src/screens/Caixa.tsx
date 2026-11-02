@@ -113,8 +113,8 @@ function FormularioDaCaptura({ ctx, modo }: Readonly<{ ctx: Contexto; modo: NonN
         <PassoForm
           inicial={texto}
           projetoId={modo.projetoId}
-          onSalvar={(t, e) => {
-            s.criarPasso(modo.projetoId, t, e)
+          onSalvar={(t, e, d) => {
+            s.criarPasso(modo.projetoId, t, e, undefined, d)
             pronto('passo')()
           }}
           onCancelar={cancelar}

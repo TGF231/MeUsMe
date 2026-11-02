@@ -41,6 +41,7 @@ O que a pesquisa diz, o que isso muda no MeUsMe e até onde a evidência vai. Re
 - **Nova:** recepção sem culpa para quem volta depois de 3 dias ou mais, com atalho para começar leve (7).
 - **Mantida:** aviso de pausa no tempo escolhido e alerta fixo de 1h30 no mesmo passo (9).
 - **Mantida:** estacionar ideias durante o foco (8).
+- **Nova:** prazo e "só a partir de" nos passos, opcionais e recolhidos no formulário. O prazo pesa na escolha (vencido conta como "hoje", nunca mais) e o motivo diz quanto falta (1, 3). Passos vencidos aparecem como **para reagendar**, com novas datas sugeridas em lote, até duas por dia, aceitas com um toque: sem vermelho e sem contar dias de atraso, para o atraso não virar culpa (7).
 
 ### Caixa (captura)
 

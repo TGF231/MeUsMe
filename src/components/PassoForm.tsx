@@ -1,7 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import { sugestoesDePasso } from '../calculos'
 import { useStore } from '../store'
-import type { Energia } from '../types'
+import type { Datas, Energia } from '../types'
 import { SeletorEnergia } from './SeletorEnergia'
 import { BotaoVoz } from './BotaoVoz'
 import { Simbolo } from './Icone'
@@ -21,7 +21,9 @@ interface Props {
   projetoId?: string | null
   /** Mostrar verbos e passos anteriores para tocar em vez de digitar. */
   sugerir?: boolean
-  onSalvar: (texto: string, energia: Energia) => void
+  /** Oferecer prazo e "só a partir de" (recolhidos; nunca obrigatórios). */
+  comDatas?: boolean
+  onSalvar: (texto: string, energia: Energia, datas: Datas) => void
   onCancelar?: () => void
 }
 
@@ -32,11 +34,13 @@ export function PassoForm({
   energiaInicial = 2,
   projetoId = null,
   sugerir = true,
+  comDatas = true,
   onSalvar,
   onCancelar,
 }: Props) {
   const [texto, setTexto] = useState(inicial)
   const [energia, setEnergia] = useState<Energia>(energiaInicial)
+  const [datas, setDatas] = useState<Datas>({})
   const passos = useStore((s) => s.passos)
   const campo = useRef<HTMLInputElement>(null)
   const idCampo = useId()
@@ -49,8 +53,9 @@ export function PassoForm({
       onSubmit={(e) => {
         e.preventDefault()
         if (!texto.trim()) return
-        onSalvar(texto.trim(), energia)
+        onSalvar(texto.trim(), energia, datas)
         setTexto('')
+        setDatas({})
       }}
     >
       <label className="rotulo" htmlFor={idCampo}>
@@ -108,6 +113,7 @@ export function PassoForm({
       )}
       <label className="rotulo">Quanta energia isso pede?</label>
       <SeletorEnergia valor={energia} onChange={setEnergia} />
+      {comDatas && <CamposDeData datas={datas} onChange={setDatas} />}
       <div className="linha">
         <button type="submit" className="primario">
           {rotuloBotao}
@@ -119,5 +125,36 @@ export function PassoForm({
         )}
       </div>
     </form>
+  )
+}
+
+/** Prazo e "só a partir de", recolhidos: a maioria dos passos não precisa de data. */
+export function CamposDeData({ datas, onChange, aberto = false }: { datas: Datas; onChange: (d: Datas) => void; aberto?: boolean }) {
+  const idPrazo = useId()
+  const idInicio = useId()
+  return (
+    <details className="datas-do-passo" open={aberto || Boolean(datas.prazo || datas.aPartirDe)}>
+      <summary>Datas (opcional)</summary>
+      <div className="linha">
+        <span>
+          <label className="rotulo" htmlFor={idPrazo}>
+            Prazo
+          </label>
+          <input id={idPrazo} type="date" value={datas.prazo ?? ''} onChange={(e) => onChange({ ...datas, prazo: e.target.value || undefined })} />
+        </span>
+        <span>
+          <label className="rotulo" htmlFor={idInicio}>
+            Só a partir de
+          </label>
+          <input
+            id={idInicio}
+            type="date"
+            value={datas.aPartirDe ?? ''}
+            onChange={(e) => onChange({ ...datas, aPartirDe: e.target.value || undefined })}
+          />
+        </span>
+      </div>
+      <p className="motivo">O prazo ajuda o Agora a escolher; se passar, o app sugere uma nova data, sem cobrança.</p>
+    </details>
   )
 }

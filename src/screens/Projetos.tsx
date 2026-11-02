@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { DeNovo } from '../components/DeNovo'
-import { PassoForm } from '../components/PassoForm'
+import { CamposDeData, PassoForm } from '../components/PassoForm'
 import { BarraProgresso } from '../components/Progresso'
 import { PontosEditaveis } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { useNavegacao } from '../navegacao'
 import { apagarComDesfazer } from '../desfazer'
 import { minutosDoPasso, pendentes, useStore } from '../store'
-import type { Passo, Projeto } from '../types'
-import { duracao } from '../util'
+import type { Datas, Passo, Projeto } from '../types'
+import { dataCurta, duracao, hoje } from '../util'
 import { Simbolo } from '../components/Icone'
 
 function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
@@ -42,11 +42,24 @@ function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
   )
 }
 
+/** Prazo e início do passo, em tom neutro: data passada não ganha cor de alerta (D04). */
+function DatasDoPasso({ passo }: { passo: Passo }) {
+  if (!passo.prazo && !passo.aPartirDe) return null
+  return (
+    <span className="motivo datas-passo">
+      {passo.aPartirDe && passo.aPartirDe > hoje() && `a partir de ${dataCurta(passo.aPartirDe)}`}
+      {passo.aPartirDe && passo.aPartirDe > hoje() && passo.prazo && ' · '}
+      {passo.prazo && `até ${dataCurta(passo.prazo)}`}
+    </span>
+  )
+}
+
 /** Passo com energia ajustável, texto editável e remoção. `destaque` é o visual do próximo passo. */
 function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: boolean }) {
   const s = useStore()
   const [editando, setEditando] = useState(false)
   const [texto, setTexto] = useState(passo.texto)
+  const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe })
 
   if (editando)
     return (
@@ -54,22 +67,29 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
         className="linha"
         onSubmit={(e) => {
           e.preventDefault()
-          if (texto.trim()) s.atualizarPasso(passo.id, { texto: texto.trim() })
+          if (texto.trim()) s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe })
           setEditando(false)
         }}
       >
-        <input autoFocus className="flex" value={texto} onChange={(e) => setTexto(e.target.value)} aria-label="Texto do passo" />
-        <button type="submit">Salvar</button>
-        <button type="button" className="discreto" onClick={() => setEditando(false)}>
-          Cancelar
-        </button>
+        <div className="linha">
+          <input autoFocus className="flex" value={texto} onChange={(e) => setTexto(e.target.value)} aria-label="Texto do passo" />
+          <button type="submit">Salvar</button>
+          <button type="button" className="discreto" onClick={() => setEditando(false)}>
+            Cancelar
+          </button>
+        </div>
+        <CamposDeData datas={datas} onChange={setDatas} />
       </form>
     )
 
   const energia = <PontosEditaveis energia={passo.energia} onChange={(e) => s.atualizarPasso(passo.id, { energia: e })} />
   const acoes = (
     <span className="linha">
-      <button className="discreto" onClick={() => (setTexto(passo.texto), setEditando(true))} aria-label={`Editar ${passo.texto}`}>
+      <button
+        className="discreto"
+        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe }), setEditando(true))}
+        aria-label={`Editar ${passo.texto}`}
+      >
         Editar
       </button>
       <button
@@ -85,6 +105,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   return destaque ? (
     <>
       <p className="passo">{passo.texto}</p>
+      <DatasDoPasso passo={passo} />
       <div className="linha entre">
         <span className="motivo">{energia}</span>
         {acoes}
@@ -93,7 +114,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   ) : (
     <div className="linha entre item">
       <span>
-        {energia} {passo.texto}
+        {energia} {passo.texto} <DatasDoPasso passo={passo} />
       </span>
       {acoes}
     </div>
@@ -281,7 +302,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
 
           {!projeto.concluidoEm && (
             <div className="cartao">
-              <PassoForm projetoId={id} onSalvar={(t, e) => s.criarPasso(id, t, e)} />
+              <PassoForm projetoId={id} onSalvar={(t, e, d) => s.criarPasso(id, t, e, undefined, d)} />
             </div>
           )}
         </div>

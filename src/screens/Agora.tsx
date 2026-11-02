@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { diasDesde, revisaoPendente, ultimaAtividade } from '../calculos'
+import { diasDesde, revisaoPendente, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
 import { BarraProgresso } from '../components/Progresso'
@@ -13,7 +13,7 @@ import { chaveEvento, useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import type { Energia, Evento, Projeto } from '../types'
-import { duracao, hora, inicioDoDia, reais } from '../util'
+import { duracao, hora, inicioDoDia, nomeDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 import { Simbolo } from '../components/Icone'
 
@@ -55,6 +55,41 @@ function PendenciasDeHoje({ agora }: { agora: number }) {
           <button onClick={() => fin.pagarFixa(f.id)}>Paguei</button>
         </div>
       ))}
+    </div>
+  )
+}
+
+/**
+ * Passos com prazo vencido viram "para reagendar": novas datas sugeridas em lote (até duas por dia, a partir de
+ * amanhã) e aceitas com um toque. Sem vermelho, sem contar dias de atraso (D04 em docs/CONCORRENTES.md).
+ */
+function ParaReagendar() {
+  const s = useStore()
+  const dia = hoje()
+  const lista = vencidos(s.passos, dia)
+  if (lista.length === 0) return null
+  const novas = new Map(sugerirNovasDatas(lista, dia).map((n) => [n.id, n.prazo]))
+  const aplicar = (prazo: (id: string) => string | undefined) => lista.forEach((p) => s.atualizarPasso(p.id, { prazo: prazo(p.id) }))
+
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Para reagendar</h2>
+      <p className="motivo">
+        {lista.length === 1 ? 'Um passo passou da data.' : `${lista.length} passos passaram da data.`} Novas datas sugeridas, até duas por dia:
+      </p>
+      <ul className="lista-simples">
+        {lista.map((p) => (
+          <li key={p.id}>
+            {p.texto} <span className="motivo">→ {nomeDoDia(novas.get(p.id)!)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="linha">
+        <button className="primario" onClick={() => aplicar((id) => novas.get(id))}>
+          Usar estas datas
+        </button>
+        <button onClick={() => aplicar(() => undefined)}>Tirar as datas</button>
+      </div>
     </div>
   )
 }
@@ -201,8 +236,8 @@ export function Agora() {
               <PassoForm
                 pergunta="Ainda não? Qual é o próximo movimento concreto?"
                 projetoId={projeto.id}
-                onSalvar={(t, e) => {
-                  s.criarPasso(projeto.id, t, e)
+                onSalvar={(t, e, d) => {
+                  s.criarPasso(projeto.id, t, e, undefined, d)
                   setCelebrar(null)
                 }}
               />
@@ -374,6 +409,7 @@ export function Agora() {
                 pergunta="Qual é o menor pedaço disso que dá para fazer em 2 minutos?"
                 rotuloBotao="Fazer este primeiro"
                 sugerir={false}
+                comDatas={false}
                 energiaInicial={1}
                 onSalvar={(t, e) => {
                   s.criarPasso(escolha.passo.projetoId, t, e, escolha.passo.id)
@@ -434,6 +470,7 @@ export function Agora() {
           <SeletorEnergia valor={energia} onChange={setEnergia} />
         </div>
         <PendenciasDeHoje agora={agora} />
+        <ParaReagendar />
         <RestoDoDia />
       </div>
     </section>

@@ -34,7 +34,14 @@ export interface Passo {
   minutosManuais?: number
   /** Palpite de duração feito antes ou durante o passo; comparado com o real no Histórico. */
   estimativaMin?: number
+  /** Dia limite (AAAA-MM-DD). Pesa na escolha de Agora; vencido vira "para reagendar", nunca alerta. */
+  prazo?: string
+  /** Só concorre em Agora a partir deste dia (AAAA-MM-DD). */
+  aPartirDe?: string
 }
+
+/** Datas opcionais de um passo, em AAAA-MM-DD. */
+export type Datas = Pick<Passo, 'prazo' | 'aPartirDe'>
 
 /** Projeto reaproveitável: nome, chegada e passos, criados de uma vez com um toque. */
 export interface Modelo {

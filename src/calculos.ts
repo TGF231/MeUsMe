@@ -28,6 +28,29 @@ export function proximaOcorrencia(l: Pick<Lembrete, 'quando' | 'repetir' | 'dia'
 export const pendentes = (passos: Passo[], projetoId: string | null) =>
   passos.filter((p) => p.projetoId === projetoId && !p.feitoEm).sort((a, b) => a.ordem - b.ordem)
 
+/** Dias de `de` até `dia` (datas AAAA-MM-DD); negativo quando `dia` já passou. Meio-dia evita o salto do horário de verão. */
+export const diasAte = (dia: string, de: string) =>
+  Math.round((Date.parse(`${dia}T12:00:00`) - Date.parse(`${de}T12:00:00`)) / DIA)
+
+/** Soma dias a uma data AAAA-MM-DD. */
+export function somarDias(dia: string, n: number) {
+  const d = new Date(`${dia}T12:00:00`)
+  d.setDate(d.getDate() + n)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** Passos pendentes com prazo antes de `dia`, do mais antigo para o mais novo. */
+export const vencidos = (passos: Passo[], dia: string) =>
+  passos.filter((p) => !p.feitoEm && p.prazo && p.prazo < dia).sort((a, b) => a.prazo!.localeCompare(b.prazo!) || a.ordem - b.ordem)
+
+/**
+ * Novas datas para os vencidos, em lote: a partir de amanhã, no máximo `porDia` por dia, na ordem do prazo antigo.
+ * Espalhar evita trocar uma pilha de atrasados por uma pilha de "hoje".
+ */
+export function sugerirNovasDatas(vencidosOrdenados: Passo[], dia: string, porDia = 2) {
+  return vencidosOrdenados.map((p, i) => ({ id: p.id, prazo: somarDias(dia, 1 + Math.floor(i / porDia)) }))
+}
+
 /** Minutos gastos: sessões do cronômetro + minutosManuais. */
 export const minutosDoPasso = (passo: Passo, sessoes: Sessao[], agora = Date.now()) =>
   sessoes.filter((x) => x.passoId === passo.id).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0) +
