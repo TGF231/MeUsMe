@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { TAMANHOS_TEXTO } from '../acessibilidade'
-import { lerBackup, montarBackup } from '../backup'
+import { lerBackup } from '../backup'
+import { exportarBackup, quandoFoiOBackup } from '../exportarBackup'
 import { ComoEscrever } from '../components/ComoEscrever'
 import { paraCSV, paraICS, paraMarkdown } from '../exportar'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
@@ -567,20 +568,16 @@ function Windows() {
 
 function Backup() {
   const [mensagem, setMensagem] = useState('')
+  const ultimoBackup = useConfig((c) => c.ultimoBackup)
   return (
     <div className="cartao">
       <h2 className="titulo">Backup</h2>
       <p className="motivo">
-        Um arquivo com todos os seus dados. Exporte de vez em quando: é a garantia de que nada se perde, com ou sem sincronização.
+        Um arquivo com todos os seus dados. Exporte de vez em quando: é a garantia de que nada se perde, com ou sem sincronização. Último backup:{' '}
+        {quandoFoiOBackup(ultimoBackup)}.
       </p>
       <div className="linha">
-        <button
-          onClick={() => {
-            baixarArquivo(`meusme-backup-${hoje()}.json`, montarBackup((k) => localStorage.getItem(k)))
-          }}
-        >
-          Exportar backup
-        </button>
+        <button onClick={exportarBackup}>Exportar backup</button>
         <label className="botao-arquivo">
           Restaurar backup
           <input

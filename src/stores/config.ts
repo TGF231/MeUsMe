@@ -42,6 +42,8 @@ interface Estado {
   sonecas: Soneca[]
   /** Última versão cujo "O que mudou" foi visto neste aparelho (src/novidades.ts). Não sincroniza. */
   versaoVista: string
+  /** Quando o último backup foi exportado neste aparelho (0 = nunca). Não sincroniza. */
+  ultimoBackup: number
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -72,6 +74,7 @@ export const useConfig = create<Estado>()(
       modulosDesligados: [],
       sonecas: [],
       versaoVista: '',
+      ultimoBackup: 0,
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>
