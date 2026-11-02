@@ -54,3 +54,18 @@ test('comparar meses: mesmo trecho do mês, média só dos meses com lançamento
   assert.equal(mesAntes('2026-01', 1), '2025-12')
   assert.deepEqual(compararComMesesAnteriores(transacoes.slice(0, 2), '2026-11', 2), { meses: 0, diferencas: [] })
 })
+
+test('metas: guardar soma, tirar não passa de zero, chegar ao alvo conclui e voltar abaixo reabre', () => {
+  useFinancas.setState({ metas: [] })
+  useFinancas.getState().criarMeta('Viagem', 100000)
+  const id = useFinancas.getState().metas[0].id
+  const guardar = (v: number) => useFinancas.getState().guardarNaMeta(id, v)
+  guardar(-5000)
+  assert.equal(useFinancas.getState().metas[0].guardado, 0)
+  guardar(60000)
+  guardar(40000)
+  assert.ok(useFinancas.getState().metas[0].concluidaEm)
+  guardar(-1000)
+  assert.equal(useFinancas.getState().metas[0].concluidaEm, undefined)
+  assert.equal(useFinancas.getState().metas[0].guardado, 99000)
+})

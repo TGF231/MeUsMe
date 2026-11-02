@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CapturaBancos } from '../components/CapturaBancos'
 import { LancamentoForm } from '../components/LancamentoForm'
 import { ListaDeEspera } from '../components/ListaDeEspera'
+import { Metas } from '../components/Metas'
 import { useAgora } from '../hooks'
 import { converterExtrato, detectarColunas, lerCSV, type Colunas } from '../csv'
 import { haQuanto, saudeDasFontes } from '../fontes'
@@ -921,6 +922,7 @@ export function Financas() {
       {sub === 'espera' && (
         <div className="estreito">
           <ListaDeEspera />
+          <Metas />
         </div>
       )}
       {sub === 'importar' && (

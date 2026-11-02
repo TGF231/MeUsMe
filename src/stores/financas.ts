@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Categoria, Conta, ContaFixa, Desejo, RegraCategoria, Transacao } from '../types'
+import type { Categoria, Conta, ContaFixa, Desejo, Meta, RegraCategoria, Transacao } from '../types'
 import { diasNoMes, hoje, mesISO, novoId } from '../util.ts'
 
 const categorias = (tipo: Categoria['tipo'], lista: [string, string][]): Categoria[] =>
@@ -37,6 +37,7 @@ interface Estado {
   fixas: ContaFixa[]
   desejos: Desejo[]
   regras: RegraCategoria[]
+  metas: Meta[]
 
   salvarConta: (c: Omit<Conta, 'id'> & { id?: string }) => void
   removerConta: (id: string) => void
@@ -61,6 +62,10 @@ interface Estado {
   /** Cria a regra e aplica nos lançamentos sem categoria que já batem com ela; devolve quantos mudaram. */
   criarRegra: (contem: string, categoriaId: string) => number
   removerRegra: (id: string) => void
+  criarMeta: (titulo: string, alvo: number) => void
+  /** Soma (ou tira, com valor negativo) do guardado; chegar ao alvo marca a meta como concluída. */
+  guardarNaMeta: (id: string, valor: number) => void
+  removerMeta: (id: string) => void
 }
 
 export const useFinancas = create<Estado>()(
@@ -72,6 +77,7 @@ export const useFinancas = create<Estado>()(
       fixas: [],
       desejos: [],
       regras: [],
+      metas: [],
 
       salvarConta: (c) =>
         set((s) =>
@@ -172,6 +178,17 @@ export const useFinancas = create<Estado>()(
         return aplicadas
       },
       removerRegra: (id) => set((s) => ({ regras: s.regras.filter((r) => r.id !== id) })),
+
+      criarMeta: (titulo, alvo) => set((s) => ({ metas: [...s.metas, { id: novoId(), titulo, alvo, guardado: 0, criadoEm: Date.now() }] })),
+      guardarNaMeta: (id, valor) =>
+        set((s) => ({
+          metas: s.metas.map((m) => {
+            if (m.id !== id) return m
+            const guardado = Math.max(0, m.guardado + valor)
+            return { ...m, guardado, concluidaEm: guardado >= m.alvo ? (m.concluidaEm ?? Date.now()) : undefined }
+          }),
+        })),
+      removerMeta: (id) => set((s) => ({ metas: s.metas.filter((m) => m.id !== id) })),
     }),
     {
       name: 'meusme-financas',

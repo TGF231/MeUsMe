@@ -125,6 +125,16 @@ export interface RegraCategoria {
   criadoEm: number
 }
 
+/** Meta de economia (V25): uma linha de chegada em dinheiro, como nos projetos. Valores em centavos. */
+export interface Meta {
+  id: string
+  titulo: string
+  alvo: number
+  guardado: number
+  criadoEm: number
+  concluidaEm?: number
+}
+
 /** Compra adiada: espera um prazo antes de decidir (contra a compra por impulso). */
 export interface Desejo {
   id: string

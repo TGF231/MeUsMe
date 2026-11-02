@@ -46,6 +46,7 @@ const COLECOES: Colecao[] = [
   { nome: 'financas.categorias', loja: useFinancas, campo: 'categorias', tipo: 'lista' },
   { nome: 'financas.transacoes', loja: useFinancas, campo: 'transacoes', tipo: 'lista', ordenar: maisNovoPrimeiro },
   { nome: 'financas.fixas', loja: useFinancas, campo: 'fixas', tipo: 'lista' },
+  { nome: 'financas.metas', loja: useFinancas, campo: 'metas', tipo: 'lista' },
   { nome: 'financas.regras', loja: useFinancas, campo: 'regras', tipo: 'lista' },
   { nome: 'financas.desejos', loja: useFinancas, campo: 'desejos', tipo: 'lista', ordenar: maisNovoPrimeiro },
 
