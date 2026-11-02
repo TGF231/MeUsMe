@@ -222,7 +222,7 @@ Ganho e custo de cada item **para você**. Resumo: 20 itens de encaixe alto, 23 
 
 | # | Item | Encaixe | Ganho para você | Custo ou risco para você | Esforço · infraestrutura · trilha | Onda (pesquisa → você) |
 |---|---|---|---|---|---|---|
-| D09 | **A caixa de entrada depende de você lembrar** | médio | O que dorme há 30 dias volta com uma pergunta: não depende da sua memória (U6). | É mais um aviso; precisa de um jeito simples de responder (apagar, virar passo, adiar). | P · só no aparelho · trilha 5 (Estado e dados locais) | 2 → 2 |
+| D09 | **A caixa de entrada depende de você lembrar** ✅ feito | médio | O que dorme há 30 dias volta com uma pergunta: não depende da sua memória (U6). | É mais um aviso; precisa de um jeito simples de responder (apagar, virar passo, adiar). | P · só no aparelho · trilha 5 (Estado e dados locais) | 2 → 2 |
 | D10 | **"Algum dia" vira buraco negro** | baixo | Ideias que não se acumulam para sempre. | Perguntar a cada 90 dias é outro aviso: junte com D09 numa revisão só. | P · só no aparelho · trilha 5 (Estado e dados locais) | 2 → 3 |
 | D11 | **Quebra de tarefa genérica, igual para todos** | baixo | Quebra no seu tamanho de passo. | Depende de V20 e de muito histórico; é um modelo a mais para você explicar (D2). | G · só no aparelho · trilha 5 (Estado e dados locais) | 2 → 3 |
 | D12 | **Gamificação cansa em poucas semanas** | baixo | Marca a reta final concluída (U2), sem pontos. | Corre o risco de virar gamificação, que o app evita de propósito. | P · só no aparelho · trilha 4 (React) | 3 → 3 |

@@ -10,6 +10,7 @@ import { organizar } from '../motor/executar'
 import { lerDinheiro, type Dinheiro } from '../motor/extratores'
 import { aplicarRegras, prepararCompromisso } from '../motor/regras'
 import { EXEMPLOS_DE_CAMPO } from '../motor/tutorial'
+import { diasDesde, paradas } from '../calculos'
 import { apagarComDesfazer } from '../desfazer'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
@@ -244,6 +245,9 @@ export function Caixa() {
   const s = useStore()
   const [texto, setTexto] = useState('')
   const soltas = s.ideias.filter((i) => !i.projetoId)
+  // Paradas há 30 dias ou mais voltam no topo com uma pergunta (D09 em docs/CONCORRENTES.md).
+  const velhas = paradas(s.capturas)
+  const recentes = s.capturas.filter((c) => !velhas.includes(c))
   // O tutorial abre sozinho na primeira visita; depois, pelo "?".
   const [tutorial, setTutorial] = useState(() => !useConfig.getState().tutorialCapturaVisto)
   const [exemplo] = useState(() => EXEMPLOS_DE_CAMPO[Math.floor(Math.random() * EXEMPLOS_DE_CAMPO.length)])
@@ -286,8 +290,25 @@ export function Caixa() {
             <p className="vazio-texto">Caixa vazia. Sua cabeça agradece.</p>
           ) : (
             <>
-              <h2>Para processar ({s.capturas.length})</h2>
-              {s.capturas.map((c) => (
+              {velhas.length > 0 && (
+                <>
+                  <h2>Paradas há mais de 30 dias ({velhas.length})</h2>
+                  <p className="vazio-texto">Ainda fazem sentido? Vire passo, apague, ou deixe para daqui a 30 dias.</p>
+                  {velhas.map((c) => (
+                    <div key={c.id} className="cartao">
+                      <p className="passo pequeno">{c.texto}</p>
+                      <p className="motivo">Na Caixa há {diasDesde(c.adiadaEm ?? c.criadoEm)} dias.</p>
+                      {c.audio && <OuvirRecado id={c.id} segundos={c.audio.segundos} />}
+                      <Processar captura={c} />
+                      <button className="discreto" onClick={() => s.adiarCaptura(c.id)}>
+                        Ainda não: perguntar daqui a 30 dias
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+              {recentes.length > 0 && <h2>Para processar ({recentes.length})</h2>}
+              {recentes.map((c) => (
                 <div key={c.id} className="cartao">
                   <p className="passo pequeno">{c.texto}</p>
                   {c.audio && <OuvirRecado id={c.id} segundos={c.audio.segundos} />}

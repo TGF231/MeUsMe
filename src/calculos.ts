@@ -1,4 +1,4 @@
-import type { Lembrete, Passo, Sessao } from './types'
+import type { Captura, Lembrete, Passo, Sessao } from './types'
 
 /** Cálculos puros usados pelas telas (testados em testes/calculos.test.ts). */
 
@@ -128,6 +128,10 @@ export const diasDesde = (desde: number, agora = Date.now()) => {
   const inicio = (t: number) => new Date(t).setHours(0, 0, 0, 0)
   return Math.round((inicio(agora) - inicio(desde)) / DIA)
 }
+
+/** Capturas paradas na Caixa há `dias` dias ou mais (D09), da mais antiga para a mais nova. */
+export const paradas = (capturas: Captura[], agora = Date.now(), dias = 30) =>
+  capturas.filter((c) => diasDesde(c.adiadaEm ?? c.criadoEm, agora) >= dias).sort((a, b) => (a.adiadaEm ?? a.criadoEm) - (b.adiadaEm ?? b.criadoEm))
 
 /** A revisão semanal está pendente: feita (ou pulada) antes do início da semana atual. diaRevisao -1 desliga. */
 export const revisaoPendente = (agora: number, diaRevisao: number, revisaoFeitaEm: number) =>

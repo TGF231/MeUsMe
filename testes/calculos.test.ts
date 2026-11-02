@@ -7,6 +7,7 @@ import {
   explicarFator,
   inicioDaSemana,
   ordemAntesDe,
+  paradas,
   passosParaModelo,
   progresso,
   proximaRepeticao,
@@ -182,4 +183,16 @@ test('proximaRepeticao: dia, semana e mês (31 de janeiro cai em 28 de fevereiro
   assert.equal(proximaRepeticao('semanal', '2026-11-02'), '2026-11-09')
   assert.equal(proximaRepeticao('mensal', '2027-01-31'), '2027-02-28')
   assert.equal(proximaRepeticao('mensal', '2026-11-15'), '2026-12-15')
+})
+
+test('paradas: 30 dias ou mais na Caixa, contando do adiamento quando houver, da mais antiga para a mais nova', () => {
+  const agora = new Date(2026, 10, 2, 12).getTime()
+  const dias = (n: number) => agora - n * 86_400_000
+  const capturas = [
+    { id: 'nova', texto: 'a', criadoEm: dias(5) },
+    { id: 'velha', texto: 'b', criadoEm: dias(45) },
+    { id: 'limite', texto: 'c', criadoEm: dias(30) },
+    { id: 'adiada', texto: 'd', criadoEm: dias(90), adiadaEm: dias(10) },
+  ]
+  assert.deepEqual(paradas(capturas, agora).map((c) => c.id), ['velha', 'limite'])
 })

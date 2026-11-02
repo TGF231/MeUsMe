@@ -10,6 +10,8 @@ export interface Captura {
   audio?: { segundos: number }
   /** Tipo provável segundo o motor (docs/MOTOR.md), mostrado primeiro na Caixa. */
   sugestao?: Classe
+  /** "Ainda não" na pergunta dos 30 dias parada (D09): conta de novo a partir daqui. */
+  adiadaEm?: number
 }
 
 export interface Projeto {
