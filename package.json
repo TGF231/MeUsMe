@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "node --test \"testes/**/*.test.ts\"",
     "versao": "node scripts/versao.mjs",
+    "docs:concorrentes": "node scripts/concorrentes/gerar.mjs",
     "motor:treinar": "node scripts/motor-treinar.ts",
     "motor:avaliar": "node scripts/motor-avaliar.ts",
     "android:sync": "npm run build && cap sync android",
