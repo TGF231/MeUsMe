@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { TAMANHOS_TEXTO } from '../acessibilidade'
 import { lerBackup, montarBackup } from '../backup'
 import { ComoEscrever } from '../components/ComoEscrever'
+import { paraCSV, paraICS, paraMarkdown } from '../exportar'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
 import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows } from '../nativo/desktop'
 import { Sincronizacao } from '../components/Sincronizacao'
@@ -18,8 +19,10 @@ import {
   testarComAppFechado,
   type Permissao,
 } from '../notificacoes'
+import { useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
+import { useFinancas } from '../stores/financas'
 import { useMotor } from '../stores/motor'
 import { useStatusSync } from '../sync/motor'
 import { ACENTOS_PRONTOS, pareceSemantica, resolverAcento } from '../tema/cores'
@@ -607,6 +610,12 @@ function Backup() {
           {mensagem}
         </p>
       )}
+      <p className="motivo">Também em formatos abertos, para abrir em qualquer programa: passos em Markdown, lançamentos em CSV (o Excel abre e o Importar lê de volta) e a agenda em .ics.</p>
+      <div className="linha">
+        <button onClick={() => baixarArquivo(`meusme-passos-${hoje()}.md`, paraMarkdown(useStore.getState(), hoje()), 'text/markdown')}>Passos (.md)</button>
+        <button onClick={() => baixarArquivo(`meusme-lancamentos-${hoje()}.csv`, paraCSV(useFinancas.getState()), 'text/csv')}>Lançamentos (.csv)</button>
+        <button onClick={() => baixarArquivo(`meusme-agenda-${hoje()}.ics`, paraICS(useAgenda.getState(), Date.now()), 'text/calendar')}>Agenda (.ics)</button>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { lerValor } from './util'
+import { lerValor } from './util.ts'
 
 /** Parser de CSV com suporte a aspas; detecta separador vírgula ou ponto e vírgula. */
 export function lerCSV(texto: string): string[][] {
