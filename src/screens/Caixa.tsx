@@ -6,12 +6,13 @@ import { LancamentoForm } from '../components/LancamentoForm'
 import { LembreteForm } from '../components/LembreteForm'
 import { PassoForm } from '../components/PassoForm'
 import { GravarRecado, OuvirRecado } from '../components/Recado'
-import { organizar } from '../motor/executar'
+import { guardarVarios, organizar } from '../motor/executar'
 import { lerDinheiro, type Dinheiro } from '../motor/extratores'
 import { aplicarRegras, prepararCompromisso } from '../motor/regras'
 import { EXEMPLOS_DE_CAMPO } from '../motor/tutorial'
 import { diasDesde, paradas } from '../calculos'
 import { apagarComDesfazer } from '../desfazer'
+import { dividirEmItens } from '../dividir'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
@@ -241,9 +242,64 @@ function Processar({ captura }: Readonly<{ captura: Captura }>) {
   return modo ? <FormularioDaCaptura ctx={ctx} modo={modo} /> : <AcoesDaCaptura ctx={ctx} />
 }
 
+/**
+ * Texto colado com várias linhas ou frases (V04 em docs/CONCORRENTES.md): mostra os itens antes de guardar, para
+ * desmarcar o que não serve. Cada um vai para a Caixa com a sugestão do app; nada é criado sozinho.
+ */
+function SepararColados({ itens, onFechar }: Readonly<{ itens: string[]; onFechar: () => void }>) {
+  const [tirados, setTirados] = useState<Set<number>>(new Set())
+  const marcados = itens.filter((_, i) => !tirados.has(i))
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Separar em {itens.length} itens?</h2>
+      <p className="motivo">Uma captura por linha ou frase. Desmarque o que não quiser guardar.</p>
+      {itens.map((t, i) => (
+        <label key={i} className="check">
+          <input
+            type="checkbox"
+            checked={!tirados.has(i)}
+            onChange={(e) => {
+              const n = new Set(tirados)
+              if (e.target.checked) n.delete(i)
+              else n.add(i)
+              setTirados(n)
+            }}
+          />
+          <span>{t}</span>
+        </label>
+      ))}
+      <div className="linha">
+        {marcados.length > 0 && (
+          <button
+            className="primario"
+            onClick={() => {
+              void guardarVarios(marcados)
+              onFechar()
+            }}
+          >
+            Guardar {marcados.length === 1 ? '1 item' : `${marcados.length} itens`}
+          </button>
+        )}
+        <button
+          onClick={() => {
+            useStore.getState().capturar(itens.join('\n'))
+            onFechar()
+          }}
+        >
+          Guardar como um item só
+        </button>
+        <button className="discreto" onClick={onFechar}>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function Caixa() {
   const s = useStore()
   const [texto, setTexto] = useState('')
+  const [colados, setColados] = useState<string[] | null>(null)
   const soltas = s.ideias.filter((i) => !i.projetoId)
   // Paradas há 30 dias ou mais voltam no topo com uma pergunta (D09 em docs/CONCORRENTES.md).
   const velhas = paradas(s.capturas)
@@ -267,7 +323,19 @@ export function Caixa() {
           >
             <label className="rotulo">Tire da cabeça. Organizar fica para depois.</label>
             <div className="linha">
-              <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder={`Ex.: ${exemplo}`} aria-label="Capturar na Caixa" />
+              <input
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                onPaste={(e) => {
+                  // Várias linhas ou frases: pergunta antes de separar (o campo de uma linha juntaria tudo).
+                  const itens = dividirEmItens(e.clipboardData.getData('text'))
+                  if (itens.length < 2) return
+                  e.preventDefault()
+                  setColados(itens)
+                }}
+                placeholder={`Ex.: ${exemplo}`}
+                aria-label="Capturar na Caixa"
+              />
               {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
               <BotaoVoz
                 onTexto={(falado) => {
@@ -283,6 +351,7 @@ export function Caixa() {
               </button>
             </div>
           </form>
+          {colados && <SepararColados itens={colados} onFechar={() => setColados(null)} />}
           <GravarRecado />
           {tutorial && <ComoEscrever onFechar={() => setTutorial(false)} />}
 

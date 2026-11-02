@@ -128,3 +128,20 @@ export async function organizar(texto: string) {
     },
   })
 }
+/**
+ * Várias capturas de uma vez (V04, texto colado): cada uma vai para a Caixa com a sugestão do motor na frente,
+ * sem criar nada sozinho, porque numa colagem longa um engano viraria vários. Um Desfazer tira todas.
+ */
+export async function guardarVarios(itens: string[]) {
+  const base = await carregarRede()
+  const antes = new Set(useStore.getState().capturas.map((c) => c.id))
+  // capturar põe no topo: de trás para frente, a Caixa fica na ordem do texto.
+  for (const t of [...itens].reverse()) {
+    const d = decidirAgora(t, base)
+    useStore.getState().capturar(t, 'caixa' in d ? d.sugestao : d.criar.classe)
+  }
+  const novas = new Set(useStore.getState().capturas.filter((c) => !antes.has(c.id)).map((c) => c.id))
+  useAvisos.getState().mostrar(`${novas.size} itens na Caixa`, 'Cada um com a sugestão do app na frente, para você confirmar.', {
+    acao: { rotulo: 'Desfazer', fazer: () => useStore.setState((s) => ({ capturas: s.capturas.filter((c) => !novas.has(c.id)) })) },
+  })
+}
