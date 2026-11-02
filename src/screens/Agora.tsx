@@ -25,13 +25,14 @@ const relogio = (ms: number) => {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
-/** Lembretes vencidos e contas fixas vencidas ou do dia. */
+/** Lembretes vencidos e contas fixas vencidas ou do dia (cada um só com a sua seção ligada). */
 function PendenciasDeHoje({ agora }: { agora: number }) {
   const agenda = useAgenda()
   const fin = useFinancas()
-  const lembretes = agenda.lembretes.filter((l) => !l.concluido && l.quando <= agora)
+  const desligados = useConfig((c) => c.modulosDesligados)
+  const lembretes = desligados.includes('agenda') ? [] : agenda.lembretes.filter((l) => !l.concluido && l.quando <= agora)
   const diaHoje = new Date(agora).getDate()
-  const contas = fin.fixas.filter((f) => f.tipo === 'gasto' && !fixaPagaNoMes(f, fin.transacoes) && diaDeVencimento(f) <= diaHoje)
+  const contas = desligados.includes('financas') ? [] : fin.fixas.filter((f) => f.tipo === 'gasto' && !fixaPagaNoMes(f, fin.transacoes) && diaDeVencimento(f) <= diaHoje)
   if (lembretes.length === 0 && contas.length === 0) return null
 
   return (
@@ -465,13 +466,13 @@ export function Agora() {
           )
         )}
         <div className="cartao compacto energia">
-          <SituacaoAgora />
+          {!cfg.modulosDesligados.includes('agenda') && <SituacaoAgora />}
           <label className="rotulo">Sua energia agora</label>
           <SeletorEnergia valor={energia} onChange={setEnergia} />
         </div>
         <PendenciasDeHoje agora={agora} />
         <ParaReagendar />
-        <RestoDoDia />
+        {!cfg.modulosDesligados.includes('agenda') && <RestoDoDia />}
       </div>
     </section>
   )

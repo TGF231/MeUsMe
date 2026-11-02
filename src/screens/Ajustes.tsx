@@ -6,6 +6,7 @@ import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
 import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows } from '../nativo/desktop'
 import { Sincronizacao } from '../components/Sincronizacao'
 import { Sobre } from '../components/Sobre'
+import { OPCIONAIS, PERFIS, type Aba } from '../navegacao'
 import { ehDesktop, ehNativo } from '../nativo/plataforma'
 import { abrirAjusteDeHorarioExato, horarioExatoLiberado, lerPermissao, notificar, pedirPermissao, type Permissao } from '../notificacoes'
 import { useAgenda } from '../stores/agenda'
@@ -344,6 +345,46 @@ function Aparencia() {
   )
 }
 
+/** Seções do app (D14) e perfis prontos (D13): desligar só tira do menu, os dados continuam. */
+function Secoes() {
+  const { modulosDesligados, ajustar } = useConfig()
+  const perfilAtual = PERFIS.find((p) => p.desligados.length === modulosDesligados.length && p.desligados.every((d) => modulosDesligados.includes(d)))
+  const alternar = (id: Aba, ligar: boolean) =>
+    ajustar({ modulosDesligados: ligar ? modulosDesligados.filter((d) => d !== id) : [...modulosDesligados, id] })
+  return (
+    <div className="cartao">
+      <h2 className="titulo">Seções do app</h2>
+      <p className="rotulo" id="perfis">
+        Começar de um perfil
+      </p>
+      <div className="chips" role="group" aria-labelledby="perfis">
+        {PERFIS.map((p) => (
+          <button
+            key={p.id}
+            className={perfilAtual?.id === p.id ? 'ativo' : ''}
+            aria-pressed={perfilAtual?.id === p.id}
+            title={p.descricao}
+            onClick={() => ajustar({ modulosDesligados: p.desligados })}
+          >
+            {p.nome}
+          </button>
+        ))}
+      </div>
+      {OPCIONAIS.map((m) => (
+        <label key={m.id} className="check">
+          <input type="checkbox" checked={!modulosDesligados.includes(m.id)} onChange={(e) => alternar(m.id, e.target.checked)} />
+          <span>
+            {m.nome} <span className="motivo">· {m.descricao}</span>
+          </span>
+        </label>
+      ))}
+      <p className="motivo">
+        Agora, Caixa e Ajustes ficam sempre. Desligar só tira a seção do menu e da tela Agora: nada é apagado, e ligar de novo traz tudo de volta.
+      </p>
+    </div>
+  )
+}
+
 function Acessibilidade() {
   const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, ajustar } = useConfig()
   return (
@@ -484,6 +525,7 @@ export function Ajustes() {
   return (
     <section className="tela grade-ajustes">
       <Aparencia />
+      <Secoes />
       <Acessibilidade />
       <Captura />
       <Sincronizacao />

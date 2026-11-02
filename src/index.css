@@ -549,7 +549,10 @@ button:disabled {
   cursor: default;
 }
 
-input[type='checkbox'] {
+input[type='checkbox'],
+input[type='radio'] {
+  flex-shrink: 0;
+  padding: 0;
   width: 20px;
   min-height: 20px;
   height: 20px;
@@ -1637,4 +1640,11 @@ button.perigo:hover {
 /* Título de seção com cara de rótulo: <h2 className="rotulo"> para o leitor de tela pular por títulos, com a margem que o <p> tinha. */
 :is(h2, h3).rotulo {
   margin: 1em 0;
+}
+
+.introducao fieldset.perfis {
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+  text-align: left;
 }

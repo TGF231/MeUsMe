@@ -84,6 +84,10 @@ Toda semana, no dia escolhido: esvaziar a Caixa, escolher **um** projeto em foco
 
 - **Mantida:** captura global e tempo por programa (8), sem guardar o título da janela.
 
+### Seções e perfis
+
+- **Nova:** **perfis prontos** na introdução (só tarefas; tarefas e agenda; tudo com dinheiro) em vez de montar o sistema, e **seções que se desligam** em Ajustes. Menos telas e menos decisões reduzem a demanda (8); desligar só esconde, nada é apagado.
+
 ## O que não entrou, e por quê
 
 - **Body doubling** (trabalhar com alguém junto, mesmo virtual): popular, mas sem ensaio controlado em adultos, e os estudos pequenos dão resultados mistos ([poster de 2025 sem efeito](https://www.ccsc.org/centralplains/2025/talks/talk-poster16/), [preprint com 12 pessoas](https://arxiv.org/html/2509.12153v1)). Fica para depois, se a evidência melhorar.

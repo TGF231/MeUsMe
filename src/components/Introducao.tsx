@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PERFIS } from '../navegacao'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
 
@@ -31,8 +32,11 @@ export function Introducao() {
   const s = useStore()
   const ajustar = useConfig((c) => c.ajustar)
   const fim = i === TELAS.length - 1
+  // Perfil pronto em vez de montar o sistema (D13); o do meio é o ponto de partida.
+  const [perfil, setPerfil] = useState('agenda')
   // A revisão semanal começa a contar a partir de hoje, para não aparecer logo no primeiro dia.
-  const concluir = () => ajustar({ introducaoVista: true, revisaoFeitaEm: Date.now() })
+  const concluir = () =>
+    ajustar({ introducaoVista: true, revisaoFeitaEm: Date.now(), modulosDesligados: PERFIS.find((p) => p.id === perfil)!.desligados })
 
   const criarExemplo = () => {
     const pid = s.criarProjeto('Conhecer o MeUsMe', 'Concluí um passo e vi quanto tempo ele levou no Histórico')
@@ -58,6 +62,18 @@ export function Introducao() {
         </div>
         {fim ? (
           <>
+            <fieldset className="perfis">
+              <legend className="rotulo">O que você quer usar?</legend>
+              {PERFIS.map((p) => (
+                <label key={p.id} className="check">
+                  <input type="radio" name="perfil" checked={perfil === p.id} onChange={() => setPerfil(p.id)} />
+                  <span>
+                    {p.nome} <span className="motivo">· {p.descricao}</span>
+                  </span>
+                </label>
+              ))}
+              <p className="motivo">Dá para trocar depois em Ajustes → Seções do app.</p>
+            </fieldset>
             <div className="linha centralizada">
               {/* O Continuar some na última tela: o foco passa para cá em vez de cair no começo da página. */}
               <button className="primario" autoFocus onClick={criarExemplo}>

@@ -33,6 +33,9 @@ const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'historico', nome: 'Histórico' },
 ]
 
+/** Abas do menu sem as seções desligadas em Ajustes (D14). */
+const abasVisiveis = (desligados: Aba[]) => ABAS.filter((a) => !desligados.includes(a.id))
+
 /** O corpo do aviso com o trecho que disparou a regra em negrito. */
 function ComDestaque({ texto, destaque }: Readonly<{ texto: string; destaque?: string }>) {
   const i = destaque ? texto.indexOf(destaque) : -1
@@ -179,6 +182,8 @@ export default function App() {
   const aba = useNavegacao((n) => n.aba)
   const setAba = useNavegacao((n) => n.ir)
   const introducaoVista = useConfig((c) => c.introducaoVista)
+  const desligados = useConfig((c) => c.modulosDesligados)
+  const abas = abasVisiveis(desligados)
   const [capturando, setCapturando] = useState(false)
   const naCaixa = useStore((s) => s.capturas.length)
   useAgendador()
@@ -197,10 +202,11 @@ export default function App() {
         const mais = e.code === 'Equal' || e.code === 'NumpadAdd'
         ajustar({ tamanhoTexto: e.code.endsWith('0') ? 1 : proximoTamanho(tamanhoTexto, mais ? 1 : -1) })
       } else if (e.altKey && !e.ctrlKey && /^Digit[1-7]$/.test(e.code)) {
-        // Alt+1 a Alt+7: as seções na ordem da navegação, sem passar por todas com Tab.
+        // Alt+1 a Alt+7: as seções visíveis, na ordem da navegação, sem passar por todas com Tab.
         e.preventDefault()
         const n = Number(e.code.slice(-1))
-        useNavegacao.getState().ir(n <= ABAS.length ? ABAS[n - 1].id : 'ajustes')
+        const visiveis = abasVisiveis(useConfig.getState().modulosDesligados)
+        if (n <= visiveis.length + 1) useNavegacao.getState().ir(n <= visiveis.length ? visiveis[n - 1].id : 'ajustes')
       } else desfazerUltimoAviso(e)
     }
     window.addEventListener('keydown', atalho)
@@ -254,6 +260,11 @@ export default function App() {
     return () => void ouvinte.then((h) => h.remove())
   }, [])
 
+  // Seção desligada enquanto estava aberta (aqui ou em outro aparelho, pela sincronização): volta para Agora.
+  useEffect(() => {
+    if (desligados.includes(aba)) setAba('agora')
+  }, [aba, desligados, setAba])
+
   const nomeDaAba = aba === 'ajustes' ? 'Ajustes' : ABAS.find((a) => a.id === aba)!.nome
   // Atalhos de teclado só fazem sentido (e só são anunciados) fora do celular.
   const teclado = !ehAndroid()
@@ -279,7 +290,7 @@ export default function App() {
         <button className="primario nav-capturar" onClick={() => setCapturando(true)} title="Captura rápida (Ctrl+Espaço)">
           <span aria-hidden="true">+</span> Capturar <kbd>Ctrl+Espaço</kbd>
         </button>
-        {ABAS.map((a, i) => (
+        {abas.map((a, i) => (
           <button
             key={a.id}
             className={aba === a.id ? 'ativo' : ''}
@@ -297,8 +308,8 @@ export default function App() {
           className={`nav-ajustes ${aba === 'ajustes' ? 'ativo' : ''}`}
           onClick={() => setAba('ajustes')}
           aria-current={aba === 'ajustes' ? 'page' : undefined}
-          title={teclado ? `Ajustes (Alt+${ABAS.length + 1})` : undefined}
-          aria-keyshortcuts={teclado ? `Alt+${ABAS.length + 1}` : undefined}
+          title={teclado ? `Ajustes (Alt+${abas.length + 1})` : undefined}
+          aria-keyshortcuts={teclado ? `Alt+${abas.length + 1}` : undefined}
         >
           <Icone nome="ajustes" />
           <span>Ajustes</span>
