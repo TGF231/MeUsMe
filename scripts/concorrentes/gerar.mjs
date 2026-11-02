@@ -18,7 +18,7 @@ for (const i of [...itens(D.vantagens), ...itens(D.desvantagens)]) {
   i.perfil = P2.itens[i.id]
 }
 // Itens já construídos (branch onda1, 2/11/2026).
-const FEITOS = new Set(['V09', 'D04', 'D25', 'D14', 'D13', 'V27', 'V20', 'D03', 'D08', 'V03', 'V02', 'V07', 'V08', 'D27', 'D23', 'V12', 'V24', 'D01', 'D02', 'V18', 'V01', 'V13', 'D20', 'V14', 'D09', 'V04', 'V28', 'D16', 'D21', 'V15', 'D05'])
+const FEITOS = new Set(['V09', 'D04', 'D25', 'D14', 'D13', 'V27', 'V20', 'D03', 'D08', 'V03', 'V02', 'V07', 'V08', 'D27', 'D23', 'V12', 'V24', 'D01', 'D02', 'V18', 'V01', 'V13', 'D20', 'V14', 'D09', 'V04', 'V28', 'D16', 'D21', 'V15', 'D05', 'V26'])
 const todas = [...itens(D.vantagens), ...itens(D.desvantagens)]
 for (const i of todas) i.feito = FEITOS.has(i.id)
 const nV = itens(D.vantagens).length, nD = itens(D.desvantagens).length
@@ -239,7 +239,7 @@ ${tabelaFuncoes}
   - Gemini (A4): não está aberto para o MeUsMe hoje. O AppFunctions roda no aparelho e combina com o app; reavaliar quando o Android 17 sair. A Connected Apps Platform fica de fora, porque exige servidor.
   - "Hey MeUsMe" com overlay: no Android, primeiro o MeUsMe como assistente digital padrão (A5, onda 2), que abre a captura por cima de qualquer app pelo gesto, sem microfone sempre aberto. A palavra de ativação sempre ligada (A6 no Android, A7 no Windows) fica opcional, desligada por padrão e na onda 3. No iPhone não dá (A8): o Botão de Ação dispara o atalho de A3.
 - **Apps de automação** (Tasker, MacroDroid, Automate, AutoHotkey): só ideia, sem decisão e fora das fases ([CONCORRENTES.md](CONCORRENTES.md#integração-com-apps-de-automação-ideia)). O link meusme://captura já serve a eles hoje (AU1).
-- **Feito em 2/11/2026:** toda a onda 1 pelo seu perfil (${[...FEITOS].filter((x) => P2.itens[x]?.onda === 1).join(', ')}) e o atalho de voz A1; da onda 1 da pesquisa, tudo menos V23, que espera a fase 1 confirmar a contagem dupla; e, da onda 2 pelo perfil, V04, V13, V14, V28, D09, D16, D20 e D21 (plano de saída, lembrete de backup e cópia semanal em Documentos/MeUsMe; no Windows, conferida só pelo teste em Rust, sem abrir o app); da onda 3, V15 (encerrar o dia no check-in) e D05 (compromissos colados).
+- **Feito em 2/11/2026:** toda a onda 1 pelo seu perfil (${[...FEITOS].filter((x) => P2.itens[x]?.onda === 1).join(', ')}) e o atalho de voz A1; da onda 1 da pesquisa, tudo menos V23, que espera a fase 1 confirmar a contagem dupla; e, da onda 2 pelo perfil, V04, V13, V14, V28, D09, D16, D20 e D21 (plano de saída, lembrete de backup e cópia semanal em Documentos/MeUsMe; no Windows, conferida só pelo teste em Rust, sem abrir o app); da onda 3, V15 (encerrar o dia no check-in), D05 (compromissos colados) e V26 (comparar meses).
 - **Ordem pelo seu nível.** Da onda 1 para você, ${juntar(soTs1)} são só TypeScript e React; ${juntar(google1)} pede a trilha 9; ${juntar(android1)} pedem a trilha 10. D03 é regra, sem código novo.
 - **Regra de entrada.** Cada item só vira tarefa em [TAREFAS.md](TAREFAS.md) com linha de chegada medível e um teste, do jeito que você já cobra.
 <!-- perfil:fim -->

@@ -8,6 +8,7 @@ import { haQuanto, saudeDasFontes } from '../fontes'
 import { lerOFX, pareceOFX } from '../ofx'
 import { apagarConfigPluggy, lerConfigPluggy, salvarConfigPluggy, sincronizarPluggy } from '../pluggy'
 import {
+  compararComMesesAnteriores,
   diaDeVencimento,
   fixaPagaNoMes,
   palavraDaRegra,
@@ -53,6 +54,7 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
   const p = previsaoDoMes(f.contas, f.transacoes, f.fixas)
   const { gastos, receitas, porCategoria } = resumoDoMes(f.transacoes, mes)
   const diaHoje = new Date(agora).getDate()
+  const comparacao = compararComMesesAnteriores(f.transacoes, mes, diaHoje)
 
   const fixasOrdenadas = [...f.fixas].sort((a, b) => diaDeVencimento(a) - diaDeVencimento(b))
   const pendentes = fixasOrdenadas.filter((x) => !fixaPagaNoMes(x, f.transacoes, mes))
@@ -173,6 +175,24 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
             </div>
           )}
         </div>
+        {comparacao.diferencas.length > 0 && (
+          <div className="cartao compacto">
+            <h2 className="rotulo">Comparado com outros meses</h2>
+            <p className="motivo">
+              Do dia 1 ao dia {diaHoje}, contra a média do mesmo trecho {comparacao.meses === 1 ? 'no mês anterior' : `nos ${comparacao.meses} meses anteriores`}:
+            </p>
+            <ul className="lista-simples">
+              {comparacao.diferencas.slice(0, 4).map((d) => (
+                <li key={d.categoriaId ?? 'sem'}>
+                  {f.categorias.find((c) => c.id === d.categoriaId)?.nome ?? 'Sem categoria'}: {reais(d.agora)}{' '}
+                  <span className="motivo">
+                    ({reais(Math.abs(d.diferenca))} {d.diferenca > 0 ? 'a mais' : 'a menos'} que a média de {reais(d.media)})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   )

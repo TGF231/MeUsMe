@@ -271,3 +271,40 @@ export function sugerirCategoria(descricao: string, transacoes: Transacao[], cat
   const achada = PALAVRAS.find(([re]) => re.test(descricao))?.[1]
   return achada && categorias.some((c) => c.id === achada) ? achada : null
 }
+
+/** "AAAA-MM" n meses antes de `mes`. */
+export function mesAntes(mes: string, n: number) {
+  const [a, m] = mes.split('-').map(Number)
+  const d = new Date(a, m - 1 - n, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+/**
+ * Comparar meses (V26 em docs/CONCORRENTES.md): gasto por categoria do dia 1 até `ateDia` deste mês contra a média
+ * do mesmo trecho nos `meses` anteriores que têm lançamentos. Só entram diferenças de pelo menos 20% e R$ 50, da
+ * maior para a menor; sem meses anteriores, a lista vem vazia.
+ */
+export function compararComMesesAnteriores(transacoes: Transacao[], mes: string, ateDia: number, meses = 3) {
+  const trecho = (m: string) => {
+    const limite = `${m}-${String(ateDia).padStart(2, '0')}`
+    return resumoDoMes(
+      transacoes.filter((t) => t.data <= limite),
+      m,
+    ).porCategoria
+  }
+  const anteriores = Array.from({ length: meses }, (_, i) => mesAntes(mes, i + 1)).filter((m) => transacoes.some((t) => t.data.startsWith(m)))
+  if (!anteriores.length) return { meses: 0, diferencas: [] }
+  const atual = trecho(mes)
+  const somas = new Map<string | null, number>()
+  for (const m of anteriores) for (const [c, v] of trecho(m)) somas.set(c, (somas.get(c) ?? 0) + v)
+  const categorias = new Set([...atual.keys(), ...somas.keys()])
+  const diferencas = [...categorias]
+    .map((categoriaId) => {
+      const agora = atual.get(categoriaId) ?? 0
+      const media = Math.round((somas.get(categoriaId) ?? 0) / anteriores.length)
+      return { categoriaId, agora, media, diferenca: agora - media }
+    })
+    .filter((d) => Math.abs(d.diferenca) >= 5000 && Math.abs(d.diferenca) >= 0.2 * Math.max(d.media, 1))
+    .sort((a, b) => Math.abs(b.diferenca) - Math.abs(a.diferenca))
+  return { meses: anteriores.length, diferencas }
+}

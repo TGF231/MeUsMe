@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { palavraDaRegra, sugerirCategoria, useFinancas } from '../src/stores/financas.ts'
+import { compararComMesesAnteriores, mesAntes, palavraDaRegra, sugerirCategoria, useFinancas } from '../src/stores/financas.ts'
 import type { Categoria, Transacao } from '../src/types.ts'
 
 const categorias: Categoria[] = [
@@ -29,4 +29,28 @@ test('criarRegra aplica nos lançamentos sem categoria que batem e substitui reg
   const s = useFinancas.getState()
   assert.deepEqual(s.transacoes.map((x) => x.categoriaId), ['trabalho', 'cat-transporte', null])
   assert.deepEqual(s.regras.map((r) => [r.contem, r.categoriaId]), [['uber', 'cat-transporte']])
+})
+
+test('comparar meses: mesmo trecho do mês, média só dos meses com lançamentos, só diferenças relevantes', () => {
+  const g = (id: string, data: string, valor: number, categoriaId: string | null): Transacao => ({ id, contaId: 'c', categoriaId, valor, descricao: id, data, criadoEm: 0 })
+  const transacoes = [
+    g('a', '2026-11-02', -30000, 'mercado'),
+    g('b', '2026-11-01', -2000, 'cafe'),
+    g('c', '2026-10-02', -10000, 'mercado'),
+    g('d', '2026-10-20', -90000, 'mercado'), // depois do dia 2: fora do trecho
+    g('e', '2026-09-01', -10000, 'mercado'),
+    g('f', '2026-09-02', -1500, 'cafe'),
+    g('g', '2026-10-01', -20000, 'lazer'),
+  ]
+  const r = compararComMesesAnteriores(transacoes, '2026-11', 2)
+  assert.equal(r.meses, 2)
+  assert.deepEqual(
+    r.diferencas.map((d) => [d.categoriaId, d.agora, d.media]),
+    [
+      ['mercado', 30000, 10000],
+      ['lazer', 0, 10000],
+    ],
+  )
+  assert.equal(mesAntes('2026-01', 1), '2025-12')
+  assert.deepEqual(compararComMesesAnteriores(transacoes.slice(0, 2), '2026-11', 2), { meses: 0, diferencas: [] })
 })
