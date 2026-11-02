@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de concorrentes · MeUsMe</title>
+<meta name="description" content="30 vantagens e 30 desvantagens de apps consolidados que o MeUsMe ainda não aproveita, em forma de mapa mental.">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #fafaf7; --ink: #1d1f24; --muted: #4b505a; --line: #c9ccd3; --card: #ffffff;
+  --v: #0b6e5f; --v-tint: #e3f3ef; --d: #954400; --d-tint: #fbeddc;
+  --root: #2b3a67; --root-ink: #ffffff; --focus: #1a57db;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a; --ink: #eceef2; --muted: #aab0bc; --line: #3a3f49; --card: #1c1f25;
+    --v: #5fd0bb; --v-tint: #15302b; --d: #ffb066; --d-tint: #35271a;
+    --root: #aab9f5; --root-ink: #11162b; --focus: #8fb1ff;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+header, main, footer { padding: 0 16px; max-width: 1400px; margin: 0 auto; }
+h1 { font-size: 1.6rem; margin: 24px 0 4px; }
+h2 { font-size: 1.15rem; margin: 28px 0 8px; }
+p { margin: 6px 0; }
+.sub { color: var(--muted); max-width: 70ch; }
+.barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 8px; }
+.barra button, dialog button.fechar {
+  font: inherit; color: var(--ink); background: var(--card); border: 1.5px solid var(--line);
+  border-radius: 999px; padding: 6px 14px; min-height: 36px; cursor: pointer;
+}
+.barra button[aria-pressed='true'] { background: var(--root); color: var(--root-ink); border-color: var(--root); }
+.barra .sep { flex: 1; }
+.ondas { color: var(--muted); font-size: .9rem; margin: 4px 0 12px; padding-left: 1.2em; }
+.rolagem { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+#tela { position: relative; }
+#tela svg { position: absolute; inset: 0; pointer-events: none; }
+#tela svg path { fill: none; stroke-width: 2; opacity: .6; }
+#tela svg .v { stroke: var(--v); } #tela svg .d { stroke: var(--d); }
+.no { position: absolute; font: inherit; text-align: left; cursor: pointer; color: var(--ink); }
+.raiz { background: var(--root); color: var(--root-ink); border: 0; border-radius: 16px; text-align: center; padding: 10px; font-weight: 700; cursor: default; }
+.raiz small { display: block; font-weight: 400; opacity: .9; }
+.tema { display: flex; align-items: center; border-radius: 12px; padding: 4px 12px; font-size: .92rem; font-weight: 650; border: 2px solid; line-height: 1.25; }
+.tema.v { background: var(--v-tint); border-color: var(--v); } .tema.d { background: var(--d-tint); border-color: var(--d); }
+.tema .seta { display: inline-block; width: 1.1em; }
+.folha { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1.5px solid; border-radius: 10px; padding: 4px 8px; font-size: .86rem; line-height: 1.2; }
+.folha.v { border-color: var(--v); } .folha.d { border-color: var(--d); }
+.folha:hover { background: var(--bg); }
+.folha .tit { flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cod { font-weight: 700; font-size: .75rem; }
+.v .cod { color: var(--v); } .d .cod { color: var(--d); }
+.onda { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; font-weight: 700; background: var(--ink); color: var(--bg); }
+.cabecalho { position: absolute; top: 14px; font-weight: 700; font-size: 1rem; }
+.cabecalho.v { color: var(--v); } .cabecalho.d { color: var(--d); }
+.cabecalho small { display: block; font-weight: 400; color: var(--muted); font-size: .8rem; }
+#lista { display: none; }
+#lista details { border: 1px solid var(--line); border-radius: 10px; margin: 8px 0; background: var(--card); }
+#lista summary { padding: 10px 12px; cursor: pointer; }
+#lista details details { margin: 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+#lista .tema-sum { font-weight: 650; }
+#lista h2.v { color: var(--v); } #lista h2.d { color: var(--d); }
+.pilula { display: inline-block; border-radius: 999px; padding: 0 8px; font-size: .75rem; font-weight: 700; background: var(--ink); color: var(--bg); margin-left: 6px; }
+dl.corpo { margin: 0; padding: 4px 12px 12px; }
+dl.corpo dt { font-weight: 650; font-size: .85rem; color: var(--muted); margin-top: 8px; }
+dl.corpo dd { margin: 2px 0 0; }
+.aviso { border-left: 4px solid var(--d); padding: 4px 10px; background: var(--d-tint); border-radius: 0 8px 8px 0; }
+dialog.detalhe { position: fixed; inset: auto 16px 16px auto; margin: 0; width: min(560px, calc(100vw - 32px)); max-height: 70vh; overflow: auto;
+  background: var(--card); color: var(--ink); border: 2px solid var(--root); border-radius: 14px; padding: 12px 16px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+dialog.detalhe h3 { margin: 0 32px 4px 0; font-size: 1.05rem; }
+dialog.detalhe .fechar { position: absolute; top: 8px; right: 8px; padding: 2px 10px; }
+.tabelinha { columns: 2 320px; padding-left: 1.2em; }
+footer { padding-bottom: 48px; }
+footer li { margin: 2px 0; }
+a { color: var(--focus); }
+.linkbtn { font: inherit; color: var(--focus); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; text-align: left; }
+#comecar { max-width: 90ch; }
+.barra + .barra { margin-top: 0; }
+.ok { flex: none; font-size: .8rem; font-weight: 700; color: var(--v); }
+.enc { flex: none; font-size: .6rem; letter-spacing: 1px; color: var(--muted); }
+.barra .rot { color: var(--muted); font-size: .9rem; margin-left: 8px; }
+.pf { border-left: 4px solid var(--root); padding: 2px 10px 6px; background: var(--bg); border-radius: 0 8px 8px 0; margin-top: 10px; }
+.pf dt:first-child { margin-top: 4px; }
+.sinais li { margin: 4px 0; }
+@media (prefers-reduced-motion: no-preference) { .folha, .tema { transition: background .15s; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mapa de concorrentes</h1>
+  <p class="sub">O que apps consolidados fazem bem (à direita) e onde eles tropeçam (à esquerda), já sem o que o MeUsMe tem. Cada folha é um item do roadmap. Clique ou aperte Enter para ver o porquê e o que ele ganha ou custa para você.</p>
+  <div class="barra" role="group" aria-label="Escolher a leitura">
+    <button type="button" data-lente="perfil" aria-pressed="true">Pelo seu perfil</button>
+    <button type="button" data-lente="pesquisa" aria-pressed="false">Pela pesquisa</button>
+  </div>
+  <div class="barra" role="group" aria-label="Filtrar por encaixe no seu perfil">
+    <span class="rot" aria-hidden="true">Encaixe:</span>
+    <button type="button" data-enc="0" aria-pressed="true">Todos</button>
+    <button type="button" data-enc="alto" aria-pressed="false">Alto</button>
+    <button type="button" data-enc="medio" aria-pressed="false">Médio</button>
+    <button type="button" data-enc="baixo" aria-pressed="false">Baixo</button>
+  </div>
+  <div class="barra" role="group" aria-label="Filtrar por onda">
+    <button type="button" data-onda="0" aria-pressed="true">Todas as ondas</button>
+    <button type="button" data-onda="1" aria-pressed="false">Onda 1</button>
+    <button type="button" data-onda="2" aria-pressed="false">Onda 2</button>
+    <button type="button" data-onda="3" aria-pressed="false">Onda 3</button>
+    <span class="sep"></span>
+    <button type="button" id="alterna" aria-pressed="false">Ver como lista</button>
+    <button type="button" id="recolhe">Recolher temas</button>
+  </div>
+  <ul class="ondas" id="legenda"></ul>
+  <p id="comecar"></p>
+</header>
+<main>
+  <div class="rolagem" id="rolagem" tabindex="0" role="region" aria-label="Mapa mental, role para os lados se precisar">
+    <div id="tela"></div>
+  </div>
+  <div id="lista"></div>
+</main>
+<footer id="rodape"></footer>
+<dialog class="detalhe" id="detalhe" aria-labelledby="detalhe-titulo">
+  <button type="button" class="fechar" aria-label="Fechar detalhe">✕</button>
+  <div id="detalhe-corpo"></div>
+</dialog>
+<script>
+const D = /*DADOS*/
+const $ = (s) => document.querySelector(s)
+function h(tag, attrs, ...filhos) {
+  const el = document.createElement(tag)
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue
+    if (k === 'class') el.className = v
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v)
+    else el.setAttribute(k, v === true ? '' : v)
+  }
+  for (const f of filhos.flat(Infinity)) if (f != null) el.append(f)
+  return el
+}
+const todos = {}
+for (const [l, listas] of [['v', D.vantagens], ['d', D.desvantagens]]) for (const t of listas) for (const i of t.itens) todos[i.id] = { ...i, lado: l, tema: t.nome }
+
+const estado = { onda: 0, recolhidos: new Set(), modo: window.innerWidth >= 1100 ? 'mapa' : 'lista', abertoPor: null, lente: 'perfil', enc: 0 }
+const ondaDe = (i) => (estado.lente === 'perfil' ? i.perfil.onda : i.onda)
+const visiveis = (t) => t.itens.filter((i) => (!estado.onda || ondaDe(i) === estado.onda) && (!estado.enc || i.perfil.encaixe === estado.enc))
+const contar = (listas) => listas.reduce((n, t) => n + visiveis(t).length, 0)
+
+const PONTOS = { alto: '●●●', medio: '●●○', baixo: '●○○' }
+
+function perfilDe(i) {
+  const p = i.perfil
+  return h('div', { class: 'pf' },
+    h('dt', {}, 'Para o seu perfil: encaixe ' + D.encaixes[p.encaixe]),
+    h('dd', {}, p.sinais.map((s) => h('div', {}, h('b', {}, s), ' ' + D.sinais[s][0]))),
+    h('dt', {}, 'Ganho para você'), h('dd', {}, p.ganho),
+    h('dt', {}, 'Custo ou risco para você'), h('dd', {}, p.custo),
+    h('dt', {}, 'Esforço, infraestrutura e trilha'), h('dd', {}, `${D.esforcos[p.esforco]} · ${D.infras[p.infra]} · trilha ${p.trilha} (${D.trilhas[p.trilha]})`),
+    h('dt', {}, 'Onda para você'), h('dd', {}, `${p.onda}: ${D.ondasPerfil[p.onda]}`))
+}
+
+function corpo(i) {
+  const fs = (i.fontes || []).map((k) => D.fontes[k])
+  return h('dl', { class: 'corpo' },
+    h('dt', {}, 'Quem tem'), h('dd', {}, i.quem),
+    h('dt', {}, i.lado === 'v' ? 'O que se sabe' : 'Onde tropeçam'), h('dd', {}, i.prova,
+      i.propria ? h('span', { class: 'aviso' }, ' Observação minha, que não confirmei nas fontes desta pesquisa.') : null),
+    h('dt', {}, 'O que fazer no MeUsMe'), h('dd', {}, i.acao),
+    perfilDe(i),
+    h('dt', {}, 'Onda na pesquisa'), h('dd', {}, `${i.onda}: ${D.ondas[i.onda]}`),
+    i.adaptar ? [h('dt', {}, 'Cuidado'), h('dd', {}, i.adaptar)] : null,
+    fs.length ? [h('dt', {}, 'Fontes'), h('dd', {}, fs.map((f, n) => [n ? ' · ' : '', h('a', { href: f[1], target: '_blank', rel: 'noopener' }, f[0])]))] : null)
+}
+
+function abrir(id, origem) {
+  const i = todos[id]
+  estado.abertoPor = origem
+  const dlg = $('#detalhe')
+  $('#detalhe-corpo').replaceChildren(
+    h('h3', { id: 'detalhe-titulo' }, `${i.id} · ${i.titulo}${i.feito ? ' ✅ feito' : ''}`),
+    h('p', { class: 'sub' }, `${i.lado === 'v' ? 'Vantagem deles' : 'Desvantagem deles'} · ${i.tema}`),
+    corpo(i))
+  if (!dlg.open) dlg.show()
+  dlg.querySelector('.fechar').focus()
+}
+$('#detalhe .fechar').addEventListener('click', () => $('#detalhe').close())
+$('#detalhe').addEventListener('close', () => { estado.abertoPor?.isConnected && estado.abertoPor.focus() })
+$('#detalhe').addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#detalhe').close() })
+
+const TH = 56, ROW = 46, W_RAIZ = 180, W_T = 190, W_F = 290, G0 = 56, G1 = 44, PAD = 16, TOPO = 64, ENTRE = 18
+
+function lado(listas, s, cls, cx, nos, arestas) {
+  const temas = listas.map((t) => ({ t, itens: visiveis(t) })).filter((x) => x.itens.length)
+  let y = TOPO
+  const caixas = []
+  for (const { t, itens } of temas) {
+    const key = cls + ':' + t.id
+    const aberto = !estado.recolhidos.has(key)
+    let yTema
+    const folhas = []
+    if (aberto) {
+      itens.forEach((i, n) => folhas.push({ i, y: y + n * ROW }))
+      yTema = (folhas[0].y + folhas[folhas.length - 1].y) / 2
+      y += itens.length * ROW
+    } else {
+      yTema = y
+      y += ROW
+    }
+    y += ENTRE
+    caixas.push({ t, itens, key, aberto, yTema, folhas })
+  }
+  const altura = y - ENTRE
+  return { caixas, altura, montar: (desloc, raizY) => {
+    const bordaRaiz = cx + s * (W_RAIZ / 2)
+    for (const c of caixas) {
+      const ty = c.yTema + desloc + (ROW - 6) / 2 - TH / 2
+      const tx = s > 0 ? cx + W_RAIZ / 2 + G0 : cx - W_RAIZ / 2 - G0 - W_T
+      nos.push({ tipo: 'tema', cls, x: tx, y: ty, w: W_T, c })
+      arestas.push({ cls, x1: bordaRaiz, y1: raizY, x2: s > 0 ? tx : tx + W_T, y2: ty + TH / 2 })
+      for (const f of c.folhas) {
+        const fx = s > 0 ? tx + W_T + G1 : tx - G1 - W_F
+        const fy = f.y + desloc
+        nos.push({ tipo: 'folha', cls, x: fx, y: fy, w: W_F, i: f.i })
+        arestas.push({ cls, x1: s > 0 ? tx + W_T : tx, y1: ty + TH / 2, x2: s > 0 ? fx : fx + W_F, y2: fy + (ROW - 6) / 2 })
+      }
+    }
+  } }
+}
+
+function mapa() {
+  const larg = PAD * 2 + W_RAIZ + 2 * (G0 + W_T + G1 + W_F)
+  const cx = larg / 2
+  const nos = [], arestas = []
+  const E = lado(D.desvantagens, -1, 'd', cx, nos, arestas)
+  const V = lado(D.vantagens, +1, 'v', cx, nos, arestas)
+  const altura = Math.max(E.altura, V.altura, 120)
+  const raizY = TOPO + (altura - TOPO) / 2
+  E.montar((altura - E.altura) / 2, raizY)
+  V.montar((altura - V.altura) / 2, raizY)
+  const tela = $('#tela')
+  tela.style.width = larg + 'px'
+  tela.style.height = altura + PAD + 'px'
+  const ns = 'http://www.w3.org/2000/svg'
+  const svg = document.createElementNS(ns, 'svg')
+  svg.setAttribute('width', larg); svg.setAttribute('height', altura + PAD); svg.setAttribute('aria-hidden', 'true')
+  for (const a of arestas) {
+    const p = document.createElementNS(ns, 'path')
+    const xm = (a.x1 + a.x2) / 2
+    p.setAttribute('d', `M${a.x1} ${a.y1} C${xm} ${a.y1} ${xm} ${a.y2} ${a.x2} ${a.y2}`)
+    p.setAttribute('class', a.cls)
+    svg.append(p)
+  }
+  const els = [svg,
+    h('div', { class: 'cabecalho d', style: `left:${PAD}px` }, 'Onde eles tropeçam', h('small', {}, `${contar(D.desvantagens)} itens`)),
+    h('div', { class: 'cabecalho v', style: `right:${PAD}px;text-align:right` }, 'O que eles fazem bem', h('small', {}, `${contar(D.vantagens)} itens`)),
+    h('div', { class: 'no raiz', style: `left:${cx - W_RAIZ / 2}px;top:${raizY - 34}px;width:${W_RAIZ}px;height:68px` }, 'MeUsMe', h('small', {}, 'o que falta'))]
+  for (const n of nos) {
+    if (n.tipo === 'tema') {
+      const { c } = n
+      els.push(h('button', { type: 'button', class: `no tema ${n.cls}`, style: `left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${TH}px`,
+        'aria-expanded': String(c.aberto), 'data-chave': c.key,
+        onclick: () => { c.aberto ? estado.recolhidos.add(c.key) : estado.recolhidos.delete(c.key); desenhar(c.key) } },
+        h('span', { class: 'seta', 'aria-hidden': 'true' }, c.aberto ? '▾' : '▸'), `${c.t.nome} · ${c.itens.length}`))
+    } else {
+      const el = h('button', { type: 'button', class: `no folha ${n.cls}`, style: `left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${ROW - 6}px`, 'data-id': n.i.id,
+        'aria-label': `${n.i.id}, ${n.i.titulo}, onda ${ondaDe(n.i)}${estado.lente === 'perfil' ? ', encaixe ' + D.encaixes[n.i.perfil.encaixe] : ''}${n.i.feito ? ', já feito' : ''}` },
+        h('span', { class: 'cod', 'aria-hidden': 'true' }, n.i.id), h('span', { class: 'tit', 'aria-hidden': 'true' }, n.i.titulo), n.i.feito ? h('span', { class: 'ok', 'aria-hidden': 'true' }, '✅') : null, estado.lente === 'perfil' ? h('span', { class: 'enc', 'aria-hidden': 'true' }, PONTOS[n.i.perfil.encaixe]) : null, h('span', { class: 'onda', 'aria-hidden': 'true' }, String(ondaDe(n.i))))
+      el.addEventListener('click', () => abrir(n.i.id, el))
+      els.push(el)
+    }
+  }
+  tela.replaceChildren(...els)
+}
+
+function lista() {
+  const raiz = $('#lista')
+  const bloco = (titulo, cls, listas) => h('section', {},
+    h('h2', { class: cls }, `${titulo} (${contar(listas)})`),
+    listas.map((t) => {
+      const itens = visiveis(t)
+      return itens.length ? h('details', { open: true },
+        h('summary', { class: 'tema-sum' }, `${t.nome} · ${itens.length}`),
+        itens.map((i) => h('details', {},
+          h('summary', {}, h('b', {}, i.id), ' ', i.titulo, i.feito ? ' ✅ feito' : '', h('span', { class: 'pilula' }, `Onda ${ondaDe(i)}${estado.lente === 'perfil' ? ' · encaixe ' + D.encaixes[i.perfil.encaixe] : ''}`)),
+          corpo(todos[i.id])))) : null
+    }))
+  raiz.replaceChildren(bloco('O que eles fazem bem e o MeUsMe ainda não tem', 'v', D.vantagens), bloco('Onde eles tropeçam, e o MeUsMe pode fazer melhor', 'd', D.desvantagens))
+}
+
+function perfilRodape() {
+  return [
+    h('h2', {}, 'Sinais do seu perfil'),
+    h('p', { class: 'sub' }, 'Do que você escreveu (31/10/2026): U é como você usa, D é como você constrói. Os códigos aparecem em cada item.'),
+    h('ul', { class: 'sinais' }, Object.entries(D.sinais).map(([k, [texto, onde, pede]]) => h('li', {}, h('b', {}, k + ' '), texto, h('br'), h('small', { class: 'sub' }, `${onde} · pede: ${pede}`)))),
+    h('h2', {}, 'Tensões a decidir'),
+    h('ul', {}, D.tensoes.map(([t, s, r]) => h('li', {}, h('b', {}, t), ` (${s}): ${r}`))),
+    h('h2', {}, 'Captura por assistente de voz (Gemini e Siri)'),
+    h('ul', { class: 'sinais' }, D.assistentes.map(([id, t, hoje, fazer, ganho, custo, onda, fs]) => h('li', {}, h('b', {}, `${id} · ${t} `), h('span', { class: 'pilula' }, `Onda ${onda}`), h('br'), hoje, ' ', h('b', {}, 'Fazer: '), fazer, ' ', h('b', {}, 'Custo: '), custo, ' ',
+      fs.map((k, n) => [n ? ' · ' : '', h('a', { href: D.fontesAssistentes[k][1], target: '_blank', rel: 'noopener' }, D.fontesAssistentes[k][0])])))),
+    h('h2', {}, 'Lacunas que nenhum concorrente cobre'),
+    h('ul', {}, D.lacunas.map(([k, t, ev, o]) => h('li', {}, h('b', {}, `${k} · ${t}. `), (ev + ' ' + o).replace(/`/g, ''))))]
+}
+
+function rodape() {
+  $('#rodape').replaceChildren(
+    ...perfilRodape(),
+    h('h2', {}, `Já existe no MeUsMe (fora das listas) · ${D.jaTem.length}`),
+    h('ul', { class: 'tabelinha' }, D.jaTem.map(([a, b]) => h('li', {}, a, h('br'), h('small', { class: 'sub' }, b)))),
+    h('h2', {}, `Boas ideias que ficaram na reserva · ${D.reserva.length}`),
+    h('ul', { class: 'tabelinha' }, D.reserva.map((r) => h('li', {}, r))),
+    h('h2', {}, 'Limites desta pesquisa'),
+    h('p', {}, 'As fontes são, na maioria, blogs de comparação e páginas dos próprios fabricantes, com interesse comercial; a busca foi só em inglês e português dos EUA/BR, sem testar os apps. Preços mudam. Alguns itens apoiam-se em texto de ajuda do fabricante, em pedidos de usuários ou em conselhos da comunidade. O cruzamento com o perfil é uma leitura minha de 61 mensagens e 7 respostas no Code e de 36 chats do claude.ai e 1 tarefa do Cowork (4 lidos por inteiro; nos 33 de trabalho técnico, prosa, código e logs lidos sem os segredos, e anexos e ferramentas analisados por contagem): mostra o que você escreveu, não o que faz no app. Encaixe e esforço são estimativas para discutir.'),
+    h('h2', {}, 'Fontes'),
+    h('ul', {}, Object.values(D.fontes).map((f) => h('li', {}, h('a', { href: f[1], target: '_blank', rel: 'noopener' }, f[0])))))
+}
+
+function desenhar(foco) {
+  const mostrarMapa = estado.modo === 'mapa'
+  $('#rolagem').hidden = !mostrarMapa
+  $('#lista').style.display = mostrarMapa ? 'none' : 'block'
+  const bt = $('#alterna')
+  bt.textContent = mostrarMapa ? 'Ver como lista' : 'Ver como mapa'
+  bt.setAttribute('aria-pressed', String(!mostrarMapa))
+  $('#recolhe').hidden = !mostrarMapa
+  document.querySelectorAll('[data-onda]').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.onda === estado.onda)))
+  document.querySelectorAll('[data-lente]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lente === estado.lente)))
+  document.querySelectorAll('[data-enc]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.enc === String(estado.enc))))
+  legenda()
+  comecar()
+  if (mostrarMapa) mapa(); else lista()
+  if (foco) document.querySelector(`[data-chave="${foco}"]`)?.focus()
+}
+
+function legenda() {
+  $('#legenda').replaceChildren(...Object.entries(estado.lente === 'perfil' ? D.ondasPerfil : D.ondas).map(([n, t]) => h('li', {}, h('b', {}, `Onda ${n}: `), t)),
+    h('li', {}, h('b', {}, '✅ feito: '), `já construído no app (${Object.values(todos).filter((i) => i.feito).length} itens).`))
+}
+document.querySelectorAll('[data-lente]').forEach((b) => b.addEventListener('click', () => { estado.lente = b.dataset.lente; desenhar() }))
+document.querySelectorAll('[data-enc]').forEach((b) => b.addEventListener('click', () => { estado.enc = b.dataset.enc === '0' ? 0 : b.dataset.enc; desenhar() }))
+document.querySelectorAll('[data-onda]').forEach((b) => b.addEventListener('click', () => { estado.onda = +b.dataset.onda; desenhar() }))
+$('#alterna').addEventListener('click', () => { estado.modo = estado.modo === 'mapa' ? 'lista' : 'mapa'; desenhar() })
+$('#recolhe').addEventListener('click', () => {
+  const todosTemas = [...D.vantagens.map((t) => 'v:' + t.id), ...D.desvantagens.map((t) => 'd:' + t.id)]
+  const tudoRecolhido = todosTemas.every((k) => estado.recolhidos.has(k))
+  estado.recolhidos = tudoRecolhido ? new Set() : new Set(todosTemas)
+  $('#recolhe').textContent = tudoRecolhido ? 'Recolher temas' : 'Abrir temas'
+  desenhar()
+})
+function comecar() {
+  const ordem = estado.lente === 'perfil' ? D.comecarPerfil : D.comecar
+  $('#comecar').replaceChildren(h('b', {}, 'Por onde começar: '), ...ordem.flatMap(([id, porque], n) => [n ? ' · ' : '', h('button', { type: 'button', class: 'linkbtn', title: porque, onclick: (e) => abrir(id, e.currentTarget) }, id + ' ' + todos[id].titulo + (todos[id].feito ? ' ✅' : ''))]), h('span', { class: 'sub' }, ' (passe o mouse ou abra para ver o porquê)'))
+}
+rodape()
+desenhar()
+</script>
+</body>
+</html>

@@ -5,6 +5,7 @@ Pesquisa de outubro de 2026 sobre apps consolidados de tarefas, planejamento do 
 - **30 vantagens deles** que fazem falta aqui, e **30 desvantagens deles** que viram oportunidade.
 - **Cruzamento com o seu perfil** (31/10/2026): para cada item, o que ele ganha e o que custa para você como usuário e como desenvolvedor, com uma onda própria. A leitura do perfil, os sinais citados (U1 a U11, D1 a D10) e a revisão das funções que o app já tem estão em [ROADMAP.md](ROADMAP.md#seu-perfil-e-o-que-ele-muda).
 - Mapa mental interativo: abra [mapa-concorrentes.html](mapa-concorrentes.html) no navegador (funciona sem internet, com teclado e leitor de tela; em tela estreita vira lista). Ele alterna entre a leitura pela pesquisa e pelo seu perfil.
+- Este arquivo e o mapa são gerados por `npm run docs:concorrentes` a partir de [scripts/concorrentes](../scripts/concorrentes/): edite lá, não aqui.
 - Fora de uma tela larga, o mapa abaixo mostra a mesma coisa no GitHub.
 
 ## Como ler
