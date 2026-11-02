@@ -234,7 +234,7 @@ Ganho e custo de cada item **para você**. Resumo: 20 itens de encaixe alto, 23 
 | D13 | **Personalizar vira procrastinação** ✅ feito | **alto** | Em vez de montar o sistema (o que você largou em outras ferramentas, U6), escolhe um perfil pronto na introdução. | Depende de D14; cada perfil é um caminho a mais para testar. | P · só no aparelho · trilha 4 (React) | 1 → 1 |
 | D14 | **Tudo-em-um fica poluído** ✅ feito | **alto** | Resolve a tensão entre "tudo em um lugar" e "me perco em ferramenta pesada" (D5): liga só o que usa. | Mexe no menu e nas rotas; os dados continuam gravados; é preciso testar cada combinação ligada ou desligada. | M · só no aparelho · trilha 4 (React) | 1 → 1 |
 | D15 | **Método financeiro difícil de aprender** | médio | Começa só com o "livre por dia". | Para você, que já usa tudo, ajuda pouco; é mais para quem chega novo. | M · só no aparelho · trilha 4 (React) | 2 → 3 |
-| D16 | **Atualização muda o app de lugar** | médio | Você publicou quatro versões entre 27 e 30/10: uma tela "O que mudou" explica cada uma. | Texto a escrever a cada versão; precisa ser curto. | P · só no aparelho · trilha 4 (React) | 2 → 2 |
+| D16 | **Atualização muda o app de lugar** ✅ feito | médio | Você publicou quatro versões entre 27 e 30/10: uma tela "O que mudou" explica cada uma. | Texto a escrever a cada versão; precisa ser curto. | P · só no aparelho · trilha 4 (React) | 2 → 2 |
 | D17 | **Visual que divide opiniões** | baixo | Compacto ou confortável. | Mais um ajuste; já existem tema, tamanho de texto e botões maiores. | P · só no aparelho · trilha 3 (HTML e CSS) | 3 → 3 |
 
 #### Confiança e dados

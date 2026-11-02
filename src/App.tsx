@@ -26,6 +26,8 @@ import { AVISO_MS, useAvisos, useConfig } from './stores/config'
 import { useSincronizacao } from './sync/motor'
 import { BotaoVoz } from './components/BotaoVoz'
 import { Busca } from './components/Busca'
+import { OQueMudou } from './components/OQueMudou'
+import { novidadesPendentes } from './novidades'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -194,6 +196,14 @@ export default function App() {
   const [capturando, setCapturando] = useState(false)
   const [comVoz, setComVoz] = useState(false)
   const [buscando, setBuscando] = useState(false)
+  // "O que mudou" uma vez por versão (D16); sem novidades, só anota a versão vista.
+  const [novidades, setNovidades] = useState(() => {
+    const c = useConfig.getState()
+    return introducaoVista && novidadesPendentes(c.versaoVista, c.introducaoVista, __VERSAO__).length > 0
+  })
+  useEffect(() => {
+    if (introducaoVista && !novidades && useConfig.getState().versaoVista !== __VERSAO__) useConfig.getState().ajustar({ versaoVista: __VERSAO__ })
+  }, [introducaoVista, novidades])
   const naCaixa = useStore((s) => s.capturas.length)
   useAgendador()
   useSincronizacao()
@@ -411,6 +421,7 @@ export default function App() {
       </button>
 
       {buscando && <Busca onFechar={() => setBuscando(false)} />}
+      {novidades && <OQueMudou onFechar={() => setNovidades(false)} />}
       {capturando && <CapturaRapida comVoz={comVoz} onFechar={() => (setCapturando(false), setComVoz(false))} />}
     </div>
   )

@@ -40,6 +40,8 @@ interface Estado {
   modulosDesligados: Aba[]
   /** "Daqui a 10 min" tocado na notificação de um lembrete (src/sonecas.ts). Não sincroniza: é deste aparelho. */
   sonecas: Soneca[]
+  /** Última versão cujo "O que mudou" foi visto neste aparelho (src/novidades.ts). Não sincroniza. */
+  versaoVista: string
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -69,6 +71,7 @@ export const useConfig = create<Estado>()(
       contrasteAlto: false,
       modulosDesligados: [],
       sonecas: [],
+      versaoVista: '',
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>
