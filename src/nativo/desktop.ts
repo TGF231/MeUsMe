@@ -23,6 +23,9 @@ export const atalhoLegivel = (atalho: string) =>
     .map((p) => ({ super: 'Win', ctrl: 'Ctrl', alt: 'Alt', shift: 'Shift', Space: 'Espaço' })[p] ?? p)
     .join(' + ')
 
+/** Cópia automática do backup em Documentos\MeUsMe (D21, src-tauri/src/backup.rs); devolve o caminho. */
+export const salvarBackupNoWindows = (nome: string, conteudo: string) => invoke<string>('salvar_backup', { nome, conteudo })
+
 export const iniciaComWindows = () => isEnabled()
 
 export const definirIniciaComWindows = (ligar: boolean) => (ligar ? enable() : disable())

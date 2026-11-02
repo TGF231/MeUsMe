@@ -577,7 +577,7 @@ function Backup() {
         Um arquivo com todos os seus dados. Exporte de vez em quando: é a garantia de que nada se perde, com ou sem sincronização. Último backup:{' '}
         {quandoFoiOBackup(ultimoBackup)}.
       </p>
-      {ehAndroid() && (
+      {(ehAndroid() || ehDesktop()) && (
         <p className="motivo">
           Cópia automática: uma por semana em Documentos/MeUsMe, as 4 mais novas, que continuam lá se o app for desinstalado. Última:{' '}
           {quandoFoiOBackup(ultimoBackupAuto).replace(' neste aparelho', ' ainda')}.

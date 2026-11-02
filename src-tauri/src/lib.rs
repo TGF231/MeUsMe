@@ -1,3 +1,4 @@
+mod backup;
 mod uso;
 
 use tauri::menu::{Menu, MenuItem};
@@ -56,7 +57,7 @@ pub fn run() {
                 })
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![atalho_atual, uso::uso_de_apps])
+        .invoke_handler(tauri::generate_handler![atalho_atual, uso::uso_de_apps, backup::salvar_backup])
         .setup(|app| {
             let atalhos = app.global_shortcut();
             let usado = if atalhos.register(ATALHO_PREFERIDO).is_ok() {
