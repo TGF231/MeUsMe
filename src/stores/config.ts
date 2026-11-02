@@ -44,6 +44,8 @@ interface Estado {
   versaoVista: string
   /** Quando o último backup foi exportado neste aparelho (0 = nunca). Não sincroniza. */
   ultimoBackup: number
+  /** Última cópia automática em Documentos/MeUsMe (Android, src/nativo/backupAutomatico.ts). Não sincroniza. */
+  ultimoBackupAuto: number
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -75,6 +77,7 @@ export const useConfig = create<Estado>()(
       sonecas: [],
       versaoVista: '',
       ultimoBackup: 0,
+      ultimoBackupAuto: 0,
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>

@@ -93,6 +93,24 @@ public class CapturaPlugin extends Plugin {
         call.resolve();
     }
 
+    /** Cópia automática do backup em Documentos/MeUsMe (D21). Antes do Android 10 responde ok: false. */
+    @PluginMethod
+    public void salvarBackup(PluginCall call) {
+        JSObject r = new JSObject();
+        if (android.os.Build.VERSION.SDK_INT < 29) {
+            r.put("ok", false);
+            call.resolve(r);
+            return;
+        }
+        try {
+            r.put("caminho", BackupAutomatico.salvar(getContext(), call.getString("nome", "meusme-backup.json"), call.getString("conteudo", "")));
+            r.put("ok", true);
+            call.resolve(r);
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
     /** Texto do widget "Próximo passo" (V01): o app web manda o rótulo e o passo sempre que a sugestão muda. */
     @PluginMethod
     public void widget(PluginCall call) {

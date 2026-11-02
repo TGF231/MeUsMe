@@ -13,6 +13,7 @@ import { useNavegacao, type Aba } from './navegacao'
 import { Captura, processarCapturas } from './nativo/captura'
 import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
 import { manterWidget } from './nativo/widget'
+import { manterBackupAutomatico } from './nativo/backupAutomatico'
 import { ehAndroid, ehDesktop, ehNativo } from './nativo/plataforma'
 import { Agenda } from './screens/Agenda'
 import { Agora } from './screens/Agora'
@@ -260,6 +261,7 @@ export default function App() {
   // Android: agenda notificações, processa capturas e trata o botão voltar.
   useEffect(() => manterNotificacoesAgendadas(), [])
   useEffect(() => manterWidget(), [])
+  useEffect(() => manterBackupAutomatico(), [])
   useEffect(() => {
     if (!ehAndroid()) return
     void processarCapturas()

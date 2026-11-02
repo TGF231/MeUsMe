@@ -569,6 +569,7 @@ function Windows() {
 function Backup() {
   const [mensagem, setMensagem] = useState('')
   const ultimoBackup = useConfig((c) => c.ultimoBackup)
+  const ultimoBackupAuto = useConfig((c) => c.ultimoBackupAuto)
   return (
     <div className="cartao">
       <h2 className="titulo">Backup</h2>
@@ -576,6 +577,12 @@ function Backup() {
         Um arquivo com todos os seus dados. Exporte de vez em quando: é a garantia de que nada se perde, com ou sem sincronização. Último backup:{' '}
         {quandoFoiOBackup(ultimoBackup)}.
       </p>
+      {ehAndroid() && (
+        <p className="motivo">
+          Cópia automática: uma por semana em Documentos/MeUsMe, as 4 mais novas, que continuam lá se o app for desinstalado. Última:{' '}
+          {quandoFoiOBackup(ultimoBackupAuto).replace(' neste aparelho', ' ainda')}.
+        </p>
+      )}
       <div className="linha">
         <button onClick={exportarBackup}>Exportar backup</button>
         <label className="botao-arquivo">
