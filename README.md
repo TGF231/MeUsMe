@@ -34,7 +34,7 @@ A lógica de mesclagem tem testes: `npm test`.
 
 ## Notificações
 
-Avisos de compromissos, lembretes, contas a vencer, check-in e tempo de foco. No navegador funcionam enquanto o app está aberto (mesmo minimizado ou em outra aba); no app Android ficam agendados no sistema e tocam com o app fechado. Em Ajustes → Notificações, o app avisa se a economia de bateria pode segurar os avisos e tem um teste que chega com o app fechado.
+Avisos de compromissos, lembretes, contas a vencer, check-in e tempo de foco. No navegador funcionam enquanto o app está aberto (mesmo minimizado ou em outra aba); no app Android ficam agendados no sistema e tocam com o app fechado. No Android, a notificação de lembrete tem os botões **Feito** (conclui o lembrete) e **Daqui a 10 min** (avisa de novo sem mudar o horário do lembrete); tocar num deles abre o app por um instante. Em Ajustes → Notificações, o app avisa se a economia de bateria pode segurar os avisos e tem um teste que chega com o app fechado.
 
 ## App Android
 

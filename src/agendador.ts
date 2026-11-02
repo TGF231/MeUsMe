@@ -5,6 +5,7 @@ import { useStore } from './store'
 import { useAgenda } from './stores/agenda'
 import { useConfig } from './stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from './stores/financas'
+import { idDoLembrete } from './sonecas'
 import type { Lembrete } from './types'
 import { inicioDaSemana } from './calculos'
 import { dataISO, duracao, hora, inicioDoDia, juntarDataHora, mesISO, reais } from './util'
@@ -64,6 +65,11 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
     if (l.concluido) continue
     for (const quando of ocorrencias(l, de - 12 * 60 * MIN, ate))
       avisos.push({ chave: `lembrete:${l.id}:${quando}`, titulo: 'Lembrete', corpo: l.texto, quando, valeAte: quando + 12 * 60 * MIN })
+  }
+  // Sonecas ("Daqui a 10 min" na notificação), enquanto o lembrete não foi concluído.
+  for (const s of cfg.sonecas) {
+    const id = idDoLembrete(s.chave)
+    if (agenda.lembretes.some((l) => l.id === id && !l.concluido)) avisos.push({ ...s, valeAte: s.quando + 12 * 60 * MIN })
   }
 
   // Contas fixas (véspera e dia) e check-in, dia a dia

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Aba } from '../navegacao'
+import type { Soneca } from '../sonecas'
 
 interface Estado {
   /** "HH:MM" ou vazio para desligar. */
@@ -37,6 +38,8 @@ interface Estado {
   contrasteAlto: boolean
   /** Seções escondidas do menu (Ajustes → Seções do app). Os dados continuam guardados. Sincroniza. */
   modulosDesligados: Aba[]
+  /** "Daqui a 10 min" tocado na notificação de um lembrete (src/sonecas.ts). Não sincroniza: é deste aparelho. */
+  sonecas: Soneca[]
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -65,6 +68,7 @@ export const useConfig = create<Estado>()(
       avisosFicam: false,
       contrasteAlto: false,
       modulosDesligados: [],
+      sonecas: [],
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>
