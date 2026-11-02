@@ -46,6 +46,7 @@ Valem para tudo o que entrar no app, e vêm dos achados acima e da pesquisa de c
 - **Nova:** *Combinado: só 5 minutos*. Diminui o tamanho do compromisso inicial, que é onde a baixa expectativa de conseguir pesa (6). Aos 5 minutos de foco, o app diz que dá para parar sem culpa.
 - **Nova:** barra de progresso até a linha de chegada, contando o que já foi feito desde o começo (11). Resposta direta ao "cada passo mais perto parece mais inalcançável".
 - **Nova:** anel do bloco de foco: o tempo passando fica visível, fora da cabeça (1, 3).
+- **Nova:** linha do tempo do resto do dia: compromissos, horários reservados e o tempo livre até a meia-noite numa faixa só (1, 3).
 - **Nova:** palpite de tempo, opcional e sem bloquear o começo; no fim aparece palpite × real (3).
 - **Nova:** recepção sem culpa para quem volta depois de 3 dias ou mais, com atalho para começar leve (7).
 - **Mantida:** aviso de pausa no tempo escolhido e alerta fixo de 1h30 no mesmo passo (9).

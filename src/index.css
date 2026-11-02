@@ -1674,3 +1674,29 @@ button.perigo:hover {
   width: 100%;
   text-align: left;
 }
+
+/* Linha do tempo do resto do dia (V12): compromissos na cor de marca, horários reservados em informação. */
+.faixa-do-dia {
+  position: relative;
+  height: 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-controle);
+  background: var(--rebaixado);
+  overflow: hidden;
+}
+
+.faixa-do-dia .bloco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--acento-linha);
+}
+
+.faixa-do-dia .bloco.reservado {
+  background: var(--info);
+}
+
+.linha-do-tempo .motivo {
+  margin: 4px 0 8px;
+  font-size: 0.8rem;
+}
