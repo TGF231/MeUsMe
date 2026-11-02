@@ -93,6 +93,13 @@ public class CapturaPlugin extends Plugin {
         call.resolve();
     }
 
+    /** Texto do widget "Próximo passo" (V01): o app web manda o rótulo e o passo sempre que a sugestão muda. */
+    @PluginMethod
+    public void widget(PluginCall call) {
+        WidgetProximoPasso.definir(getContext(), call.getString("rotulo", ""), call.getString("passo", ""));
+        call.resolve();
+    }
+
     @PluginMethod
     public void definirPacotes(PluginCall call) {
         JSArray lista = call.getArray("pacotes", new JSArray());

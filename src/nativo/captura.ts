@@ -19,6 +19,7 @@ interface PluginCaptura {
   abrirInfoDoApp(): Promise<void>
   bateria(): Promise<{ otimizado: boolean }>
   abrirBateria(): Promise<void>
+  widget(o: { rotulo: string; passo: string }): Promise<void>
   definirPacotes(o: { pacotes: string[] }): Promise<void>
   pegarCapturas(): Promise<{ capturas: CapturaNativa[] }>
   candidatos(): Promise<{ candidatos: { pacote: string; nome: string; vezes: number }[] }>
