@@ -10,6 +10,8 @@ export interface Captura {
   audio?: { segundos: number }
   /** Tipo provável segundo o motor (docs/MOTOR.md), mostrado primeiro na Caixa. */
   sugestao?: Classe
+  /** "Ainda não" na pergunta dos 30 dias parada (D09): conta de novo a partir daqui. */
+  adiadaEm?: number
 }
 
 export interface Projeto {
@@ -61,6 +63,8 @@ export interface Ideia {
   texto: string
   projetoId: string | null
   criadoEm: number
+  /** "Ainda vale" na pergunta dos 90 dias (D10): conta de novo a partir daqui. */
+  adiadaEm?: number
 }
 
 export interface Sessao {
@@ -112,6 +116,25 @@ export interface Transacao {
   fixaId?: string
   /** Criado a partir de notificação; substituído quando o Open Finance traz o lançamento. */
   provisoria?: boolean
+}
+
+/** "Se a descrição contém X, a categoria é Y" (V28): criada ao trocar a categoria de um lançamento. Vence o resto. */
+export interface RegraCategoria {
+  id: string
+  /** Trecho procurado na descrição, sem acento e sem diferença de maiúsculas. */
+  contem: string
+  categoriaId: string
+  criadoEm: number
+}
+
+/** Meta de economia (V25): uma linha de chegada em dinheiro, como nos projetos. Valores em centavos. */
+export interface Meta {
+  id: string
+  titulo: string
+  alvo: number
+  guardado: number
+  criadoEm: number
+  concluidaEm?: number
 }
 
 /** Compra adiada: espera um prazo antes de decidir (contra a compra por impulso). */

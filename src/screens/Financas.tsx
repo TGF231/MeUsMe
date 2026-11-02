@@ -2,14 +2,18 @@ import { useEffect, useState } from 'react'
 import { CapturaBancos } from '../components/CapturaBancos'
 import { LancamentoForm } from '../components/LancamentoForm'
 import { ListaDeEspera } from '../components/ListaDeEspera'
+import { Metas } from '../components/Metas'
 import { useAgora } from '../hooks'
 import { converterExtrato, detectarColunas, lerCSV, type Colunas } from '../csv'
 import { haQuanto, saudeDasFontes } from '../fontes'
 import { lerOFX, pareceOFX } from '../ofx'
 import { apagarConfigPluggy, lerConfigPluggy, salvarConfigPluggy, sincronizarPluggy } from '../pluggy'
 import {
+  compararComMesesAnteriores,
   diaDeVencimento,
   fixaPagaNoMes,
+  palavraDaRegra,
+  provaveisAssinaturas,
   previsaoDoMes,
   resumoDoMes,
   saldoDaConta,
@@ -20,6 +24,7 @@ import type { ContaFixa, Transacao } from '../types'
 import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 import { Simbolo } from '../components/Icone'
 import { apagarComDesfazer } from '../desfazer'
+import { useAvisos, useConfig } from '../stores/config'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -42,6 +47,42 @@ const mudarMes = (mes: string, delta: number) => {
   return mesISO(new Date(a, m - 1 + delta, 1))
 }
 
+/**
+ * Assinaturas esquecidas (V29 em docs/CONCORRENTES.md): o que se repetiu nos 3 meses anteriores e ainda não é conta
+ * fixa. "Virar conta fixa" passa a avisar o vencimento; "Ainda uso" não pergunta mais.
+ */
+function Assinaturas({ mes }: { mes: string }) {
+  const f = useFinancas()
+  const cfg = useConfig()
+  const lista = provaveisAssinaturas(f.transacoes, f.fixas, mes, cfg.assinaturasOk).slice(0, 3)
+  if (lista.length === 0) return null
+  const dispensar = (chave: string) => cfg.ajustar({ assinaturasOk: [...cfg.assinaturasOk, chave] })
+
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Parecem assinaturas</h2>
+      <p className="motivo">Apareceram todo mês nos últimos 3 meses. Ainda usa?</p>
+      {lista.map((a) => (
+        <div key={a.chave} className="linha entre item">
+          <span>
+            {a.descricao} <span className="motivo">· {reais(a.valor)}, por volta do dia {a.dia}</span>
+          </span>
+          <span className="linha">
+            <button
+              onClick={() => f.salvarFixa({ nome: a.descricao, valor: a.valor, dia: a.dia, tipo: 'gasto', categoriaId: a.categoriaId, contaId: a.contaId })}
+            >
+              Virar conta fixa
+            </button>
+            <button className="discreto" onClick={() => dispensar(a.chave)}>
+              Ainda uso
+            </button>
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomatico>; onVerFontes: () => void }) {
   const f = useFinancas()
   const [lancando, setLancando] = useState(false)
@@ -51,6 +92,7 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
   const p = previsaoDoMes(f.contas, f.transacoes, f.fixas)
   const { gastos, receitas, porCategoria } = resumoDoMes(f.transacoes, mes)
   const diaHoje = new Date(agora).getDate()
+  const comparacao = compararComMesesAnteriores(f.transacoes, mes, diaHoje)
 
   const fixasOrdenadas = [...f.fixas].sort((a, b) => diaDeVencimento(a) - diaDeVencimento(b))
   const pendentes = fixasOrdenadas.filter((x) => !fixaPagaNoMes(x, f.transacoes, mes))
@@ -76,6 +118,7 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
       <div className="col">
         <StatusBancos sync={sync} />
         <AvisoFontesParadas onVer={onVerFontes} />
+        <Assinaturas mes={mes} />
         <div className="cartao foco destaque">
           <h2 className="rotulo">Livre para gastar por dia até o fim do mês</h2>
           <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
@@ -171,6 +214,24 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
             </div>
           )}
         </div>
+        {comparacao.diferencas.length > 0 && (
+          <div className="cartao compacto">
+            <h2 className="rotulo">Comparado com outros meses</h2>
+            <p className="motivo">
+              Do dia 1 ao dia {diaHoje}, contra a média do mesmo trecho {comparacao.meses === 1 ? 'no mês anterior' : `nos ${comparacao.meses} meses anteriores`}:
+            </p>
+            <ul className="lista-simples">
+              {comparacao.diferencas.slice(0, 4).map((d) => (
+                <li key={d.categoriaId ?? 'sem'}>
+                  {f.categorias.find((c) => c.id === d.categoriaId)?.nome ?? 'Sem categoria'}: {reais(d.agora)}{' '}
+                  <span className="motivo">
+                    ({reais(Math.abs(d.diferenca))} {d.diferenca > 0 ? 'a mais' : 'a menos'} que a média de {reais(d.media)})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -209,6 +270,27 @@ function EditarLancamento({ t, onPronto }: { t: Transacao; onPronto: () => void 
       </div>
     </form>
   )
+}
+
+/**
+ * Depois de trocar a categoria de um lançamento, oferece a regra "sempre que a descrição tiver X" (V28 em
+ * docs/CONCORRENTES.md). Só com um toque em "Sempre assim"; a regra também arruma os lançamentos sem categoria.
+ */
+function oferecerRegra(t: Transacao, categoriaId: string | null) {
+  const f = useFinancas.getState()
+  const palavra = palavraDaRegra(t.descricao)
+  const categoria = f.categorias.find((c) => c.id === categoriaId)
+  if (!palavra || !categoria || f.regras.some((r) => r.contem === palavra && r.categoriaId === categoria.id)) return
+  const avisar = useAvisos.getState().mostrar
+  avisar('Categoria trocada', `Usar ${categoria.nome} sempre que a descrição tiver "${palavra}"?`, {
+    acao: {
+      rotulo: 'Sempre assim',
+      fazer: () => {
+        const n = useFinancas.getState().criarRegra(palavra, categoria.id)
+        avisar('Regra criada', n ? `${n} lançamento${n === 1 ? '' : 's'} sem categoria também ${n === 1 ? 'mudou' : 'mudaram'}.` : 'Vale para os próximos lançamentos.')
+      },
+    },
+  })
 }
 
 function Lancamentos() {
@@ -263,7 +345,10 @@ function Lancamentos() {
                   <select
                     className="mini"
                     value={t.categoriaId ?? ''}
-                    onChange={(e) => f.atualizarTransacao(t.id, { categoriaId: e.target.value || null })}
+                    onChange={(e) => {
+                      f.atualizarTransacao(t.id, { categoriaId: e.target.value || null })
+                      oferecerRegra(t, e.target.value || null)
+                    }}
                     aria-label="Categoria"
                   >
                     <option value="">Sem categoria</option>
@@ -321,7 +406,7 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
           valor: Math.abs(valor),
           dia: d,
           tipo,
-          categoriaId: categoriaId || sugerirCategoria(nome, f.transacoes, f.categorias),
+          categoriaId: categoriaId || sugerirCategoria(nome, f.transacoes, f.categorias, f.regras),
           contaId,
         })
         onPronto()
@@ -712,7 +797,7 @@ function Importar() {
               const novas = f.importar(
                 convertido.ok.map((l) => ({
                   contaId,
-                  categoriaId: sugerirCategoria(l.descricao, f.transacoes, f.categorias),
+                  categoriaId: sugerirCategoria(l.descricao, f.transacoes, f.categorias, f.regras),
                   valor: l.valor,
                   descricao: l.descricao,
                   data: l.data,
@@ -834,6 +919,24 @@ function AjustesFinancas() {
           </select>
           <button type="submit">Adicionar</button>
         </form>
+        {f.regras.length > 0 && (
+          <>
+            <h2>Suas regras</h2>
+            <p className="vazio-texto">Criadas ao trocar a categoria de um lançamento. Valem antes das sugestões automáticas.</p>
+            <div className="cartao">
+              {f.regras.map((r) => (
+                <div key={r.id} className="linha entre item">
+                  <span>
+                    Contém "{r.contem}" <span className="motivo">→ {f.categorias.find((c) => c.id === r.categoriaId)?.nome ?? 'categoria apagada'}</span>
+                  </span>
+                  <button className="discreto" onClick={() => apagarComDesfazer(useFinancas, 'regras', r.id, r.contem, () => f.removerRegra(r.id))} aria-label={`Apagar a regra ${r.contem}`}>
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -857,6 +960,7 @@ export function Financas() {
       {sub === 'espera' && (
         <div className="estreito">
           <ListaDeEspera />
+          <Metas />
         </div>
       )}
       {sub === 'importar' && (

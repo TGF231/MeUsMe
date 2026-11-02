@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cores do widget copiadas dos tokens de src/tema/megui.css (tema claro): surface, ink, ink2, border, accent, on-accent. -->
+<resources>
+    <color name="widget_fundo">#FFFFFF</color>
+    <color name="widget_texto">#16202A</color>
+    <color name="widget_texto2">#4A5A6A</color>
+    <color name="widget_borda">#D2DAE2</color>
+    <color name="widget_acento">#7D0E0E</color>
+    <color name="widget_sobre_acento">#FFFFFF</color>
+</resources>

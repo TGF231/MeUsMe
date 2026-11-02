@@ -153,7 +153,7 @@ async function sincronizar(): Promise<ResultadoSync> {
           valor: Math.round(t.amount * 100) * (credito ? -1 : 1),
           descricao: t.description,
           data: t.date.slice(0, 10),
-          categoriaId: sugerirCategoria(t.description, atual.transacoes, atual.categorias),
+          categoriaId: sugerirCategoria(t.description, atual.transacoes, atual.categorias, atual.regras),
           chaveImport: `pluggy:${t.providerId || t.id}`,
         }))
       // Importa só as novas, substituindo provisórios equivalentes (vindos de notificação).

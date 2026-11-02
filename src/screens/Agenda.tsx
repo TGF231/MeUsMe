@@ -6,7 +6,7 @@ import { conectarGoogle, ErroGoogle, removerDoGoogle, sincronizarGoogle, temToke
 import { useAgora } from '../hooks'
 import { apagarComDesfazer } from '../desfazer'
 import { useStore } from '../store'
-import { linhaDoTempo } from '../linhaDoTempo'
+import { apertos, linhaDoTempo } from '../linhaDoTempo'
 import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
 import type { Evento } from '../types'
 import { dataISO, duracao, hora, inicioDoDia, nomeDoDia } from '../util'
@@ -186,6 +186,8 @@ export function RestoDoDia() {
   const fimDoDia = inicioDoDia(agora) + 86_400_000
   const eventos = agenda.eventos.filter((e) => e.fim > agora && e.inicio < fimDoDia).sort((a, b) => a.inicio - b.inicio)
   const lembretes = agenda.lembretes.filter((l) => !l.concluido && l.quando > agora && l.quando < fimDoDia)
+  // Compromissos colados (D05): trocar de um para outro leva tempo, então avisa quando sobra pouco.
+  const colados = apertos(eventos)
   const itens = [
     ...eventos.map((e) => ({
       id: e.id,
@@ -206,6 +208,12 @@ export function RestoDoDia() {
         <p key={i.id} className="linha-dia">
           <span className="horario">{i.horario}</span> {i.lembrete && <Simbolo c="⏰" diz="Lembrete" />}
           {i.texto}
+          {colados.has(i.id) && (
+            <span className="motivo">
+              {' '}
+              · {colados.get(i.id)! < 0 ? 'o próximo começa antes deste terminar' : `só ${colados.get(i.id)} min até o próximo`}
+            </span>
+          )}
         </p>
       ))}
     </div>

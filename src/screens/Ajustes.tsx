@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { TAMANHOS_TEXTO } from '../acessibilidade'
-import { lerBackup, montarBackup } from '../backup'
+import { lerBackup } from '../backup'
+import { exportarBackup, quandoFoiOBackup } from '../exportarBackup'
 import { ComoEscrever } from '../components/ComoEscrever'
+import { paraCSV, paraICS, paraMarkdown } from '../exportar'
 import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
 import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows } from '../nativo/desktop'
 import { Sincronizacao } from '../components/Sincronizacao'
@@ -18,8 +20,10 @@ import {
   testarComAppFechado,
   type Permissao,
 } from '../notificacoes'
+import { useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
+import { useFinancas } from '../stores/financas'
 import { useMotor } from '../stores/motor'
 import { useStatusSync } from '../sync/motor'
 import { ACENTOS_PRONTOS, pareceSemantica, resolverAcento } from '../tema/cores'
@@ -437,7 +441,7 @@ function Aparencia() {
 
 /** Seções do app (D14) e perfis prontos (D13): desligar só tira do menu, os dados continuam. */
 function Secoes() {
-  const { modulosDesligados, ajustar } = useConfig()
+  const { modulosDesligados, marcos, ajustar } = useConfig()
   const perfilAtual = PERFIS.find((p) => p.desligados.length === modulosDesligados.length && p.desligados.every((d) => modulosDesligados.includes(d)))
   const alternar = (id: Aba, ligar: boolean) =>
     ajustar({ modulosDesligados: ligar ? modulosDesligados.filter((d) => d !== id) : [...modulosDesligados, id] })
@@ -471,12 +475,18 @@ function Secoes() {
       <p className="motivo">
         Agora, Caixa e Ajustes ficam sempre. Desligar só tira a seção do menu e da tela Agora: nada é apagado, e ligar de novo traz tudo de volta.
       </p>
+      <label className="check">
+        <input type="checkbox" checked={marcos} onChange={(e) => ajustar({ marcos: e.target.checked })} />
+        <span>
+          Marcos <span className="motivo">· uma linha na comemoração do 1º, 10º, 50º, 100º passo… Sem pontos nem sequência.</span>
+        </span>
+      </label>
     </div>
   )
 }
 
 function Acessibilidade() {
-  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, ajustar } = useConfig()
+  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, densidade, ajustar } = useConfig()
   return (
     <div className="cartao">
       <h2 className="titulo">Acessibilidade</h2>
@@ -493,6 +503,22 @@ function Acessibilidade() {
       <p className="motivo">
         Vale só para este aparelho e soma com o tamanho de fonte do sistema.{ehDesktop() && ' Ctrl + e Ctrl − também mudam, e Ctrl 0 volta ao normal.'}
       </p>
+      <p className="rotulo" id="densidade">
+        Densidade
+      </p>
+      <div className="segmentado" role="group" aria-labelledby="densidade">
+        {(
+          [
+            ['confortavel', 'Confortável'],
+            ['compacta', 'Compacta'],
+          ] as const
+        ).map(([v, nome]) => (
+          <button key={v} className={densidade === v ? 'ativo' : ''} aria-pressed={densidade === v} onClick={() => ajustar({ densidade: v })}>
+            {nome}
+          </button>
+        ))}
+      </div>
+      <p className="motivo">Compacta mostra mais de uma vez, com menos espaço entre os cartões. Vale só para este aparelho.</p>
       <label className="check">
         <input type="checkbox" checked={contrasteAlto} onChange={(e) => ajustar({ contrasteAlto: e.target.checked })} />
         <span>Contraste alto</span>
@@ -564,20 +590,23 @@ function Windows() {
 
 function Backup() {
   const [mensagem, setMensagem] = useState('')
+  const ultimoBackup = useConfig((c) => c.ultimoBackup)
+  const ultimoBackupAuto = useConfig((c) => c.ultimoBackupAuto)
   return (
     <div className="cartao">
       <h2 className="titulo">Backup</h2>
       <p className="motivo">
-        Um arquivo com todos os seus dados. Exporte de vez em quando: é a garantia de que nada se perde, com ou sem sincronização.
+        Um arquivo com todos os seus dados. Exporte de vez em quando: é a garantia de que nada se perde, com ou sem sincronização. Último backup:{' '}
+        {quandoFoiOBackup(ultimoBackup)}.
       </p>
+      {(ehAndroid() || ehDesktop()) && (
+        <p className="motivo">
+          Cópia automática: uma por semana em Documentos/MeUsMe, as 4 mais novas, que continuam lá se o app for desinstalado. Última:{' '}
+          {quandoFoiOBackup(ultimoBackupAuto).replace(' neste aparelho', ' ainda')}.
+        </p>
+      )}
       <div className="linha">
-        <button
-          onClick={() => {
-            baixarArquivo(`meusme-backup-${hoje()}.json`, montarBackup((k) => localStorage.getItem(k)))
-          }}
-        >
-          Exportar backup
-        </button>
+        <button onClick={exportarBackup}>Exportar backup</button>
         <label className="botao-arquivo">
           Restaurar backup
           <input
@@ -607,6 +636,12 @@ function Backup() {
           {mensagem}
         </p>
       )}
+      <p className="motivo">Também em formatos abertos, para abrir em qualquer programa: passos em Markdown, lançamentos em CSV (o Excel abre e o Importar lê de volta) e a agenda em .ics.</p>
+      <div className="linha">
+        <button onClick={() => baixarArquivo(`meusme-passos-${hoje()}.md`, paraMarkdown(useStore.getState(), hoje()), 'text/markdown')}>Passos (.md)</button>
+        <button onClick={() => baixarArquivo(`meusme-lancamentos-${hoje()}.csv`, paraCSV(useFinancas.getState()), 'text/csv')}>Lançamentos (.csv)</button>
+        <button onClick={() => baixarArquivo(`meusme-agenda-${hoje()}.ics`, paraICS(useAgenda.getState(), Date.now()), 'text/calendar')}>Agenda (.ics)</button>
+      </div>
     </div>
   )
 }

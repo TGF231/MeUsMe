@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { diasDesde, revisaoPendente, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
+import { calibracao, diasDesde, marcoDePassos, revisaoPendente, somarDias, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
@@ -9,11 +9,12 @@ import { RevisaoSemana } from '../components/RevisaoSemana'
 import { PontosEditaveis, SeletorEnergia } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { escolherPasso, type Escolha } from '../escolher'
+import { capacidadeDoDia, duracaoPrevista, horariosLivres, montarDia, refazerResto } from '../montarDia'
 import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
 import { chaveEvento, useAgenda } from '../stores/agenda'
-import { useConfig } from '../stores/config'
+import { useAvisos, useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
-import type { Energia, Evento, Projeto } from '../types'
+import type { Energia, Evento, Passo, Projeto } from '../types'
 import { duracao, hora, inicioDoDia, nomeDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 import { Simbolo } from '../components/Icone'
@@ -91,6 +92,213 @@ function ParaReagendar() {
           Usar estas datas
         </button>
         <button onClick={() => aplicar(() => undefined)}>Tirar as datas</button>
+      </div>
+    </div>
+  )
+}
+
+/** Os horários sugeridos vão até as 22h: depois disso não se monta mais nada. */
+const FIM_DO_DIA_H = 22
+
+/**
+ * "Montar meu dia" (D01 em docs/CONCORRENTES.md): sugere alguns passos com horário nos vãos livres de hoje,
+ * pela energia, pela agenda e pelos seus palpites. Você desmarca o que não quer; nada é marcado sozinho.
+ */
+function MontarDia({ energia, agora }: Readonly<{ energia: Energia; agora: number }>) {
+  const s = useStore()
+  const agenda = useAgenda()
+  const avisar = useAvisos((a) => a.mostrar)
+  const [aberto, setAberto] = useState(false)
+  const [tirados, setTirados] = useState<Set<string>>(new Set())
+  const ate = inicioDoDia(agora) + FIM_DO_DIA_H * 3_600_000
+  // Com horário passado esperando o "Refazer o resto do dia", os dois sugeririam o mesmo tempo livre.
+  if (agora >= ate || refazerResto(agenda.eventos, s.passos, agora, ate, inicioDoDia(agora)).passaram > 0) return null
+
+  if (!aberto) {
+    return (
+      <div className="cartao compacto">
+        <div className="linha entre">
+          <span>
+            <b>Montar meu dia</b>
+            <br />
+            <span className="motivo">Alguns passos com horário no tempo livre de hoje. Você escolhe o que fica.</span>
+          </span>
+          <button onClick={() => (setTirados(new Set()), setAberto(true))}>Sugerir</button>
+        </div>
+      </div>
+    )
+  }
+
+  const { propostas, semEspaco } = montarDia({ ...s, eventos: agenda.eventos, energia }, agora, ate)
+  const marcadas = propostas.filter((p) => !tirados.has(p.id))
+  const reservar = () => {
+    marcadas.forEach((p) => agenda.criarEvento({ titulo: p.passo.texto, inicio: p.inicio, fim: p.fim, passoId: p.passo.id, origem: 'local' }))
+    avisar('Dia montado', `${marcadas.length} horário${marcadas.length === 1 ? '' : 's'} reservado${marcadas.length === 1 ? '' : 's'}. Cada passo aparece aqui na hora dele.`)
+    setAberto(false)
+  }
+
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Montar meu dia</h2>
+      {propostas.length === 0 ? (
+        <p className="motivo">
+          {semEspaco.length > 0 ? 'Não sobra tempo livre hoje para os próximos passos.' : 'Nada na fila que caiba na sua energia agora.'}
+        </p>
+      ) : (
+        <>
+          <p className="motivo">Desmarque o que não quiser. A duração vem do seu palpite ou da energia do passo.</p>
+          {propostas.map((p) => (
+            <label key={p.id} className="check">
+              <input
+                type="checkbox"
+                checked={!tirados.has(p.id)}
+                onChange={(e) => {
+                  const n = new Set(tirados)
+                  if (e.target.checked) n.delete(p.id)
+                  else n.add(p.id)
+                  setTirados(n)
+                }}
+              />
+              <span>
+                <span className="horario">
+                  {hora(p.inicio)}–{hora(p.fim)}
+                </span>{' '}
+                {p.passo.texto}
+                {p.projeto && <span className="motivo"> · {p.projeto.titulo}</span>}
+              </span>
+            </label>
+          ))}
+        </>
+      )}
+      <div className="linha">
+        {marcadas.length > 0 && (
+          <button className="primario" onClick={reservar}>
+            Reservar {marcadas.length === 1 ? 'este horário' : `estes ${marcadas.length} horários`}
+          </button>
+        )}
+        <button onClick={() => setAberto(false)}>{propostas.length ? 'Agora não' : 'Ok'}</button>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Capacidade do dia (V14 em docs/CONCORRENTES.md): quando os passos com prazo hoje passam do tempo livre, pergunta
+ * o que fica para amanhã. Nada muda sem você tocar; "Está bom assim" esconde o aviso até reabrir o app.
+ */
+function CapacidadeDoDia({ agora }: Readonly<{ agora: number }>) {
+  const s = useStore()
+  const eventos = useAgenda((a) => a.eventos)
+  const [dispensado, setDispensado] = useState(false)
+  const c = capacidadeDoDia(s.passos, s.sessoes, eventos, agora, inicioDoDia(agora) + FIM_DO_DIA_H * 3_600_000)
+  if (dispensado || c.cabe || c.passos.length < 2) return null
+  const amanha = somarDias(hoje(), 1)
+
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Hoje não cabe tudo</h2>
+      <p className="motivo">
+        Os passos com prazo hoje pedem cerca de {duracao(c.precisaMin)}, e sobram {duracao(c.livreMin)} livres até as {FIM_DO_DIA_H}h. O que fica para
+        amanhã?
+      </p>
+      <ul className="lista-simples">
+        {c.passos.map((p) => (
+          <li key={p.id} className="linha entre">
+            <span>{p.texto}</span>
+            <button className="discreto" onClick={() => s.atualizarPasso(p.id, { prazo: amanha })}>
+              Para amanhã
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button onClick={() => setDispensado(true)}>Está bom assim</button>
+    </div>
+  )
+}
+
+/**
+ * Horários livres para o passo (V13 em docs/CONCORRENTES.md): três propostas no resto de hoje e amanhã, com a
+ * duração prevista. Tocar numa delas reserva; o formulário abaixo continua para escolher outro horário.
+ */
+function HorariosLivres({ passo, agora, onPronto }: Readonly<{ passo: Passo; agora: number; onPronto: () => void }>) {
+  const s = useStore()
+  const agenda = useAgenda()
+  const avisar = useAvisos((a) => a.mostrar)
+  const hoje0 = inicioDoDia(agora)
+  const amanha0 = inicioDoDia(hoje0 + 36 * 3_600_000)
+  const fator = Math.min(2, Math.max(0.5, calibracao(s.passos, s.sessoes)?.fator ?? 1))
+  const minutos = duracaoPrevista(passo, fator)
+  const livres = horariosLivres(minutos, agenda.eventos, [
+    [agora, hoje0 + FIM_DO_DIA_H * 3_600_000],
+    [amanha0 + 8 * 3_600_000, amanha0 + FIM_DO_DIA_H * 3_600_000],
+  ])
+  if (livres.length === 0) return null
+  const reservar = (inicio: number, fim: number) => {
+    agenda.criarEvento({ titulo: passo.texto, inicio, fim, passoId: passo.id, origem: 'local' })
+    avisar('Horário reservado', `${inicio < amanha0 ? 'Hoje' : 'Amanhã'}, ${hora(inicio)}–${hora(fim)}.`)
+    onPronto()
+  }
+
+  return (
+    <>
+      <p className="motivo">Horários livres para {duracao(minutos)}:</p>
+      <div className="chips" role="group" aria-label="Horários livres">
+        {livres.map((b) => (
+          <button key={b.inicio} onClick={() => reservar(b.inicio, b.fim)}>
+            {b.inicio < amanha0 ? 'Hoje' : 'Amanhã'} {hora(b.inicio)}
+          </button>
+        ))}
+      </div>
+    </>
+  )
+}
+
+/**
+ * "Refazer o resto do dia" (D02 em docs/CONCORRENTES.md): quando um horário reservado passa sem o passo feito,
+ * reencaixa esse e os próximos no tempo que sobra. O que não couber volta para a fila, sem horário e sem "atraso".
+ */
+function RefazerResto({ agora }: Readonly<{ agora: number }>) {
+  const passos = useStore((s) => s.passos)
+  const agenda = useAgenda()
+  const desde = inicioDoDia(agora)
+  const r = refazerResto(agenda.eventos, passos, agora, desde + FIM_DO_DIA_H * 3_600_000, desde)
+  if (r.passaram === 0) return null
+
+  const reencaixar = () => {
+    r.mover.forEach((m) => agenda.atualizarEvento(m.id, { inicio: m.inicio, fim: m.fim }))
+    r.naoCabem.forEach((e) => agenda.removerEvento(e.id))
+  }
+  const tirarHorarios = () => agenda.eventos.filter((e) => e.passoId && e.origem === 'local' && e.inicio >= desde && e.fim <= agora).forEach((e) => agenda.removerEvento(e.id))
+
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Refazer o resto do dia</h2>
+      <p className="motivo">
+        {r.passaram === 1 ? 'Um horário reservado passou' : `${r.passaram} horários reservados passaram`} sem o passo feito. Acontece. Dá para
+        reencaixar no tempo que sobra:
+      </p>
+      {r.mover.length > 0 && (
+        <ul className="lista-simples">
+          {r.mover.map((m) => (
+            <li key={m.id}>
+              {m.evento.titulo}{' '}
+              <span className="motivo">
+                → {hora(m.inicio)}–{hora(m.fim)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {r.naoCabem.length > 0 && (
+        <p className="motivo">
+          Não cabem hoje e voltam para a fila, sem horário: {r.naoCabem.map((e) => e.titulo).join(', ')}.
+        </p>
+      )}
+      <div className="linha">
+        <button className="primario" onClick={reencaixar}>
+          Reencaixar
+        </button>
+        <button onClick={tirarHorarios}>Só tirar os horários que passaram</button>
       </div>
     </div>
   )
@@ -195,10 +403,12 @@ export function Agora() {
     const { passoId, projeto, restantes } = celebrar
     const passoFeito = s.passos.find((p) => p.id === passoId)
     const feitosNoProjeto = projeto ? s.passos.filter((p) => p.projetoId === projeto.id && p.feitoEm).length : 0
+    const marco = marcoDePassos(s.passos.filter((p) => p.feitoEm).length)
     return (
       <section className="tela centro">
         <div className="cartao celebra">
           <p className="grande">Feito.</p>
+          {cfg.marcos && marco && <p className="motivo centralizado">{marco}</p>}
           {passoFeito && (
             <div className="linha centralizada">
               <span className="motivo">Tempo neste passo:</span>
@@ -411,6 +621,7 @@ export function Agora() {
             ) : modo === 'agendando' ? (
               <>
                 <p className="rotulo">Reservar um horário para este passo. Quando chegar a hora, ele aparece aqui primeiro.</p>
+                <HorariosLivres passo={escolha.passo} agora={agora} onPronto={() => setModo('normal')} />
                 <EventoForm
                   inicial={{ titulo: escolha.passo.texto, passoId: escolha.passo.id }}
                   rotulo="Reservar horário"
@@ -462,7 +673,14 @@ export function Agora() {
         </div>
         <PendenciasDeHoje agora={agora} />
         <ParaReagendar />
-        {!cfg.modulosDesligados.includes('agenda') && <RestoDoDia />}
+        {!cfg.modulosDesligados.includes('agenda') && (
+          <>
+            <RefazerResto agora={agora} />
+            <CapacidadeDoDia agora={agora} />
+            <MontarDia energia={energia} agora={agora} />
+            <RestoDoDia />
+          </>
+        )}
       </div>
     </section>
   )

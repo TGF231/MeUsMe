@@ -1,3 +1,4 @@
+import { exportarBackup, quandoFoiOBackup } from '../exportarBackup'
 import { useNavegacao } from '../navegacao'
 import { pendentes, useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
@@ -17,6 +18,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
   const eventos = useAgenda((a) => a.eventos)
   const fin = useFinancas()
   const ajustar = useConfig((c) => c.ajustar)
+  const ultimoBackup = useConfig((c) => c.ultimoBackup)
   const ir = useNavegacao((n) => n.ir)
 
   const ativos = s.projetos.filter((p) => !p.concluidoEm)
@@ -98,6 +100,14 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
           </p>
         ))}
       </div>
+
+      {/* Backup esquecido (D21): uma linha só, quando passa de 30 dias. */}
+      {(!ultimoBackup || agora - ultimoBackup > 30 * DIA) && (
+        <div className="linha entre">
+          <span className="motivo">Último backup: {quandoFoiOBackup(ultimoBackup, agora)}.</span>
+          <button onClick={exportarBackup}>Exportar agora</button>
+        </div>
+      )}
 
       <div className="linha">
         <button className="primario" onClick={terminar}>

@@ -7,5 +7,10 @@
     <string name="bloco_captura">Capturar</string>
     <string name="atalho_voz">Capturar por voz</string>
     <string name="atalho_voz_longo">Capturar por voz no MeUsMe</string>
+    <string name="widget_rotulo">Próximo passo</string>
+    <string name="widget_vazio">Nada na fila. Capture o que estiver na cabeça.</string>
+    <string name="widget_capturar">+ Capturar</string>
+    <string name="widget_voz">Voz</string>
+    <string name="widget_descricao">O próximo passo e a captura rápida, sem abrir o app.</string>
     <string name="servico_captura">MeUsMe: gastos pelas notificações do banco</string>
 </resources>

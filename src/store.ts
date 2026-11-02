@@ -25,6 +25,10 @@ interface Estado {
   /** Registra um recado de voz cujo áudio já foi guardado com este id. */
   capturarAudio: (id: string, segundos: number) => void
   descartarCaptura: (id: string) => void
+  /** Captura parada há 30 dias que ainda faz sentido: volta a contar do zero. */
+  adiarCaptura: (id: string) => void
+  /** Ideia estacionada há 90 dias que ainda vale: volta a contar do zero. */
+  adiarIdeia: (id: string) => void
 
   criarProjeto: (titulo: string, chegada: string) => string
   concluirProjeto: (id: string) => void
@@ -83,6 +87,9 @@ export const useStore = create<Estado>()(
           if (s.capturas.some((c) => c.id === cid && c.audio)) void apagarAudio(cid).catch(() => {})
           return { capturas: s.capturas.filter((c) => c.id !== cid) }
         }),
+
+      adiarIdeia: (iid) => set((s) => ({ ideias: s.ideias.map((i) => (i.id === iid ? { ...i, adiadaEm: Date.now() } : i)) })),
+      adiarCaptura: (cid) => set((s) => ({ capturas: s.capturas.map((c) => (c.id === cid ? { ...c, adiadaEm: Date.now() } : c)) })),
 
       criarProjeto: (titulo, chegada) => {
         const pid = id()

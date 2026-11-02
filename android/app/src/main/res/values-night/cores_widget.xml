@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cores do widget copiadas dos tokens de src/tema/megui.css (tema escuro). -->
+<resources>
+    <color name="widget_fundo">#18212C</color>
+    <color name="widget_texto">#E3E9EF</color>
+    <color name="widget_texto2">#94A4B5</color>
+    <color name="widget_borda">#2B3745</color>
+    <color name="widget_acento">#7D0E0E</color>
+    <color name="widget_sobre_acento">#FFFFFF</color>
+</resources>

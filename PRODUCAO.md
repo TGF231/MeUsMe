@@ -28,6 +28,8 @@ npm run versao -- patch
 
 Use `minor`/`major` ou um número (`1.2.0`). No Android, a versão 1.2.3 vira o versionCode 10203, que sempre cresce, como a Play Store exige.
 
+Antes de publicar, escreva no topo de `src/novidades.ts` o que muda para quem usa, em poucas linhas: o app mostra a tela "O que mudou" uma vez, ao abrir depois de atualizar. A entrada da 0.6.0 já está escrita.
+
 ### Publicar (GitHub Actions)
 
 Há dois fluxos em [`.github/workflows/`](.github/workflows/):

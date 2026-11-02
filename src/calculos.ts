@@ -1,4 +1,4 @@
-import type { Lembrete, Passo, Sessao } from './types'
+import type { Captura, Lembrete, Passo, Sessao } from './types'
 
 /** Cálculos puros usados pelas telas (testados em testes/calculos.test.ts). */
 
@@ -127,6 +127,21 @@ export function ultimaAtividade(dados: {
 export const diasDesde = (desde: number, agora = Date.now()) => {
   const inicio = (t: number) => new Date(t).setHours(0, 0, 0, 0)
   return Math.round((inicio(agora) - inicio(desde)) / DIA)
+}
+
+/** Capturas paradas na Caixa há `dias` dias ou mais (D09), da mais antiga para a mais nova. */
+export const paradas = <T extends Pick<Captura, 'criadoEm' | 'adiadaEm'>>(capturas: T[], agora = Date.now(), dias = 30) =>
+  capturas.filter((c) => diasDesde(c.adiadaEm ?? c.criadoEm, agora) >= dias).sort((a, b) => (a.adiadaEm ?? a.criadoEm) - (b.adiadaEm ?? b.criadoEm))
+
+const MARCOS = [10, 50, 100, 250, 500, 1000, 2500, 5000]
+
+/**
+ * Marcos reais e raros (D12 em docs/CONCORRENTES.md): o primeiro passo e os totais de MARCOS, sem pontos, níveis
+ * nem sequência. Recebe quantos passos já foram feitos contando o de agora; null quando não é um marco.
+ */
+export function marcoDePassos(feitos: number) {
+  if (feitos === 1) return 'O primeiro passo feito no MeUsMe.'
+  return MARCOS.includes(feitos) ? `${feitos} passos feitos desde o começo.` : null
 }
 
 /** A revisão semanal está pendente: feita (ou pulada) antes do início da semana atual. diaRevisao -1 desliga. */

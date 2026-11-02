@@ -65,6 +65,19 @@
             </intent-filter>
         </service>
 
+        <!-- Widget "Próximo passo" (V01). -->
+        <receiver
+            android:name=".WidgetProximoPasso"
+            android:label="@string/widget_rotulo"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_proximo_passo_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

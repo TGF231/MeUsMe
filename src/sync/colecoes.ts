@@ -46,6 +46,8 @@ const COLECOES: Colecao[] = [
   { nome: 'financas.categorias', loja: useFinancas, campo: 'categorias', tipo: 'lista' },
   { nome: 'financas.transacoes', loja: useFinancas, campo: 'transacoes', tipo: 'lista', ordenar: maisNovoPrimeiro },
   { nome: 'financas.fixas', loja: useFinancas, campo: 'fixas', tipo: 'lista' },
+  { nome: 'financas.metas', loja: useFinancas, campo: 'metas', tipo: 'lista' },
+  { nome: 'financas.regras', loja: useFinancas, campo: 'regras', tipo: 'lista' },
   { nome: 'financas.desejos', loja: useFinancas, campo: 'desejos', tipo: 'lista', ordenar: maisNovoPrimeiro },
 
   // Inclui eventos do Google (id estável entre aparelhos); é por aqui que chegam ao Android.
@@ -64,6 +66,7 @@ const COLECOES: Colecao[] = [
   { nome: 'config.revisaoFeitaEm', loja: useConfig, campo: 'revisaoFeitaEm', tipo: 'valor' },
   { nome: 'config.horasDeEspera', loja: useConfig, campo: 'horasDeEspera', tipo: 'valor' },
   { nome: 'config.organizarSozinho', loja: useConfig, campo: 'organizarSozinho', tipo: 'valor' },
+  { nome: 'config.marcos', loja: useConfig, campo: 'marcos', tipo: 'valor' },
   { nome: 'config.modulosDesligados', loja: useConfig, campo: 'modulosDesligados', tipo: 'valor' },
   // Acessibilidade é da pessoa, vale em todo aparelho; o tamanho do texto depende da tela e não vai.
   { nome: 'config.alvosGrandes', loja: useConfig, campo: 'alvosGrandes', tipo: 'valor' },

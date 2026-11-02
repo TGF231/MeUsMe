@@ -19,6 +19,8 @@ interface PluginCaptura {
   abrirInfoDoApp(): Promise<void>
   bateria(): Promise<{ otimizado: boolean }>
   abrirBateria(): Promise<void>
+  widget(o: { rotulo: string; passo: string }): Promise<void>
+  salvarBackup(o: { nome: string; conteudo: string }): Promise<{ ok: boolean; caminho?: string }>
   definirPacotes(o: { pacotes: string[] }): Promise<void>
   pegarCapturas(): Promise<{ capturas: CapturaNativa[] }>
   candidatos(): Promise<{ candidatos: { pacote: string; nome: string; vezes: number }[] }>
@@ -62,7 +64,7 @@ export async function processarCapturas() {
         valor: lido.valor,
         descricao: lido.descricao,
         data: dataISO(c.quando),
-        categoriaId: sugerirCategoria(lido.descricao, useFinancas.getState().transacoes, fin.categorias),
+        categoriaId: sugerirCategoria(lido.descricao, useFinancas.getState().transacoes, fin.categorias, fin.regras),
         chaveImport: `notificacao:${c.pacote}:${c.quando}:${lido.valor}`,
         provisoria: true,
       },

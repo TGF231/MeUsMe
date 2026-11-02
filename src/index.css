@@ -253,6 +253,20 @@ h2.titulo {
   padding: 12px 16px;
 }
 
+/* Densidade compacta (D17): menos respiro para ver mais de uma vez. Botões maiores vencem, para não apertar os alvos. */
+:root[data-densidade='compacta']:not([data-alvos='grandes']) .tela {
+  gap: 8px;
+}
+
+:root[data-densidade='compacta']:not([data-alvos='grandes']) .cartao {
+  padding: 10px 12px;
+  gap: 6px;
+}
+
+:root[data-densidade='compacta']:not([data-alvos='grandes']) .cartao.compacto {
+  padding: 8px 12px;
+}
+
 .cartao.clicavel {
   width: 100%;
   min-height: auto;

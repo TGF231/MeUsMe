@@ -6,7 +6,9 @@ import {
   diasDesde,
   explicarFator,
   inicioDaSemana,
+  marcoDePassos,
   ordemAntesDe,
+  paradas,
   passosParaModelo,
   progresso,
   proximaRepeticao,
@@ -182,4 +184,32 @@ test('proximaRepeticao: dia, semana e mês (31 de janeiro cai em 28 de fevereiro
   assert.equal(proximaRepeticao('semanal', '2026-11-02'), '2026-11-09')
   assert.equal(proximaRepeticao('mensal', '2027-01-31'), '2027-02-28')
   assert.equal(proximaRepeticao('mensal', '2026-11-15'), '2026-12-15')
+})
+
+test('paradas: 30 dias ou mais na Caixa, contando do adiamento quando houver, da mais antiga para a mais nova', () => {
+  const agora = new Date(2026, 10, 2, 12).getTime()
+  const dias = (n: number) => agora - n * 86_400_000
+  const capturas = [
+    { id: 'nova', texto: 'a', criadoEm: dias(5) },
+    { id: 'velha', texto: 'b', criadoEm: dias(45) },
+    { id: 'limite', texto: 'c', criadoEm: dias(30) },
+    { id: 'adiada', texto: 'd', criadoEm: dias(90), adiadaEm: dias(10) },
+  ]
+  assert.deepEqual(paradas(capturas, agora).map((c) => c.id), ['velha', 'limite'])
+})
+
+test('paradas também serve para ideias com outra validade (90 dias)', () => {
+  const agora = new Date(2026, 10, 2, 12).getTime()
+  const ideias = [
+    { id: 'velha', texto: 'a', projetoId: null, criadoEm: agora - 100 * 86_400_000 },
+    { id: 'nova', texto: 'b', projetoId: null, criadoEm: agora - 60 * 86_400_000 },
+  ]
+  assert.deepEqual(paradas(ideias, agora, 90).map((i) => i.id), ['velha'])
+})
+
+test('marcos só no primeiro passo e em totais redondos e raros', () => {
+  assert.equal(marcoDePassos(1), 'O primeiro passo feito no MeUsMe.')
+  assert.equal(marcoDePassos(100), '100 passos feitos desde o começo.')
+  assert.equal(marcoDePassos(2), null)
+  assert.equal(marcoDePassos(99), null)
 })

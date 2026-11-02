@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Aba } from '../navegacao'
+import type { Soneca } from '../sonecas'
 
 interface Estado {
   /** "HH:MM" ou vazio para desligar. */
@@ -37,6 +38,20 @@ interface Estado {
   contrasteAlto: boolean
   /** Seções escondidas do menu (Ajustes → Seções do app). Os dados continuam guardados. Sincroniza. */
   modulosDesligados: Aba[]
+  /** "Daqui a 10 min" tocado na notificação de um lembrete (src/sonecas.ts). Não sincroniza: é deste aparelho. */
+  sonecas: Soneca[]
+  /** Última versão cujo "O que mudou" foi visto neste aparelho (src/novidades.ts). Não sincroniza. */
+  versaoVista: string
+  /** Quando o último backup foi exportado neste aparelho (0 = nunca). Não sincroniza. */
+  ultimoBackup: number
+  /** Última cópia automática em Documentos/MeUsMe (Android, src/nativo/backupAutomatico.ts). Não sincroniza. */
+  ultimoBackupAuto: number
+  /** Assinaturas que você disse que ainda usa (V29): não perguntam de novo. Não sincroniza. */
+  assinaturasOk: string[]
+  /** Marcos raros na comemoração do passo (D12). Sincroniza. */
+  marcos: boolean
+  /** Menos espaço entre e dentro dos cartões (D17). Não sincroniza: depende da tela. */
+  densidade: 'confortavel' | 'compacta'
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -65,6 +80,13 @@ export const useConfig = create<Estado>()(
       avisosFicam: false,
       contrasteAlto: false,
       modulosDesligados: [],
+      sonecas: [],
+      versaoVista: '',
+      ultimoBackup: 0,
+      ultimoBackupAuto: 0,
+      assinaturasOk: [],
+      marcos: true,
+      densidade: 'confortavel',
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>

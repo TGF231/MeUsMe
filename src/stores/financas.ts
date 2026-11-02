@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Categoria, Conta, ContaFixa, Desejo, Transacao } from '../types'
-import { diasNoMes, hoje, mesISO, novoId } from '../util'
+import type { Categoria, Conta, ContaFixa, Desejo, Meta, RegraCategoria, Transacao } from '../types'
+import { diasNoMes, hoje, mesISO, novoId } from '../util.ts'
 
 const categorias = (tipo: Categoria['tipo'], lista: [string, string][]): Categoria[] =>
   lista.map(([id, nome]) => ({ id: `cat-${id}`, nome, tipo }))
@@ -36,6 +36,8 @@ interface Estado {
   transacoes: Transacao[]
   fixas: ContaFixa[]
   desejos: Desejo[]
+  regras: RegraCategoria[]
+  metas: Meta[]
 
   salvarConta: (c: Omit<Conta, 'id'> & { id?: string }) => void
   removerConta: (id: string) => void
@@ -57,6 +59,13 @@ interface Estado {
   adiarCompra: (texto: string, valor: number | undefined, horas: number) => void
   decidirCompra: (id: string, decisao: Desejo['decisao']) => void
   removerDesejo: (id: string) => void
+  /** Cria a regra e aplica nos lançamentos sem categoria que já batem com ela; devolve quantos mudaram. */
+  criarRegra: (contem: string, categoriaId: string) => number
+  removerRegra: (id: string) => void
+  criarMeta: (titulo: string, alvo: number) => void
+  /** Soma (ou tira, com valor negativo) do guardado; chegar ao alvo marca a meta como concluída. */
+  guardarNaMeta: (id: string, valor: number) => void
+  removerMeta: (id: string) => void
 }
 
 export const useFinancas = create<Estado>()(
@@ -67,6 +76,8 @@ export const useFinancas = create<Estado>()(
       transacoes: [],
       fixas: [],
       desejos: [],
+      regras: [],
+      metas: [],
 
       salvarConta: (c) =>
         set((s) =>
@@ -155,6 +166,29 @@ export const useFinancas = create<Estado>()(
       decidirCompra: (id, decisao) =>
         set((s) => ({ desejos: s.desejos.map((d) => (d.id === id ? { ...d, decisao, decididoEm: Date.now() } : d)) })),
       removerDesejo: (id) => set((s) => ({ desejos: s.desejos.filter((d) => d.id !== id) })),
+
+      criarRegra: (contem, categoriaId) => {
+        const regra = { id: novoId(), contem: normalizarTexto(contem), categoriaId, criadoEm: Date.now() }
+        const bate = (t: Transacao) => !t.categoriaId && normalizarTexto(t.descricao).includes(regra.contem)
+        const aplicadas = get().transacoes.filter(bate).length
+        set((s) => ({
+          regras: [regra, ...s.regras.filter((r) => r.contem !== regra.contem)],
+          transacoes: s.transacoes.map((t) => (bate(t) ? { ...t, categoriaId } : t)),
+        }))
+        return aplicadas
+      },
+      removerRegra: (id) => set((s) => ({ regras: s.regras.filter((r) => r.id !== id) })),
+
+      criarMeta: (titulo, alvo) => set((s) => ({ metas: [...s.metas, { id: novoId(), titulo, alvo, guardado: 0, criadoEm: Date.now() }] })),
+      guardarNaMeta: (id, valor) =>
+        set((s) => ({
+          metas: s.metas.map((m) => {
+            if (m.id !== id) return m
+            const guardado = Math.max(0, m.guardado + valor)
+            return { ...m, guardado, concluidaEm: guardado >= m.alvo ? (m.concluidaEm ?? Date.now()) : undefined }
+          }),
+        })),
+      removerMeta: (id) => set((s) => ({ metas: s.metas.filter((m) => m.id !== id) })),
     }),
     {
       name: 'meusme-financas',
@@ -226,11 +260,94 @@ const PALAVRAS: [RegExp, string][] = [
 
 const normalizar = (s: string) => s.toLowerCase().replace(/\d+/g, '').replace(/\s+/g, ' ').trim()
 
-/** Usa a categoria de lançamentos anteriores com a mesma descrição; senão, palavras-chave. */
-export function sugerirCategoria(descricao: string, transacoes: Transacao[], categorias: Categoria[]) {
+/** Sem acento e em minúsculas, para as regras de categoria. */
+export const normalizarTexto = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+/** Primeira palavra de uma descrição que serve de regra ("UBER *TRIP 1234" → "uber"), ou null. */
+export function palavraDaRegra(descricao: string) {
+  return normalizarTexto(descricao).split(/[^a-z0-9]+/).find((p) => p.length >= 3 && !/^\d+$/.test(p)) ?? null
+}
+
+/**
+ * Categoria sugerida, nesta ordem: as suas regras (V28), a categoria de lançamentos anteriores com a mesma
+ * descrição e, por fim, palavras-chave.
+ */
+export function sugerirCategoria(descricao: string, transacoes: Transacao[], categorias: Categoria[], regras: RegraCategoria[] = []) {
+  const texto = normalizarTexto(descricao)
+  const regra = regras.find((r) => texto.includes(r.contem) && categorias.some((c) => c.id === r.categoriaId))
+  if (regra) return regra.categoriaId
   const alvo = normalizar(descricao)
   const anterior = transacoes.find((t) => t.categoriaId && normalizar(t.descricao) === alvo)
   if (anterior) return anterior.categoriaId
   const achada = PALAVRAS.find(([re]) => re.test(descricao))?.[1]
   return achada && categorias.some((c) => c.id === achada) ? achada : null
+}
+
+/** "AAAA-MM" n meses antes de `mes`. */
+export function mesAntes(mes: string, n: number) {
+  const [a, m] = mes.split('-').map(Number)
+  const d = new Date(a, m - 1 - n, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+/**
+ * Comparar meses (V26 em docs/CONCORRENTES.md): gasto por categoria do dia 1 até `ateDia` deste mês contra a média
+ * do mesmo trecho nos `meses` anteriores que têm lançamentos. Só entram diferenças de pelo menos 20% e R$ 50, da
+ * maior para a menor; sem meses anteriores, a lista vem vazia.
+ */
+export function compararComMesesAnteriores(transacoes: Transacao[], mes: string, ateDia: number, meses = 3) {
+  const trecho = (m: string) => {
+    const limite = `${m}-${String(ateDia).padStart(2, '0')}`
+    return resumoDoMes(
+      transacoes.filter((t) => t.data <= limite),
+      m,
+    ).porCategoria
+  }
+  const anteriores = Array.from({ length: meses }, (_, i) => mesAntes(mes, i + 1)).filter((m) => transacoes.some((t) => t.data.startsWith(m)))
+  if (!anteriores.length) return { meses: 0, diferencas: [] }
+  const atual = trecho(mes)
+  const somas = new Map<string | null, number>()
+  for (const m of anteriores) for (const [c, v] of trecho(m)) somas.set(c, (somas.get(c) ?? 0) + v)
+  const categorias = new Set([...atual.keys(), ...somas.keys()])
+  const diferencas = [...categorias]
+    .map((categoriaId) => {
+      const agora = atual.get(categoriaId) ?? 0
+      const media = Math.round((somas.get(categoriaId) ?? 0) / anteriores.length)
+      return { categoriaId, agora, media, diferenca: agora - media }
+    })
+    .filter((d) => Math.abs(d.diferenca) >= 5000 && Math.abs(d.diferenca) >= 0.2 * Math.max(d.media, 1))
+    .sort((a, b) => Math.abs(b.diferenca) - Math.abs(a.diferenca))
+  return { meses: anteriores.length, diferencas }
+}
+
+/**
+ * Assinaturas esquecidas (V29 em docs/CONCORRENTES.md): gastos com a mesma descrição (sem números) em cada um dos 3
+ * meses anteriores, com valores parecidos (o maior até 20% acima do menor), que ainda não são conta fixa nem foram
+ * dispensados. Devolve a ocorrência mais recente de cada um.
+ */
+export function provaveisAssinaturas(transacoes: Transacao[], fixas: ContaFixa[], mes: string, dispensadas: string[] = []) {
+  const meses = [1, 2, 3].map((n) => mesAntes(mes, n))
+  const grupos = new Map<string, Transacao[]>()
+  for (const t of transacoes) {
+    if (t.valor >= 0 || t.categoriaId === TRANSFERENCIA || !meses.some((m) => t.data.startsWith(m))) continue
+    const chave = normalizar(normalizarTexto(t.descricao))
+    if (chave) grupos.set(chave, [...(grupos.get(chave) ?? []), t])
+  }
+  const jaFixa = (chave: string) => fixas.some((f) => chave.includes(normalizar(normalizarTexto(f.nome))) || normalizar(normalizarTexto(f.nome)).includes(chave))
+  return [...grupos.entries()]
+    .filter(([chave, ts]) => {
+      if (dispensadas.includes(chave) || jaFixa(chave) || !meses.every((m) => ts.some((t) => t.data.startsWith(m)))) return false
+      const valores = ts.map((t) => -t.valor)
+      return Math.max(...valores) <= 1.2 * Math.min(...valores)
+    })
+    .map(([chave, ts]) => {
+      const ultima = ts.reduce((a, b) => (b.data > a.data ? b : a))
+      return { chave, descricao: ultima.descricao, valor: -ultima.valor, dia: Number(ultima.data.slice(8)), categoriaId: ultima.categoriaId, contaId: ultima.contaId }
+    })
 }

@@ -45,6 +45,16 @@ export function Sobre() {
         </p>
       </details>
 
+      {/* Plano de saída (D21 em docs/CONCORRENTES.md): se o app acabar, nada fica preso nele. */}
+      <details>
+        <summary>Plano de saída: levar tudo embora</summary>
+        <ul className="lista-simples">
+          <li>O backup (abaixo) é um arquivo JSON com todos os dados, legível em qualquer editor de texto, e restaura tudo em outro aparelho.</li>
+          <li>Os formatos abertos, logo abaixo do backup, abrem sem o MeUsMe: passos em Markdown, lançamentos em CSV (Excel) e a agenda em .ics (Google Agenda, Outlook).</li>
+          <li>Os dados moram no aparelho. Mesmo que o servidor da sincronização pare, o app continua funcionando com o que já está aqui.</li>
+        </ul>
+      </details>
+
       <details>
         <summary>Privacidade</summary>
         <ul className="lista-simples">
