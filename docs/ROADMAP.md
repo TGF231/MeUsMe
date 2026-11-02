@@ -139,6 +139,7 @@ O que o app já tem, visto pelo seu perfil. Quando o item citado é de [CONCORRE
   - Fase 8, iPhone (A3): App Shortcut "Anotar no MeUsMe" com App Intents. O Atalho do iPhone que dita e abre um link (A2) é o degrau mais barato antes disso.
   - Gemini (A4): não está aberto para o MeUsMe hoje. O AppFunctions roda no aparelho e combina com o app; reavaliar quando o Android 17 sair. A Connected Apps Platform fica de fora, porque exige servidor.
   - "Hey MeUsMe" com overlay: no Android, primeiro o MeUsMe como assistente digital padrão (A5, onda 2), que abre a captura por cima de qualquer app pelo gesto, sem microfone sempre aberto. A palavra de ativação sempre ligada (A6 no Android, A7 no Windows) fica opcional, desligada por padrão e na onda 3. No iPhone não dá (A8): o Botão de Ação dispara o atalho de A3.
+- **Feito em 2/11/2026 (branch onda1):** toda a onda 1 pelo seu perfil (V09, D04, D25, D14, D13, V27, V20, D03, D08, V03, V02) e o atalho de voz A1, mais V07, V08 e D27 da onda 1 da pesquisa. Ficam da onda 1 da pesquisa: V01, V12, V18, V23, V24, D01, D02 e D23.
 - **Ordem pelo seu nível.** Da onda 1 para você, V09, V20, V27, D04, D13, D14 e D25 são só TypeScript e React; D08 pede a trilha 9; V02 e V03 pedem a trilha 10. D03 é regra, sem código novo.
 - **Regra de entrada.** Cada item só vira tarefa em [TAREFAS.md](TAREFAS.md) com linha de chegada medível e um teste, do jeito que você já cobra.
 <!-- perfil:fim -->
