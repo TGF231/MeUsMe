@@ -63,6 +63,8 @@ export interface Ideia {
   texto: string
   projetoId: string | null
   criadoEm: number
+  /** "Ainda vale" na pergunta dos 90 dias (D10): conta de novo a partir daqui. */
+  adiadaEm?: number
 }
 
 export interface Sessao {

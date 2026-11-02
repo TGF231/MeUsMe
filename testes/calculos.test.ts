@@ -196,3 +196,12 @@ test('paradas: 30 dias ou mais na Caixa, contando do adiamento quando houver, da
   ]
   assert.deepEqual(paradas(capturas, agora).map((c) => c.id), ['velha', 'limite'])
 })
+
+test('paradas também serve para ideias com outra validade (90 dias)', () => {
+  const agora = new Date(2026, 10, 2, 12).getTime()
+  const ideias = [
+    { id: 'velha', texto: 'a', projetoId: null, criadoEm: agora - 100 * 86_400_000 },
+    { id: 'nova', texto: 'b', projetoId: null, criadoEm: agora - 60 * 86_400_000 },
+  ]
+  assert.deepEqual(paradas(ideias, agora, 90).map((i) => i.id), ['velha'])
+})

@@ -304,6 +304,8 @@ export function Caixa() {
   // Paradas há 30 dias ou mais voltam no topo com uma pergunta (D09 em docs/CONCORRENTES.md).
   const velhas = paradas(s.capturas)
   const recentes = s.capturas.filter((c) => !velhas.includes(c))
+  // Ideias com validade (D10): depois de 90 dias, perguntam se ainda valem.
+  const ideiasVelhas = new Set(paradas(soltas, undefined, 90).map((i) => i.id))
   // O tutorial abre sozinho na primeira visita; depois, pelo "?".
   const [tutorial, setTutorial] = useState(() => !useConfig.getState().tutorialCapturaVisto)
   const [exemplo] = useState(() => EXEMPLOS_DE_CAMPO[Math.floor(Math.random() * EXEMPLOS_DE_CAMPO.length)])
@@ -394,8 +396,16 @@ export function Caixa() {
               <p className="vazio-texto">Guardadas sem pressão. Nenhuma delas é obrigação.</p>
               {soltas.map((i) => (
                 <div key={i.id} className="cartao linha entre">
-                  <span>{i.texto}</span>
+                  <span>
+                    {i.texto}
+                    {ideiasVelhas.has(i.id) && <span className="motivo"> · guardada há {diasDesde(i.adiadaEm ?? i.criadoEm)} dias. Ainda vale?</span>}
+                  </span>
                   <span className="linha">
+                    {ideiasVelhas.has(i.id) && (
+                      <button className="discreto" onClick={() => s.adiarIdeia(i.id)}>
+                        Ainda vale
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         s.capturar(i.texto)
