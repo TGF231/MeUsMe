@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.PowerManager;
 import android.provider.Settings;
 import androidx.core.app.NotificationManagerCompat;
 import com.getcapacitor.JSArray;
@@ -63,6 +64,23 @@ public class CapturaPlugin extends Plugin {
             Intent geral = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(geral);
         }
+        call.resolve();
+    }
+
+    /** Diagnóstico de lembretes (D23): o Android está economizando bateria do app? Isso pode atrasar avisos. */
+    @PluginMethod
+    public void bateria(PluginCall call) {
+        PowerManager pm = (PowerManager) getContext().getSystemService(android.content.Context.POWER_SERVICE);
+        JSObject r = new JSObject();
+        r.put("otimizado", pm != null && !pm.isIgnoringBatteryOptimizations(getContext().getPackageName()));
+        call.resolve(r);
+    }
+
+    /** Abre a lista de otimização de bateria do sistema (sem a permissão de pedir isenção direto, que a Play restringe). */
+    @PluginMethod
+    public void abrirBateria(PluginCall call) {
+        Intent i = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(i);
         call.resolve();
     }
 

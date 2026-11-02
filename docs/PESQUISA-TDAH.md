@@ -77,6 +77,7 @@ Toda semana, no dia escolhido: esvaziar a Caixa, escolher **um** projeto em foco
 - **Mantida:** aviso antes dos compromissos e o cartão "comece a fechar o que está fazendo" 30 minutos antes. Transições levam mais tempo do que parece (3).
 - **Mantida:** horário reservado para um passo: um plano "quando for X horas, faço Y" (5).
 - **Nova:** aviso da revisão semanal e da lista de espera.
+- **Nova:** diagnóstico dos lembretes no Android: além da permissão e dos alarmes exatos, avisa quando a economia de bateria pode segurar os avisos e oferece um teste que chega com o app fechado. Um lembrete que falha sem aviso derruba a confiança no apoio externo (1, 8).
 - **Nova:** ler outras agendas do Google pelo ID, como a compartilhada com a equipe, só para leitura. Os compromissos de trabalho entram na tela Agora, onde passam na frente dos passos (1).
 
 ### Histórico e check-in

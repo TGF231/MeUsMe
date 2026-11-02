@@ -7,8 +7,17 @@ import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows }
 import { Sincronizacao } from '../components/Sincronizacao'
 import { Sobre } from '../components/Sobre'
 import { OPCIONAIS, PERFIS, type Aba } from '../navegacao'
-import { ehDesktop, ehNativo } from '../nativo/plataforma'
-import { abrirAjusteDeHorarioExato, horarioExatoLiberado, lerPermissao, notificar, pedirPermissao, type Permissao } from '../notificacoes'
+import { Captura as PluginCaptura } from '../nativo/captura'
+import { ehAndroid, ehDesktop, ehNativo } from '../nativo/plataforma'
+import {
+  abrirAjusteDeHorarioExato,
+  horarioExatoLiberado,
+  lerPermissao,
+  notificar,
+  pedirPermissao,
+  testarComAppFechado,
+  type Permissao,
+} from '../notificacoes'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { useMotor } from '../stores/motor'
@@ -22,12 +31,15 @@ function Notificacoes() {
   const cfg = useConfig()
   const [permissao, setPermissao] = useState<Permissao | null>(null)
   const [exato, setExato] = useState<boolean | null>(null)
+  const [bateria, setBateria] = useState<boolean | null>(null)
+  const [testando, setTestando] = useState(false)
   const nativo = ehNativo()
 
   useEffect(() => {
     const atualizar = () => {
       void lerPermissao().then(setPermissao)
       void horarioExatoLiberado().then(setExato)
+      if (ehAndroid()) void PluginCaptura.bateria().then((b) => setBateria(b.otimizado))
     }
     atualizar()
     // Relê ao voltar das configurações do sistema.
@@ -63,9 +75,28 @@ function Notificacoes() {
           </button>
         </div>
       )}
-      <button onClick={() => void notificar('Teste do MeUsMe', 'Se você está vendo isto, os avisos estão funcionando.', 'teste')}>
-        Enviar notificação de teste
-      </button>
+      {bateria && (
+        <div className="dica">
+          O Android está economizando bateria do MeUsMe, e isso pode atrasar ou segurar avisos. Na lista que abre, escolha o MeUsMe e marque “Não
+          otimizar”.{' '}
+          <button className="mini-botao" onClick={() => void PluginCaptura.abrirBateria()}>
+            Abrir ajustes de bateria
+          </button>
+        </div>
+      )}
+      <div className="linha">
+        <button onClick={() => void notificar('Teste do MeUsMe', 'Se você está vendo isto, os avisos estão funcionando.', 'teste')}>
+          Enviar notificação de teste
+        </button>
+        {nativo && (
+          <button onClick={() => void testarComAppFechado().then(() => setTestando(true))}>Testar com o app fechado</button>
+        )}
+      </div>
+      {testando && (
+        <p className="dica neutra" role="status">
+          Agora feche o MeUsMe e espere 1 minuto. Se o aviso não chegar, confira a permissão, os alarmes e a bateria acima.
+        </p>
+      )}
       <p className="dica neutra">
         {nativo
           ? 'No app Android, os avisos da próxima semana ficam agendados no sistema e tocam mesmo com o app fechado.'

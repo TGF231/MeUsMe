@@ -61,6 +61,26 @@ export const garantirCanal = () =>
     canalCriado = null
   }))
 
+/**
+ * Teste com o app fechado (D23): um aviso agendado para daqui a 1 minuto. Se ele não chegar, algo no aparelho
+ * (permissão, alarme exato ou economia de bateria) está segurando os lembretes.
+ */
+export async function testarComAppFechado() {
+  if (!ehNativo()) return
+  await garantirCanal()
+  await LocalNotifications.schedule({
+    notifications: [
+      {
+        id: 1_999_999_999,
+        channelId: CANAL,
+        title: 'Teste do MeUsMe',
+        body: 'Chegou com o app fechado: os lembretes estão funcionando.',
+        schedule: { at: new Date(Date.now() + 60_000), allowWhileIdle: true },
+      },
+    ],
+  })
+}
+
 /** Com o app em foco, mostra aviso interno; caso contrário, notificação do sistema. */
 export async function notificar(titulo: string, corpo: string, tag?: string) {
   const olhando = document.visibilityState === 'visible' && document.hasFocus()
