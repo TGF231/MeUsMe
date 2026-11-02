@@ -61,3 +61,12 @@ test('projeto em foco continua vencendo um prazo distante', () => {
   const lista = [passo('lista', 1), passo('boleto', 1, { projetoId: null, prazo: '2026-11-06' })]
   assert.equal(escolherPasso([projeto], lista, 'festa', 2, new Set(), new Set(), '2026-11-01')?.passo.id, 'lista')
 })
+
+test('pedaços de uma tarefa solta com o mesmo prazo vêm antes do original', () => {
+  const lista = [
+    passo('original', 1, { projetoId: null, prazo: '2026-11-01' }),
+    passo('pedaco1', 0.5, { projetoId: null, prazo: '2026-11-01' }),
+    passo('pedaco2', 0.75, { projetoId: null, prazo: '2026-11-01' }),
+  ].map((p) => ({ ...p, criadoEm: 0 }))
+  assert.equal(escolherPasso([], lista, null, 2, new Set(), new Set(), '2026-11-01')?.passo.id, 'pedaco1')
+})

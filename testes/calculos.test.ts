@@ -6,6 +6,7 @@ import {
   diasDesde,
   explicarFator,
   inicioDaSemana,
+  ordemAntesDe,
   passosParaModelo,
   progresso,
   proximaOcorrencia,
@@ -159,4 +160,18 @@ test('vencidos ignora feitos e sem prazo; novas datas espalham dois por dia a pa
     { id: 'a', prazo: '2026-11-02' },
     { id: 'c', prazo: '2026-11-03' },
   ])
+})
+
+test('ordemAntesDe: pedaços inseridos antes do mesmo passo ficam na ordem em que foram escritos', () => {
+  const base = { projetoId: 'p', texto: '', energia: 1 as const, criadoEm: 0 }
+  const passos: Passo[] = [
+    { ...base, id: 'a', ordem: 1 },
+    { ...base, id: 'grande', ordem: 2 },
+  ]
+  const alvo = passos[1]
+  const primeiro = ordemAntesDe(passos, alvo)
+  passos.push({ ...base, id: 'x', ordem: primeiro })
+  const segundo = ordemAntesDe(passos, alvo)
+  assert.ok(1 < primeiro && primeiro < segundo && segundo < 2)
+  assert.equal(ordemAntesDe([alvo], alvo), 1.5)
 })

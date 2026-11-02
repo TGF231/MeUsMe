@@ -25,6 +25,7 @@ interface Props {
   comDatas?: boolean
   onSalvar: (texto: string, energia: Energia, datas: Datas) => void
   onCancelar?: () => void
+  rotuloCancelar?: string
 }
 
 export function PassoForm({
@@ -37,6 +38,7 @@ export function PassoForm({
   comDatas = true,
   onSalvar,
   onCancelar,
+  rotuloCancelar = 'Cancelar',
 }: Props) {
   const [texto, setTexto] = useState(inicial)
   const [energia, setEnergia] = useState<Energia>(energiaInicial)
@@ -120,7 +122,7 @@ export function PassoForm({
         </button>
         {onCancelar && (
           <button type="button" onClick={onCancelar}>
-            Cancelar
+            {rotuloCancelar}
           </button>
         )}
       </div>

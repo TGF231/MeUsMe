@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { DeNovo } from '../components/DeNovo'
 import { CamposDeData, PassoForm } from '../components/PassoForm'
+import { Quebrar } from '../components/Quebrar'
 import { BarraProgresso } from '../components/Progresso'
 import { PontosEditaveis } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
@@ -58,8 +59,11 @@ function DatasDoPasso({ passo }: { passo: Passo }) {
 function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: boolean }) {
   const s = useStore()
   const [editando, setEditando] = useState(false)
+  const [quebrando, setQuebrando] = useState(false)
   const [texto, setTexto] = useState(passo.texto)
   const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe })
+
+  if (quebrando) return <Quebrar passo={passo} onPronto={() => setQuebrando(false)} />
 
   if (editando)
     return (
@@ -85,6 +89,9 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   const energia = <PontosEditaveis energia={passo.energia} onChange={(e) => s.atualizarPasso(passo.id, { energia: e })} />
   const acoes = (
     <span className="linha">
+      <button className="discreto" onClick={() => setQuebrando(true)} aria-label={`Quebrar ${passo.texto} em pedaços menores`}>
+        Quebrar
+      </button>
       <button
         className="discreto"
         onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe }), setEditando(true))}

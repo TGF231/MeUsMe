@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { diasDesde, revisaoPendente, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
+import { Quebrar } from '../components/Quebrar'
 import { BarraProgresso } from '../components/Progresso'
 import { AnelDoBloco, Palpite } from '../components/RelogioDeFoco'
 import { RevisaoSemana } from '../components/RevisaoSemana'
@@ -406,18 +407,7 @@ export function Agora() {
             )}
 
             {modo === 'quebrando' ? (
-              <PassoForm
-                pergunta="Qual é o menor pedaço disso que dá para fazer em 2 minutos?"
-                rotuloBotao="Fazer este primeiro"
-                sugerir={false}
-                comDatas={false}
-                energiaInicial={1}
-                onSalvar={(t, e) => {
-                  s.criarPasso(escolha.passo.projetoId, t, e, escolha.passo.id)
-                  setModo('normal')
-                }}
-                onCancelar={() => setModo('normal')}
-              />
+              <Quebrar passo={escolha.passo} onPronto={() => setModo('normal')} />
             ) : modo === 'agendando' ? (
               <>
                 <p className="rotulo">Reservar um horário para este passo. Quando chegar a hora, ele aparece aqui primeiro.</p>

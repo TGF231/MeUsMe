@@ -51,6 +51,16 @@ export function sugerirNovasDatas(vencidosOrdenados: Passo[], dia: string, porDi
   return vencidosOrdenados.map((p, i) => ({ id: p.id, prazo: somarDias(dia, 1 + Math.floor(i / porDia)) }))
 }
 
+/**
+ * Ordem para um passo novo logo antes de `alvo`, depois de qualquer outro já inserido ali: quebrar um passo em
+ * vários pedaços mantém os pedaços na ordem em que foram escritos.
+ */
+export function ordemAntesDe(passos: Passo[], alvo: Passo) {
+  const anteriores = passos.filter((p) => p.projetoId === alvo.projetoId && p.ordem < alvo.ordem).map((p) => p.ordem)
+  const anterior = Math.max(alvo.ordem - 1, ...anteriores)
+  return (anterior + alvo.ordem) / 2
+}
+
 /** Minutos gastos: sessões do cronômetro + minutosManuais. */
 export const minutosDoPasso = (passo: Passo, sessoes: Sessao[], agora = Date.now()) =>
   sessoes.filter((x) => x.passoId === passo.id).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0) +

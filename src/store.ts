@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apagarAudio } from './audios'
-import { passosParaModelo } from './calculos'
+import { ordemAntesDe, passosParaModelo } from './calculos'
 import type { Classe } from './motor/regras'
 import type { Captura, CheckIn, Datas, Energia, Ideia, Modelo, Passo, Projeto, Sessao } from './types'
 
@@ -124,7 +124,7 @@ export const useStore = create<Estado>()(
             const alvo = s.passos.find((p) => p.id === antesDe)
             if (alvo) {
               // Herda criadoEm do original para ter a mesma prioridade por idade na escolha.
-              ordem = alvo.ordem - 0.5
+              ordem = ordemAntesDe(s.passos, alvo)
               criadoEm = alvo.criadoEm - 1
             }
           }

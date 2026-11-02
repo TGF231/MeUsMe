@@ -33,7 +33,7 @@ O que a pesquisa diz, o que isso muda no MeUsMe e até onde a evidência vai. Re
 
 - **Mantida:** uma sugestão por vez, escolhida por energia, foco e distância do fim (1, 11). Escolher entre muitas opções é justamente a decisão que trava.
 - **Mantida:** compromissos e horários reservados passam na frente (1: a ajuda no ponto de execução).
-- **Mantida:** "Grande demais" quebra em um passo de 2 minutos com energia baixa (2, 6).
+- **Ajustada:** "Grande demais" (e o novo "Quebrar" em Projetos) começa pelo pedaço de 2 minutos com energia baixa e segue com "e depois disso?" até você dizer que basta; os pedaços entram antes do original, na ordem escrita e com o mesmo prazo (2, 6). Quebrar sem nuvem: as perguntas guiam, e quem escreve os passos é você.
 - **Nova:** *Combinado: só 5 minutos*. Diminui o tamanho do compromisso inicial, que é onde a baixa expectativa de conseguir pesa (6). Aos 5 minutos de foco, o app diz que dá para parar sem culpa.
 - **Nova:** barra de progresso até a linha de chegada, contando o que já foi feito desde o começo (11). Resposta direta ao "cada passo mais perto parece mais inalcançável".
 - **Nova:** anel do bloco de foco: o tempo passando fica visível, fora da cabeça (1, 3).
