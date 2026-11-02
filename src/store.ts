@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apagarAudio } from './audios'
-import { ordemAntesDe, passosParaModelo } from './calculos'
+import { ordemAntesDe, passosParaModelo, proximaRepeticao } from './calculos'
 import type { Classe } from './motor/regras'
 import type { Captura, CheckIn, Datas, Energia, Ideia, Modelo, Passo, Projeto, Sessao } from './types'
 
 /** Só as datas preenchidas: campo vazio não vira chave no passo (nem na sincronização). */
 const limparDatas = (d?: Datas) => Object.fromEntries(Object.entries(d ?? {}).filter(([, v]) => v)) as Datas
-import { hoje, novoId as id } from './util'
+import { dataISO, hoje, novoId as id } from './util'
 
 export { hoje }
 
@@ -36,6 +36,8 @@ interface Estado {
 
   criarPasso: (projetoId: string | null, texto: string, energia: Energia, antesDe?: string, datas?: Datas) => string
   concluirPasso: (id: string) => void
+  /** Desfaz o "Já fiz": o passo volta para a fila e a repetição criada por ele some. */
+  reabrirPasso: (id: string) => void
   atualizarPasso: (id: string, mudancas: Partial<Omit<Passo, 'id'>>) => void
   removerPasso: (id: string) => void
   /** Cria de novo um passo já feito: no mesmo projeto, se ainda estiver aberto, ou como tarefa solta. */
@@ -133,7 +135,34 @@ export const useStore = create<Estado>()(
         return novo
       },
       concluirPasso: (pid) =>
-        set((s) => ({ passos: s.passos.map((p) => (p.id === pid ? { ...p, feitoEm: Date.now() } : p)) })),
+        set((s) => {
+          const passos = s.passos.map((p) => (p.id === pid ? { ...p, feitoEm: Date.now() } : p))
+          const feito = s.passos.find((p) => p.id === pid)
+          const projeto = feito?.projetoId ? s.projetos.find((p) => p.id === feito.projetoId) : null
+          if (!feito?.repetir || feito.feitoEm || projeto?.concluidoEm) return { passos }
+          // Passo que se repete (V08): a próxima vez entra no fim da fila, escondida até a data com "só a partir de".
+          const dia = dataISO()
+          const ordem = s.passos.filter((p) => p.projetoId === feito.projetoId).reduce((m, p) => Math.max(m, p.ordem), 0) + 1
+          const proximo: Passo = {
+            id: id(),
+            projetoId: feito.projetoId,
+            texto: feito.texto,
+            energia: feito.energia,
+            ordem,
+            criadoEm: Date.now(),
+            repetir: feito.repetir,
+            aPartirDe: proximaRepeticao(feito.repetir, dia),
+            repeteDe: feito.id,
+            ...(feito.prazo && { prazo: proximaRepeticao(feito.repetir, feito.prazo) }),
+          }
+          return { passos: [...passos, proximo] }
+        }),
+      reabrirPasso: (pid) =>
+        set((s) => ({
+          passos: s.passos
+            .filter((p) => !(p.repeteDe === pid && !p.feitoEm))
+            .map((p) => (p.id === pid ? { ...p, feitoEm: undefined } : p)),
+        })),
       atualizarPasso: (pid, m) => set((s) => ({ passos: s.passos.map((p) => (p.id === pid ? { ...p, ...m } : p)) })),
       removerPasso: (pid) =>
         set((s) => ({ passos: s.passos.filter((p) => p.id !== pid), sessoes: fecharSessoes(s.sessoes, new Set([pid])) })),

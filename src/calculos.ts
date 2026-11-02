@@ -39,6 +39,16 @@ export function somarDias(dia: string, n: number) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+/** Próxima data de um passo que se repete, contada a partir do dia em que foi feito. O mensal vai para o último dia dos meses curtos. */
+export function proximaRepeticao(repetir: NonNullable<Passo['repetir']>, dia: string) {
+  if (repetir === 'diario') return somarDias(dia, 1)
+  if (repetir === 'semanal') return somarDias(dia, 7)
+  const [a, m, d] = dia.split('-').map(Number)
+  const ultimo = new Date(a, m + 1, 0).getDate()
+  const proximo = new Date(a, m, Math.min(d, ultimo), 12)
+  return `${proximo.getFullYear()}-${String(proximo.getMonth() + 1).padStart(2, '0')}-${String(proximo.getDate()).padStart(2, '0')}`
+}
+
 /** Passos pendentes com prazo antes de `dia`, do mais antigo para o mais novo. */
 export const vencidos = (passos: Passo[], dia: string) =>
   passos.filter((p) => !p.feitoEm && p.prazo && p.prazo < dia).sort((a, b) => a.prazo!.localeCompare(b.prazo!) || a.ordem - b.ordem)

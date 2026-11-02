@@ -253,7 +253,7 @@ export function Agora() {
           <button
             className="discreto"
             onClick={() => {
-              s.atualizarPasso(passoId, { feitoEm: undefined })
+              s.reabrirPasso(passoId)
               setCelebrar(null)
             }}
           >

@@ -9,6 +9,7 @@ import {
   ordemAntesDe,
   passosParaModelo,
   progresso,
+  proximaRepeticao,
   proximaOcorrencia,
   revisaoPendente,
   somarDias,
@@ -174,4 +175,11 @@ test('ordemAntesDe: pedaços inseridos antes do mesmo passo ficam na ordem em qu
   const segundo = ordemAntesDe(passos, alvo)
   assert.ok(1 < primeiro && primeiro < segundo && segundo < 2)
   assert.equal(ordemAntesDe([alvo], alvo), 1.5)
+})
+
+test('proximaRepeticao: dia, semana e mês (31 de janeiro cai em 28 de fevereiro)', () => {
+  assert.equal(proximaRepeticao('diario', '2026-12-31'), '2027-01-01')
+  assert.equal(proximaRepeticao('semanal', '2026-11-02'), '2026-11-09')
+  assert.equal(proximaRepeticao('mensal', '2027-01-31'), '2027-02-28')
+  assert.equal(proximaRepeticao('mensal', '2026-11-15'), '2026-12-15')
 })

@@ -130,13 +130,14 @@ export function PassoForm({
   )
 }
 
-/** Prazo e "só a partir de", recolhidos: a maioria dos passos não precisa de data. */
+/** Prazo, "só a partir de" e repetição, recolhidos: a maioria dos passos não precisa disso. */
 export function CamposDeData({ datas, onChange, aberto = false }: { datas: Datas; onChange: (d: Datas) => void; aberto?: boolean }) {
   const idPrazo = useId()
   const idInicio = useId()
+  const idRepetir = useId()
   return (
-    <details className="datas-do-passo" open={aberto || Boolean(datas.prazo || datas.aPartirDe)}>
-      <summary>Datas (opcional)</summary>
+    <details className="datas-do-passo" open={aberto || Boolean(datas.prazo || datas.aPartirDe || datas.repetir)}>
+      <summary>Datas e repetição (opcional)</summary>
       <div className="linha">
         <span>
           <label className="rotulo" htmlFor={idPrazo}>
@@ -156,7 +157,23 @@ export function CamposDeData({ datas, onChange, aberto = false }: { datas: Datas
           />
         </span>
       </div>
-      <p className="motivo">O prazo ajuda o Agora a escolher; se passar, o app sugere uma nova data, sem cobrança.</p>
+      <label className="rotulo" htmlFor={idRepetir}>
+        Repetir
+      </label>
+      <select
+        id={idRepetir}
+        value={datas.repetir ?? ''}
+        onChange={(e) => onChange({ ...datas, repetir: (e.target.value || undefined) as Datas['repetir'] })}
+      >
+        <option value="">Não repetir</option>
+        <option value="diario">Todo dia</option>
+        <option value="semanal">Toda semana</option>
+        <option value="mensal">Todo mês</option>
+      </select>
+      <p className="motivo">
+        O prazo ajuda o Agora a escolher; se passar, o app sugere uma nova data, sem cobrança. Um passo que se repete volta sozinho depois de feito,
+        e só aparece no Agora na data seguinte.
+      </p>
     </details>
   )
 }

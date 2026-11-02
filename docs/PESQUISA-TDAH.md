@@ -64,6 +64,7 @@ Valem para tudo o que entrar no app, e vêm dos achados acima e da pesquisa de c
 - **Mantida:** linha de chegada obrigatória, definida enquanto há energia (11).
 - **Mantida:** só o próximo passo aparece; os demais ficam recolhidos.
 - **Nova:** barra de progresso nos cartões e no detalhe (11).
+- **Nova:** passos que se repetem (todo dia, semana ou mês): depois de feito, o passo volta sozinho com "só a partir de" na data seguinte, sem ocupar o Agora antes da hora. Recriar a mesma tarefa é demanda que o apoio externo deve tirar (8).
 - **Nova:** modelos: um projeto que se repete (lavar roupa, mercado) volta inteiro com um toque, com os passos já quebrados (2, 8). Quebrar em passos é a parte que pede energia; refazer isso toda vez é a demanda que o apoio externo deve tirar.
 - **Nova:** passos já feitos voltam com "De novo" (no projeto e no Histórico), e o formulário sugere passos anteriores e verbos concretos para começar a frase (2, 8). Os verbos também evitam o passo vago, que é o que trava na hora de começar.
 

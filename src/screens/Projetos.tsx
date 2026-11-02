@@ -45,15 +45,15 @@ function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
 
 /** Prazo e início do passo, em tom neutro: data passada não ganha cor de alerta (D04). */
 function DatasDoPasso({ passo }: { passo: Passo }) {
-  if (!passo.prazo && !passo.aPartirDe) return null
-  return (
-    <span className="motivo datas-passo">
-      {passo.aPartirDe && passo.aPartirDe > hoje() && `a partir de ${dataCurta(passo.aPartirDe)}`}
-      {passo.aPartirDe && passo.aPartirDe > hoje() && passo.prazo && ' · '}
-      {passo.prazo && `até ${dataCurta(passo.prazo)}`}
-    </span>
-  )
+  const partes = [
+    passo.repetir && `↻ ${REPETE[passo.repetir]}`,
+    passo.aPartirDe && passo.aPartirDe > hoje() && `a partir de ${dataCurta(passo.aPartirDe)}`,
+    passo.prazo && `até ${dataCurta(passo.prazo)}`,
+  ].filter(Boolean)
+  return partes.length ? <span className="motivo datas-passo">{partes.join(' · ')}</span> : null
 }
+
+const REPETE = { diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }
 
 /** Passo com energia ajustável, texto editável e remoção. `destaque` é o visual do próximo passo. */
 function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: boolean }) {
@@ -61,7 +61,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   const [editando, setEditando] = useState(false)
   const [quebrando, setQuebrando] = useState(false)
   const [texto, setTexto] = useState(passo.texto)
-  const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe })
+  const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir })
 
   if (quebrando) return <Quebrar passo={passo} onPronto={() => setQuebrando(false)} />
 
@@ -71,7 +71,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
         className="linha"
         onSubmit={(e) => {
           e.preventDefault()
-          if (texto.trim()) s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe })
+          if (texto.trim()) s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe, repetir: datas.repetir })
           setEditando(false)
         }}
       >
@@ -94,7 +94,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
       </button>
       <button
         className="discreto"
-        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe }), setEditando(true))}
+        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir }), setEditando(true))}
         aria-label={`Editar ${passo.texto}`}
       >
         Editar
