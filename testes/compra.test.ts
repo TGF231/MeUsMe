@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { efeitoDaCompra } from '../src/compra.ts'
+import { dividirEmParcelas, efeitoDaCompra } from '../src/compra.ts'
 
 test('compra que cabe: livre por dia cai e diz quantos dias de livre consome', () => {
   const e = efeitoDaCompra({ livre: 200000, diasRestantes: 20, porDia: 10000 }, 30000)
@@ -15,4 +15,12 @@ test('compra que passa do livre do mês mostra quanto falta', () => {
 
 test('sem livre por dia positivo, não calcula dias de livre', () => {
   assert.equal(efeitoDaCompra({ livre: -500, diasRestantes: 5, porDia: -100 }, 1000).diasDeLivre, null)
+})
+
+test('parcelas: uma por mês, centavos que sobram na primeira, dia 31 vira o último dia do mês', () => {
+  const p = dividirEmParcelas(-10000, 3, '2027-01-31')
+  assert.deepEqual(p.map((x) => x.data), ['2027-01-31', '2027-02-28', '2027-03-31'])
+  assert.deepEqual(p.map((x) => x.valor), [-3334, -3333, -3333])
+  assert.equal(p.reduce((t, x) => t + x.valor, 0), -10000)
+  assert.equal(p[2].sufixo, ' (3/3)')
 })

@@ -13,3 +13,18 @@ export function efeitoDaCompra(previsao: { livre: number; diasRestantes: number;
     falta: Math.max(0, valor - previsao.livre),
   }
 }
+
+/**
+ * Compra parcelada (V24 em docs/CONCORRENTES.md): o total vira uma parcela por mês, na mesma data (o dia 31 cai no
+ * último dia dos meses curtos). Os centavos que sobram da divisão vão na primeira parcela, para a soma bater.
+ */
+export function dividirEmParcelas(total: number, parcelas: number, data: string) {
+  const base = Math.trunc(total / parcelas)
+  const [a, m, d] = data.split('-').map(Number)
+  return Array.from({ length: parcelas }, (_, i) => {
+    const ultimo = new Date(a, m - 1 + i + 1, 0).getDate()
+    const dia = new Date(a, m - 1 + i, Math.min(d, ultimo), 12)
+    const iso = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, '0')}-${String(dia.getDate()).padStart(2, '0')}`
+    return { valor: i === 0 ? total - base * (parcelas - 1) : base, data: iso, sufixo: ` (${i + 1}/${parcelas})` }
+  })
+}
