@@ -527,8 +527,9 @@ h2.titulo {
   z-index: 10;
 }
 
-/* Botão invisível que cobre o fundo de uma janela: tocar fora fecha. */
-.fundo-fechar {
+/* Botão invisível que cobre o fundo de uma janela: tocar fora fecha. O :hover vence o button:hover, que pintaria o véu de cinza. */
+.fundo-fechar,
+.fundo-fechar:hover {
   position: absolute;
   inset: 0;
   width: 100%;
