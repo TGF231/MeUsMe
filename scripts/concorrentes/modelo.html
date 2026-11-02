@@ -298,6 +298,9 @@ function perfilRodape() {
     h('h2', {}, 'Captura por assistente de voz (Gemini e Siri)'),
     h('ul', { class: 'sinais' }, D.assistentes.map(([id, t, hoje, fazer, ganho, custo, onda, fs]) => h('li', {}, h('b', {}, `${id} · ${t} `), h('span', { class: 'pilula' }, `Onda ${onda}`), h('br'), hoje, ' ', h('b', {}, 'Fazer: '), fazer, ' ', h('b', {}, 'Custo: '), custo, ' ',
       fs.map((k, n) => [n ? ' · ' : '', h('a', { href: D.fontesAssistentes[k][1], target: '_blank', rel: 'noopener' }, D.fontesAssistentes[k][0])])))),
+    h('h2', {}, 'Integração com apps de automação (ideia, sem decisão)'),
+    h('ul', { class: 'sinais' }, D.automacao.map(([id, t, hoje, ideia, ganho, custo, fs]) => h('li', {}, h('b', {}, `${id} · ${t}`), h('br'), hoje, ' ', h('b', {}, 'Ideia: '), ideia, ' ', h('b', {}, 'Custo: '), custo, ' ',
+      fs.map((k, n) => [n ? ' · ' : '', h('a', { href: D.fontesAutomacao[k][1], target: '_blank', rel: 'noopener' }, D.fontesAutomacao[k][0])])))),
     h('h2', {}, 'Lacunas que nenhum concorrente cobre'),
     h('ul', {}, D.lacunas.map(([k, t, ev, o]) => h('li', {}, h('b', {}, `${k} · ${t}. `), (ev + ' ' + o).replace(/`/g, ''))))]
 }

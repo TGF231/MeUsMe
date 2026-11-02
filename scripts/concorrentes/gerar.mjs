@@ -1,11 +1,12 @@
 // Gera docs/CONCORRENTES.md, docs/mapa-concorrentes.html e o bloco de perfil do docs/ROADMAP.md (entre <!-- perfil:início --> e <!-- perfil:fim -->).
-// Uso: npm run docs:concorrentes. Edite os dados aqui (dados.mjs, perfil1.mjs, perfil2.mjs, assistentes.mjs) e o mapa em modelo.html, nunca os arquivos gerados.
+// Uso: npm run docs:concorrentes. Edite os dados aqui (dados.mjs, perfil1.mjs, perfil2.mjs, assistentes.mjs, automacao.mjs) e o mapa em modelo.html, nunca os arquivos gerados.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import * as D from './dados.mjs'
 import * as P1 from './perfil1.mjs'
 import * as P2 from './perfil2.mjs'
 import { assistentes, fontesAssistentes } from './assistentes.mjs'
+import { automacao, fontesAutomacao } from './automacao.mjs'
 import { conferirTabelas } from './tabelas.mjs'
 
 const saida = process.argv[2] ?? fileURLToPath(new URL('../../docs', import.meta.url))
@@ -29,7 +30,7 @@ const dados = {
   fontes: D.fontes, ondas: D.ondas, vantagens: D.vantagens, desvantagens: D.desvantagens, jaTem: D.jaTem, reserva: D.reserva, comecar: D.comecar,
   sinais: P1.sinais, tensoes: P1.tensoes, lacunas: P1.lacunas, ondasPerfil: P1.ondasPerfil, trilhas: P1.trilhas, infras: P1.infras,
   esforcos: P1.esforcos, encaixes: P1.encaixes, comecarPerfil: P2.comecarPerfil,
-  assistentes, fontesAssistentes,
+  assistentes, fontesAssistentes, automacao, fontesAutomacao,
 }
 const json = JSON.stringify(dados).replace(/</g, '<')
 const html = readFileSync(new URL('./modelo.html', import.meta.url), 'utf8').replace('/*DADOS*/', json)
@@ -141,6 +142,16 @@ ${assistentes.map(([id, t, hoje, fazer, ganho, custo, onda, fs]) => `| ${id} | *
 
 As fontes sobre o Gemini são de imprensa e de fórum (não achei documento oficial sobre o fim das App Actions); sobre a Siri, as páginas da Apple não confirmaram os limites dos App Shortcuts. Reavalie A4 quando o Android 17 sair. De A5 a A8 (um "Hey MeUsMe" próprio com overlay), a regra do microfone em primeiro plano vem da documentação do Android; o fim do plano gratuito da Porcupine, o comportamento da voz no WebView2 e as regras do iPhone vêm de relatos de usuários, fórum e fornecedores.
 
+## Integração com apps de automação (ideia)
+
+Pesquisa de 02/11/2026, a partir de A1 e V03. **É só uma ideia, sem decisão:** não tem onda e não entra em nenhuma fase até você decidir.
+
+| # | Item | Situação hoje | A ideia | Ganho para você | Custo ou risco | Fonte |
+|---|---|---|---|---|---|---|
+${automacao.map(([id, t, hoje, ideia, ganho, custo, fs]) => `| ${id} | **${t}** | ${celula(hoje)} | ${celula(ideia)} | ${celula(ganho)} | ${celula(custo)} | ${fs.map((k) => `[${fontesAutomacao[k][0]}](${fontesAutomacao[k][1]})`).join('; ')} |`).join('\n')}
+
+Não achei documentação oficial do MacroDroid nem do Automate sobre plugins no padrão Locale; o suporte deles vem de desenvolvedores de outros apps. A regra do Android 14 vem de imprensa e de guias de desenvolvedor, não da página oficial. Webhooks pela internet (IFTTT, Zapier) ficam de fora, porque exigem servidor (D1).
+
 ## 30 vantagens deles que o MeUsMe ainda não tem
 
 ${tabela(D.vantagens, 'O que se sabe')}
@@ -167,7 +178,7 @@ ${D.reserva.map((r) => `- ${r}`).join('\n')}
 
 ## Fontes
 
-${[...Object.values(D.fontes), ...Object.values(fontesAssistentes)].map(([t, u]) => `- [${t}](${u})`).join('\n')}
+${[...Object.values(D.fontes), ...Object.values(fontesAssistentes), ...Object.values(fontesAutomacao)].map(([t, u]) => `- [${t}](${u})`).join('\n')}
 `
 conferirTabelas('CONCORRENTES.md', md)
 writeFileSync(`${saida}/CONCORRENTES.md`, md)
@@ -227,6 +238,7 @@ ${tabelaFuncoes}
   - Fase 8, iPhone (A3): App Shortcut "Anotar no MeUsMe" com App Intents. O Atalho do iPhone que dita e abre um link (A2) é o degrau mais barato antes disso.
   - Gemini (A4): não está aberto para o MeUsMe hoje. O AppFunctions roda no aparelho e combina com o app; reavaliar quando o Android 17 sair. A Connected Apps Platform fica de fora, porque exige servidor.
   - "Hey MeUsMe" com overlay: no Android, primeiro o MeUsMe como assistente digital padrão (A5, onda 2), que abre a captura por cima de qualquer app pelo gesto, sem microfone sempre aberto. A palavra de ativação sempre ligada (A6 no Android, A7 no Windows) fica opcional, desligada por padrão e na onda 3. No iPhone não dá (A8): o Botão de Ação dispara o atalho de A3.
+- **Apps de automação** (Tasker, MacroDroid, Automate, AutoHotkey): só ideia, sem decisão e fora das fases ([CONCORRENTES.md](CONCORRENTES.md#integração-com-apps-de-automação-ideia)). O link meusme://captura já serve a eles hoje (AU1).
 - **Feito em 2/11/2026 (branch onda1):** toda a onda 1 pelo seu perfil (${[...FEITOS].filter((x) => P2.itens[x]?.onda === 1).join(', ')}) e o atalho de voz A1, mais V07, V08, V12, V24, D27 e D23 da onda 1 da pesquisa. Ficam da onda 1 da pesquisa: V01, V18, V23, D01 e D02.
 - **Ordem pelo seu nível.** Da onda 1 para você, ${juntar(soTs1)} são só TypeScript e React; ${juntar(google1)} pede a trilha 9; ${juntar(android1)} pedem a trilha 10. D03 é regra, sem código novo.
 - **Regra de entrada.** Cada item só vira tarefa em [TAREFAS.md](TAREFAS.md) com linha de chegada medível e um teste, do jeito que você já cobra.
