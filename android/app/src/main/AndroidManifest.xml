@@ -22,6 +22,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- "Compartilhar com o MeUsMe": o texto vai para a Caixa (a MainActivity converte em meusme://captura). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- Link de entrada: compartilhamento convertido e o atalho "Capturar por voz". -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="meusme" android:host="captura" />
+            </intent-filter>
+
+            <!-- Atalhos do ícone (tocar e segurar): "Capturar por voz". Também abre com "Hey Google, abrir MeUsMe". -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+
         </activity>
 
         <!-- Leitura de notificações bancárias (requer liberação manual do usuário). -->
@@ -32,6 +50,18 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Bloco "Capturar" nas Configurações rápidas (V02). -->
+        <service
+            android:name=".BlocoCapturaService"
+            android:label="@string/bloco_captura"
+            android:icon="@drawable/ic_bloco_captura"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
 

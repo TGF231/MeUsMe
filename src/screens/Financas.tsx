@@ -4,6 +4,8 @@ import { LancamentoForm } from '../components/LancamentoForm'
 import { ListaDeEspera } from '../components/ListaDeEspera'
 import { useAgora } from '../hooks'
 import { converterExtrato, detectarColunas, lerCSV, type Colunas } from '../csv'
+import { haQuanto, saudeDasFontes } from '../fontes'
+import { lerOFX, pareceOFX } from '../ofx'
 import { apagarConfigPluggy, lerConfigPluggy, salvarConfigPluggy, sincronizarPluggy } from '../pluggy'
 import {
   diaDeVencimento,
@@ -40,7 +42,7 @@ const mudarMes = (mes: string, delta: number) => {
   return mesISO(new Date(a, m - 1 + delta, 1))
 }
 
-function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
+function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomatico>; onVerFontes: () => void }) {
   const f = useFinancas()
   const [lancando, setLancando] = useState(false)
   const [verPagas, setVerPagas] = useState(false)
@@ -73,6 +75,7 @@ function Resumo({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
     <div className="colunas">
       <div className="col">
         <StatusBancos sync={sync} />
+        <AvisoFontesParadas onVer={onVerFontes} />
         <div className="cartao foco destaque">
           <h2 className="rotulo">Livre para gastar por dia até o fim do mês</h2>
           <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
@@ -456,6 +459,53 @@ function useSyncAutomatico() {
   return { ...estado, sincronizar }
 }
 
+/** Fontes automáticas que pararam de trazer lançamentos, em tom neutro (D25). */
+function AvisoFontesParadas({ onVer }: { onVer: () => void }) {
+  const f = useFinancas()
+  const paradas = saudeDasFontes(f.transacoes, f.contas).filter((x) => x.parada)
+  if (paradas.length === 0) return null
+  return (
+    <p className="dica neutra">
+      {paradas.map((x) => `${x.nome}: nada chega ${haQuanto(x.diasSemDados)}`).join('; ')}.{' '}
+      <button className="discreto" onClick={onVer}>
+        Ver as fontes
+      </button>
+    </p>
+  )
+}
+
+/** Quando cada fonte trouxe lançamentos pela última vez e o ritmo de costume (D25). */
+function SaudeDasFontes() {
+  const f = useFinancas()
+  const fontes = saudeDasFontes(f.transacoes, f.contas)
+  if (fontes.length === 0) return null
+  return (
+    <div className="cartao">
+      <h2 className="rotulo">De onde chegam os lançamentos</h2>
+      {fontes.map((x) => (
+        <div key={x.chave} className="item">
+          <div className="linha entre">
+            <span>{x.nome}</span>
+            <span className="motivo">último {haQuanto(x.diasSemDados)}</span>
+          </div>
+          {x.ritmoDias !== null && (
+            <p className="motivo">
+              Costuma chegar {x.ritmoDias <= 1 ? 'todo dia' : `a cada ${Math.round(x.ritmoDias)} dias`}; {x.diasComDados30} dia
+              {x.diasComDados30 === 1 ? '' : 's'} com lançamentos no último mês.
+            </p>
+          )}
+          {x.parada && (
+            <p className="dica neutra">
+              Faz mais tempo que o normal sem nada dessa fonte. O app do banco pode ter parado de avisar (ou o aviso mudou de texto): confira
+              as notificações dele no celular, ou importe o extrato para não ficar buraco.
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function StatusBancos({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
   const cfg = lerConfigPluggy()
   if (!cfg) return null
@@ -565,32 +615,47 @@ function Importar() {
   const [contaId, setContaId] = useState(f.contas[0]?.id ?? '')
   const [inverter, setInverter] = useState(false)
   const [resultado, setResultado] = useState('')
+  // OFX dispensa escolher colunas: o texto fica guardado e é lido de novo se a conta mudar.
+  const [textoOFX, setTextoOFX] = useState<string | null>(null)
 
   const cabecalho = linhas?.[0] ?? []
-  const convertido = linhas && colunas ? converterExtrato(linhas.slice(1), colunas, inverter, contaId) : null
+  const deOFX = textoOFX ? lerOFX(textoOFX, contaId) : null
+  const convertido = deOFX
+    ? { ...deOFX, ok: inverter ? deOFX.ok.map((l) => ({ ...l, valor: -l.valor })) : deOFX.ok }
+    : linhas && colunas
+      ? converterExtrato(linhas.slice(1), colunas, inverter, contaId)
+      : null
 
   return (
     <div className="estreito">
       <p className="vazio-texto">
-        Exporte o extrato do banco em CSV (Nubank, Inter, Wallet e a maioria dos bancos têm essa opção) e traga aqui. Reimportar o mesmo
-        arquivo não duplica nada.
+        Exporte o extrato do banco em OFX ou CSV (Nubank, Inter, Wallet e a maioria dos bancos têm essa opção) e traga aqui. O OFX entra
+        direto, sem escolher colunas. Reimportar o mesmo arquivo não duplica nada.
       </p>
       <div className="cartao">
         <input
-          aria-label="Arquivo CSV do extrato"
+          aria-label="Arquivo do extrato (OFX ou CSV)"
           type="file"
-          accept=".csv,text/csv"
+          accept=".ofx,.csv,text/csv,application/x-ofx"
           onChange={async (e) => {
             const arquivo = e.target.files?.[0]
             if (!arquivo) return
-            const l = lerCSV(await lerArquivoTexto(arquivo))
-            setLinhas(l)
-            setColunas(l.length ? detectarColunas(l[0]) : null)
+            const texto = await lerArquivoTexto(arquivo)
+            if (pareceOFX(texto)) {
+              setTextoOFX(texto)
+              setLinhas(null)
+              setColunas(null)
+            } else {
+              const l = lerCSV(texto)
+              setTextoOFX(null)
+              setLinhas(l)
+              setColunas(l.length ? detectarColunas(l[0]) : null)
+            }
             setInverter(/fatura|cartao|card|nubank_\d{4}-\d{2}-\d{2}/i.test(arquivo.name))
             setResultado('')
           }}
         />
-        {linhas && (
+        {(linhas || textoOFX) && (
           <>
             <label className="rotulo">Para qual conta?</label>
             <select aria-label="Para qual conta" value={contaId} onChange={(e) => setContaId(e.target.value)}>
@@ -600,8 +665,8 @@ function Importar() {
                 </option>
               ))}
             </select>
-            <label className="rotulo">Colunas do arquivo</label>
-            {(['data', 'valor', 'descricao'] as const).map((campo) => (
+            {linhas && <label className="rotulo">Colunas do arquivo</label>}
+            {(linhas ? (['data', 'valor', 'descricao'] as const) : []).map((campo) => (
               <div key={campo} className="linha entre">
                 <span>{campo === 'descricao' ? 'Descrição' : campo === 'data' ? 'Data' : 'Valor'}</span>
                 <select aria-label={`Coluna de ${campo === 'descricao' ? 'descrição' : campo}`}
@@ -657,6 +722,7 @@ function Importar() {
               const repetidas = convertido.ok.length - novas
               setResultado(`${novas} lançamento${novas === 1 ? '' : 's'} importado${novas === 1 ? '' : 's'}${repetidas ? `, ${repetidas} já existiam` : ''}.`)
               setLinhas(null)
+              setTextoOFX(null)
             }}
           >
             Importar {convertido.ok.length} lançamentos
@@ -785,7 +851,7 @@ export function Financas() {
           </button>
         ))}
       </div>
-      {sub === 'resumo' && <Resumo sync={sync} />}
+      {sub === 'resumo' && <Resumo sync={sync} onVerFontes={() => setSub('importar')} />}
       {sub === 'lancamentos' && <Lancamentos />}
       {sub === 'fixas' && <Fixas />}
       {sub === 'espera' && (
@@ -796,6 +862,7 @@ export function Financas() {
       {sub === 'importar' && (
         <>
           <div className="estreito">
+            <SaudeDasFontes />
             <CapturaBancos />
             {/* Meu Pluggy é restrito a uso pessoal: só aparece em builds com VITE_OPEN_FINANCE=ligado. */}
             {import.meta.env.VITE_OPEN_FINANCE === 'ligado' && <OpenFinance sync={sync} />}

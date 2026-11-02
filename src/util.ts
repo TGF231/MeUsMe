@@ -31,6 +31,9 @@ export const juntarDataHora = (data: string, horaTexto: string) => {
   return new Date(a, m - 1, d, h, min).getTime()
 }
 
+/** "AAAA-MM-DD" como "dd/mm". */
+export const dataCurta = (dia: string) => `${dia.slice(8, 10)}/${dia.slice(5, 7)}`
+
 export const hora = (ms: number) => new Date(ms).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
 export const horaInput = (ms: number) => {

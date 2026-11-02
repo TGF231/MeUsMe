@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { DeNovo } from '../components/DeNovo'
-import { PassoForm } from '../components/PassoForm'
+import { CamposDeData, PassoForm } from '../components/PassoForm'
+import { Quebrar } from '../components/Quebrar'
 import { BarraProgresso } from '../components/Progresso'
 import { PontosEditaveis } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { useNavegacao } from '../navegacao'
 import { apagarComDesfazer } from '../desfazer'
 import { minutosDoPasso, pendentes, useStore } from '../store'
-import type { Passo, Projeto } from '../types'
-import { duracao } from '../util'
+import type { Datas, Passo, Projeto } from '../types'
+import { dataCurta, duracao, hoje } from '../util'
 import { Simbolo } from '../components/Icone'
 
 function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
@@ -42,11 +43,27 @@ function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
   )
 }
 
+/** Prazo e início do passo, em tom neutro: data passada não ganha cor de alerta (D04). */
+function DatasDoPasso({ passo }: { passo: Passo }) {
+  const partes = [
+    passo.repetir && `↻ ${REPETE[passo.repetir]}`,
+    passo.aPartirDe && passo.aPartirDe > hoje() && `a partir de ${dataCurta(passo.aPartirDe)}`,
+    passo.prazo && `até ${dataCurta(passo.prazo)}`,
+  ].filter(Boolean)
+  return partes.length ? <span className="motivo datas-passo">{partes.join(' · ')}</span> : null
+}
+
+const REPETE = { diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }
+
 /** Passo com energia ajustável, texto editável e remoção. `destaque` é o visual do próximo passo. */
 function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: boolean }) {
   const s = useStore()
   const [editando, setEditando] = useState(false)
+  const [quebrando, setQuebrando] = useState(false)
   const [texto, setTexto] = useState(passo.texto)
+  const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir })
+
+  if (quebrando) return <Quebrar passo={passo} onPronto={() => setQuebrando(false)} />
 
   if (editando)
     return (
@@ -54,22 +71,32 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
         className="linha"
         onSubmit={(e) => {
           e.preventDefault()
-          if (texto.trim()) s.atualizarPasso(passo.id, { texto: texto.trim() })
+          if (texto.trim()) s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe, repetir: datas.repetir })
           setEditando(false)
         }}
       >
-        <input autoFocus className="flex" value={texto} onChange={(e) => setTexto(e.target.value)} aria-label="Texto do passo" />
-        <button type="submit">Salvar</button>
-        <button type="button" className="discreto" onClick={() => setEditando(false)}>
-          Cancelar
-        </button>
+        <div className="linha">
+          <input autoFocus className="flex" value={texto} onChange={(e) => setTexto(e.target.value)} aria-label="Texto do passo" />
+          <button type="submit">Salvar</button>
+          <button type="button" className="discreto" onClick={() => setEditando(false)}>
+            Cancelar
+          </button>
+        </div>
+        <CamposDeData datas={datas} onChange={setDatas} />
       </form>
     )
 
   const energia = <PontosEditaveis energia={passo.energia} onChange={(e) => s.atualizarPasso(passo.id, { energia: e })} />
   const acoes = (
     <span className="linha">
-      <button className="discreto" onClick={() => (setTexto(passo.texto), setEditando(true))} aria-label={`Editar ${passo.texto}`}>
+      <button className="discreto" onClick={() => setQuebrando(true)} aria-label={`Quebrar ${passo.texto} em pedaços menores`}>
+        Quebrar
+      </button>
+      <button
+        className="discreto"
+        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir }), setEditando(true))}
+        aria-label={`Editar ${passo.texto}`}
+      >
         Editar
       </button>
       <button
@@ -85,15 +112,16 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   return destaque ? (
     <>
       <p className="passo">{passo.texto}</p>
+      <DatasDoPasso passo={passo} />
       <div className="linha entre">
         <span className="motivo">{energia}</span>
         {acoes}
       </div>
     </>
   ) : (
-    <div className="linha entre item">
+    <div className="linha entre item passo-item">
       <span>
-        {energia} {passo.texto}
+        {energia} {passo.texto} <DatasDoPasso passo={passo} />
       </span>
       {acoes}
     </div>
@@ -281,7 +309,7 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
 
           {!projeto.concluidoEm && (
             <div className="cartao">
-              <PassoForm projetoId={id} onSalvar={(t, e) => s.criarPasso(id, t, e)} />
+              <PassoForm projetoId={id} onSalvar={(t, e, d) => s.criarPasso(id, t, e, undefined, d)} />
             </div>
           )}
         </div>
@@ -360,7 +388,9 @@ export function Projetos() {
       <div className="grade-cartoes">
         {ativos.map((p) => {
           const feitos = s.passos.filter((x) => x.projetoId === p.id && x.feitoEm).length
-          const proximo = pendentes(s.passos, p.id)[0]
+          // O próximo de verdade: um passo com "só a partir de" no futuro dá a vez ao seguinte, como no Agora.
+          const fila = pendentes(s.passos, p.id)
+          const proximo = fila.find((x) => !x.aPartirDe || x.aPartirDe <= hoje()) ?? fila[0]
           return (
             <button key={p.id} className="cartao clicavel" onClick={() => setAberto(p.id)}>
               <span className="projeto">

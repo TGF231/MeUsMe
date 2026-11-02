@@ -6,6 +6,7 @@ import { conectarGoogle, ErroGoogle, removerDoGoogle, sincronizarGoogle, temToke
 import { useAgora } from '../hooks'
 import { apagarComDesfazer } from '../desfazer'
 import { useStore } from '../store'
+import { linhaDoTempo } from '../linhaDoTempo'
 import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
 import type { Evento } from '../types'
 import { dataISO, duracao, hora, inicioDoDia, nomeDoDia } from '../util'
@@ -100,7 +101,7 @@ function LinhaEvento({ e, agora }: { e: Evento; agora: number }) {
         {e.inicio <= agora && e.fim > agora && <span className="so-leitor">Acontecendo agora: </span>}
         {e.titulo}
         {passo && <span className="motivo"> · {passo.feitoEm ? 'passo feito' : 'horário reservado para um passo'}</span>}
-        {e.origem === 'google' && <span className="selo">Google</span>}
+        {e.origem === 'google' && <span className="selo">{e.agendaGoogle ?? 'Google'}</span>}
         {erro && (
           <span className="atencao" role="alert">
             {' '}
@@ -108,21 +109,24 @@ function LinhaEvento({ e, agora }: { e: Evento; agora: number }) {
           </span>
         )}
       </span>
-      <button
-        className="discreto"
-        aria-label={`Apagar ${e.titulo}`}
-        onClick={async () => {
-          if (!confirm(e.origem === 'google' ? `Apagar "${e.titulo}" também do Google Agenda?` : `Apagar "${e.titulo}"?`)) return
-          try {
-            if (e.googleId) await removerDoGoogle(e.googleId)
-            remover(e.id)
-          } catch (x) {
-            setErro((x as Error).message)
-          }
-        }}
-      >
-        ×
-      </button>
+      {/* Evento de outra agenda (ex.: a da equipe) é só leitura: apagar aqui ele voltaria na próxima sincronização. */}
+      {!e.agendaGoogle && (
+        <button
+          className="discreto"
+          aria-label={`Apagar ${e.titulo}`}
+          onClick={async () => {
+            if (!confirm(e.origem === 'google' ? `Apagar "${e.titulo}" também do Google Agenda?` : `Apagar "${e.titulo}"?`)) return
+            try {
+              if (e.googleId) await removerDoGoogle(e.googleId)
+              remover(e.id)
+            } catch (x) {
+              setErro((x as Error).message)
+            }
+          }}
+        >
+          ×
+        </button>
+      )}
     </div>
   )
 }
@@ -155,6 +159,26 @@ function ListaDoDia({ dia }: { dia: number }) {
   )
 }
 
+/** Faixa de agora até a meia-noite (V12): compromissos, horários reservados e o livre. Só visual: a lista ao lado diz o mesmo. */
+function LinhaDoTempo({ eventos, de, ate }: { eventos: Evento[]; de: number; ate: number }) {
+  if (ate - de < 3_600_000) return null
+  const { faixas, livreMin } = linhaDoTempo(eventos, de, ate)
+  return (
+    <div className="linha-do-tempo">
+      <div className="faixa-do-dia" aria-hidden="true">
+        {faixas.map((f) => (
+          <span key={f.id} className={`bloco${f.reservado ? ' reservado' : ''}`} style={{ left: `${f.inicio}%`, width: `${f.largura}%` }} title={f.titulo} />
+        ))}
+      </div>
+      <p className="motivo linha entre">
+        <span>agora</span>
+        <span>livre até a meia-noite: {duracao(livreMin)}</span>
+        <span>24h</span>
+      </p>
+    </div>
+  )
+}
+
 /** Eventos e lembretes restantes do dia (coluna lateral de Agora). */
 export function RestoDoDia() {
   const agenda = useAgenda()
@@ -176,6 +200,7 @@ export function RestoDoDia() {
   return (
     <div className="cartao compacto resto-do-dia">
       <h2 className="rotulo">Resto do dia</h2>
+      <LinhaDoTempo eventos={agenda.eventos} de={agora} ate={fimDoDia} />
       {itens.length === 0 && <p className="motivo">Nada mais marcado para hoje.</p>}
       {itens.slice(0, 8).map((i) => (
         <p key={i.id} className="linha-dia">

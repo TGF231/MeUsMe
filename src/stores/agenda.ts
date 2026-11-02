@@ -10,6 +10,8 @@ interface Estado {
   lembretes: Lembrete[]
   googleClientId: string
   googleConectado: boolean
+  /** Outras agendas do Google lidas junto com a principal (ex.: a da equipe), pelo ID da agenda. Só leitura. */
+  googleAgendas: { id: string; nome: string }[]
   ultimaSync?: number
   /** Eventos encerrados manualmente na tela Agora (chave: timestamp). */
   encerrados: Record<string, number>
@@ -25,7 +27,7 @@ interface Estado {
   avancarLembrete: (id: string) => void
   removerLembrete: (id: string) => void
 
-  configurarGoogle: (m: Partial<Pick<Estado, 'googleClientId' | 'googleConectado' | 'ultimaSync'>>) => void
+  configurarGoogle: (m: Partial<Pick<Estado, 'googleClientId' | 'googleConectado' | 'ultimaSync' | 'googleAgendas'>>) => void
   encerrarEvento: (e: Evento) => void
 }
 
@@ -42,6 +44,7 @@ export const useAgenda = create<Estado>()(
       lembretes: [],
       googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '',
       googleConectado: false,
+      googleAgendas: [],
       encerrados: {},
 
       criarEvento: (e) => {

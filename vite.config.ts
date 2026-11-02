@@ -32,6 +32,8 @@ export default defineConfig({
           { src: 'icone.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: 'icone.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
         ],
+        // Instalado, o MeUsMe aparece no "Compartilhar" do sistema; o que chega vai para a Caixa (src/entrada.ts).
+        share_target: { action: '.', method: 'GET', params: { title: 'titulo', text: 'texto', url: 'link' } },
       },
     }),
   ],

@@ -2,14 +2,20 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   calibracao,
+  diasAte,
   diasDesde,
   explicarFator,
   inicioDaSemana,
+  ordemAntesDe,
   passosParaModelo,
   progresso,
+  proximaRepeticao,
   proximaOcorrencia,
   revisaoPendente,
+  somarDias,
+  sugerirNovasDatas,
   sugestoesDePasso,
+  vencidos,
   ultimaAtividade,
 } from '../src/calculos.ts'
 import type { Passo, Sessao } from '../src/types.ts'
@@ -130,4 +136,50 @@ test('lembrete diário e semanal pulam o que já passou', () => {
   assert.equal(proximaOcorrencia({ quando, repetir: 'diario' }, agora), new Date(2026, 9, 29, 9).getTime())
   assert.equal(proximaOcorrencia({ quando, repetir: 'semanal' }, agora), new Date(2026, 10, 3, 9).getTime())
   assert.equal(proximaOcorrencia({ quando, repetir: 'nunca' }, agora), quando)
+})
+
+test('diasAte e somarDias atravessam mês e ano', () => {
+  assert.equal(diasAte('2026-11-02', '2026-11-01'), 1)
+  assert.equal(diasAte('2026-10-30', '2026-11-01'), -2)
+  assert.equal(somarDias('2026-12-31', 1), '2027-01-01')
+})
+
+test('vencidos ignora feitos e sem prazo; novas datas espalham dois por dia a partir de amanhã', () => {
+  const base = { projetoId: null, texto: '', energia: 1 as const, criadoEm: 0 }
+  const lista = [
+    { ...base, id: 'a', ordem: 1, prazo: '2026-10-28' },
+    { ...base, id: 'b', ordem: 2, prazo: '2026-10-20' },
+    { ...base, id: 'c', ordem: 3, prazo: '2026-10-30' },
+    { ...base, id: 'feito', ordem: 4, prazo: '2026-10-01', feitoEm: 1 },
+    { ...base, id: 'sem', ordem: 5 },
+    { ...base, id: 'futuro', ordem: 6, prazo: '2026-11-05' },
+  ]
+  const v = vencidos(lista, '2026-11-01')
+  assert.deepEqual(v.map((p) => p.id), ['b', 'a', 'c'])
+  assert.deepEqual(sugerirNovasDatas(v, '2026-11-01'), [
+    { id: 'b', prazo: '2026-11-02' },
+    { id: 'a', prazo: '2026-11-02' },
+    { id: 'c', prazo: '2026-11-03' },
+  ])
+})
+
+test('ordemAntesDe: pedaços inseridos antes do mesmo passo ficam na ordem em que foram escritos', () => {
+  const base = { projetoId: 'p', texto: '', energia: 1 as const, criadoEm: 0 }
+  const passos: Passo[] = [
+    { ...base, id: 'a', ordem: 1 },
+    { ...base, id: 'grande', ordem: 2 },
+  ]
+  const alvo = passos[1]
+  const primeiro = ordemAntesDe(passos, alvo)
+  passos.push({ ...base, id: 'x', ordem: primeiro })
+  const segundo = ordemAntesDe(passos, alvo)
+  assert.ok(1 < primeiro && primeiro < segundo && segundo < 2)
+  assert.equal(ordemAntesDe([alvo], alvo), 1.5)
+})
+
+test('proximaRepeticao: dia, semana e mês (31 de janeiro cai em 28 de fevereiro)', () => {
+  assert.equal(proximaRepeticao('diario', '2026-12-31'), '2027-01-01')
+  assert.equal(proximaRepeticao('semanal', '2026-11-02'), '2026-11-09')
+  assert.equal(proximaRepeticao('mensal', '2027-01-31'), '2027-02-28')
+  assert.equal(proximaRepeticao('mensal', '2026-11-15'), '2026-12-15')
 })

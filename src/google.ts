@@ -1,4 +1,5 @@
 import { useAgenda } from './stores/agenda'
+import { paraEventos, type EventoGoogle } from './googleEventos'
 import type { Evento } from './types'
 
 /**
@@ -7,7 +8,9 @@ import type { Evento } from './types'
  */
 
 const ESCOPO = 'https://www.googleapis.com/auth/calendar.events'
-const API = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+/** Eventos de uma agenda. Com o escopo calendar.events dá para ler qualquer agenda a que a conta tem acesso, pelo ID. */
+const eventosDe = (agenda: string) => `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(agenda)}/events`
+const API = eventosDe('primary')
 const CHAVE_TOKEN = 'meusme-google-token'
 
 interface RespostaToken {
@@ -120,18 +123,7 @@ async function api(url: string, init: RequestInit = {}) {
   return r.status === 204 ? null : r.json()
 }
 
-interface EventoGoogle {
-  id: string
-  summary?: string
-  status?: string
-  start: { dateTime?: string; date?: string }
-  end: { dateTime?: string; date?: string }
-}
-
-const paraMs = (p: { dateTime?: string; date?: string }) =>
-  p.dateTime ? new Date(p.dateTime).getTime() : new Date(`${p.date}T00:00:00`).getTime()
-
-/** Atualiza o cache local com eventos de ontem até +30 dias. */
+/** Atualiza o cache local com eventos de ontem até +30 dias, da agenda principal e das outras escolhidas em Ajustes. */
 export async function sincronizarGoogle() {
   const de = new Date().setHours(0, 0, 0, 0) - 86_400_000
   const ate = de + 32 * 86_400_000
@@ -142,20 +134,24 @@ export async function sincronizarGoogle() {
     orderBy: 'startTime',
     maxResults: '500',
   })
-  const dados = (await api(`${API}?${params}`)) as { items: EventoGoogle[] }
-  const eventos: Omit<Evento, 'id'>[] = dados.items
-    .filter((e) => e.status !== 'cancelled')
-    .map((e) => ({
-      titulo: e.summary ?? '(sem título)',
-      inicio: paraMs(e.start),
-      fim: paraMs(e.end),
-      diaInteiro: !e.start.dateTime,
-      origem: 'google',
-      googleId: e.id,
-    }))
+  const principal = (await api(`${API}?${params}`)) as { items: EventoGoogle[] }
+  const eventos = paraEventos(principal.items)
+  const falhas: string[] = []
+  for (const outra of useAgenda.getState().googleAgendas) {
+    try {
+      const dados = (await api(`${eventosDe(outra.id)}?${params}`)) as { items: EventoGoogle[] }
+      eventos.push(...paraEventos(dados.items, outra))
+    } catch (e) {
+      if (e instanceof ErroGoogle && e.precisaReconectar) throw e
+      falhas.push(outra.nome)
+    }
+  }
   const agenda = useAgenda.getState()
   agenda.substituirGoogle(eventos, de, ate)
   agenda.configurarGoogle({ ultimaSync: Date.now() })
+  // O que deu para ler fica salvo; a agenda que falhou é avisada pelo nome.
+  if (falhas.length)
+    throw new ErroGoogle(`Não consegui ler ${falhas.join(', ')}. Confira o ID da agenda e se esta conta do Google tem acesso a ela.`)
   return eventos.length
 }
 

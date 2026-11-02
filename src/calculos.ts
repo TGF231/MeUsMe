@@ -28,6 +28,49 @@ export function proximaOcorrencia(l: Pick<Lembrete, 'quando' | 'repetir' | 'dia'
 export const pendentes = (passos: Passo[], projetoId: string | null) =>
   passos.filter((p) => p.projetoId === projetoId && !p.feitoEm).sort((a, b) => a.ordem - b.ordem)
 
+/** Dias de `de` até `dia` (datas AAAA-MM-DD); negativo quando `dia` já passou. Meio-dia evita o salto do horário de verão. */
+export const diasAte = (dia: string, de: string) =>
+  Math.round((Date.parse(`${dia}T12:00:00`) - Date.parse(`${de}T12:00:00`)) / DIA)
+
+/** Soma dias a uma data AAAA-MM-DD. */
+export function somarDias(dia: string, n: number) {
+  const d = new Date(`${dia}T12:00:00`)
+  d.setDate(d.getDate() + n)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** Próxima data de um passo que se repete, contada a partir do dia em que foi feito. O mensal vai para o último dia dos meses curtos. */
+export function proximaRepeticao(repetir: NonNullable<Passo['repetir']>, dia: string) {
+  if (repetir === 'diario') return somarDias(dia, 1)
+  if (repetir === 'semanal') return somarDias(dia, 7)
+  const [a, m, d] = dia.split('-').map(Number)
+  const ultimo = new Date(a, m + 1, 0).getDate()
+  const proximo = new Date(a, m, Math.min(d, ultimo), 12)
+  return `${proximo.getFullYear()}-${String(proximo.getMonth() + 1).padStart(2, '0')}-${String(proximo.getDate()).padStart(2, '0')}`
+}
+
+/** Passos pendentes com prazo antes de `dia`, do mais antigo para o mais novo. */
+export const vencidos = (passos: Passo[], dia: string) =>
+  passos.filter((p) => !p.feitoEm && p.prazo && p.prazo < dia).sort((a, b) => a.prazo!.localeCompare(b.prazo!) || a.ordem - b.ordem)
+
+/**
+ * Novas datas para os vencidos, em lote: a partir de amanhã, no máximo `porDia` por dia, na ordem do prazo antigo.
+ * Espalhar evita trocar uma pilha de atrasados por uma pilha de "hoje".
+ */
+export function sugerirNovasDatas(vencidosOrdenados: Passo[], dia: string, porDia = 2) {
+  return vencidosOrdenados.map((p, i) => ({ id: p.id, prazo: somarDias(dia, 1 + Math.floor(i / porDia)) }))
+}
+
+/**
+ * Ordem para um passo novo logo antes de `alvo`, depois de qualquer outro já inserido ali: quebrar um passo em
+ * vários pedaços mantém os pedaços na ordem em que foram escritos.
+ */
+export function ordemAntesDe(passos: Passo[], alvo: Passo) {
+  const anteriores = passos.filter((p) => p.projetoId === alvo.projetoId && p.ordem < alvo.ordem).map((p) => p.ordem)
+  const anterior = Math.max(alvo.ordem - 1, ...anteriores)
+  return (anterior + alvo.ordem) / 2
+}
+
 /** Minutos gastos: sessões do cronômetro + minutosManuais. */
 export const minutosDoPasso = (passo: Passo, sessoes: Sessao[], agora = Date.now()) =>
   sessoes.filter((x) => x.passoId === passo.id).reduce((t, x) => t + ((x.fim ?? agora) - x.inicio) / 60_000, 0) +

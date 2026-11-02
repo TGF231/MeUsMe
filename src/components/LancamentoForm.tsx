@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { dividirEmParcelas } from '../compra'
 import { sugerirCategoria, useFinancas } from '../stores/financas'
 import { hoje, lerValor, reais } from '../util'
 
@@ -17,6 +18,7 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
   const [categoriaEscolhida, setCategoriaEscolhida] = useState<string | null>(null)
   const [contaId, setContaId] = useState(f.contas[0]?.id ?? '')
   const [data, setData] = useState(hoje())
+  const [parcelas, setParcelas] = useState(1)
 
   const valor = lerValor(valorTexto)
   const categorias = f.categorias.filter((c) => c.tipo === tipo)
@@ -31,13 +33,13 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
       onSubmit={(e) => {
         e.preventDefault()
         if (!valor || !contaId) return
-        f.lancar({
-          contaId,
-          categoriaId,
-          valor: tipo === 'gasto' ? -Math.abs(valor) : Math.abs(valor),
-          descricao: descricao.trim() || (categorias.find((c) => c.id === categoriaId)?.nome ?? 'Sem descrição'),
-          data,
-        })
+        const texto = descricao.trim() || (categorias.find((c) => c.id === categoriaId)?.nome ?? 'Sem descrição')
+        const total = tipo === 'gasto' ? -Math.abs(valor) : Math.abs(valor)
+        // Parcelado (V24): uma parcela por mês, cada uma no mês dela, para o livre por dia de cada mês ficar certo.
+        const n = tipo === 'gasto' ? parcelas : 1
+        for (const p of n > 1 ? dividirEmParcelas(total, n, data) : [{ valor: total, data, sufixo: '' }])
+          f.lancar({ contaId, categoriaId, valor: p.valor, descricao: texto + p.sufixo, data: p.data })
+        setParcelas(1)
         setValorTexto('')
         setDescricao('')
         setCategoriaEscolhida(null)
@@ -86,10 +88,19 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
           </select>
         )}
         <input type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" className="flex" />
+        {tipo === 'gasto' && (
+          <select value={parcelas} onChange={(e) => setParcelas(Number(e.target.value))} aria-label="Parcelas" className="flex">
+            {Array.from({ length: 24 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n === 1 ? 'À vista' : `${n}x de ${reais(Math.trunc((valor || 0) / n))}`}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       <div className="linha">
         <button type="submit" className="primario" disabled={!valor}>
-          {valor ? `Registrar ${reais(Math.abs(valor))}` : 'Registrar'}
+          {valor ? `Registrar ${reais(Math.abs(valor))}${tipo === 'gasto' && parcelas > 1 ? ` em ${parcelas}x` : ''}` : 'Registrar'}
         </button>
         {onCancelar && (
           <button type="button" onClick={onCancelar}>

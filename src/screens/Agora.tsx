@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { diasDesde, revisaoPendente, ultimaAtividade } from '../calculos'
+import { diasDesde, revisaoPendente, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { PassoForm } from '../components/PassoForm'
+import { Quebrar } from '../components/Quebrar'
 import { BarraProgresso } from '../components/Progresso'
 import { AnelDoBloco, Palpite } from '../components/RelogioDeFoco'
 import { RevisaoSemana } from '../components/RevisaoSemana'
@@ -13,7 +14,7 @@ import { chaveEvento, useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import type { Energia, Evento, Projeto } from '../types'
-import { duracao, hora, inicioDoDia, reais } from '../util'
+import { duracao, hora, inicioDoDia, nomeDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 import { Simbolo } from '../components/Icone'
 
@@ -25,13 +26,14 @@ const relogio = (ms: number) => {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
-/** Lembretes vencidos e contas fixas vencidas ou do dia. */
+/** Lembretes vencidos e contas fixas vencidas ou do dia (cada um só com a sua seção ligada). */
 function PendenciasDeHoje({ agora }: { agora: number }) {
   const agenda = useAgenda()
   const fin = useFinancas()
-  const lembretes = agenda.lembretes.filter((l) => !l.concluido && l.quando <= agora)
+  const desligados = useConfig((c) => c.modulosDesligados)
+  const lembretes = desligados.includes('agenda') ? [] : agenda.lembretes.filter((l) => !l.concluido && l.quando <= agora)
   const diaHoje = new Date(agora).getDate()
-  const contas = fin.fixas.filter((f) => f.tipo === 'gasto' && !fixaPagaNoMes(f, fin.transacoes) && diaDeVencimento(f) <= diaHoje)
+  const contas = desligados.includes('financas') ? [] : fin.fixas.filter((f) => f.tipo === 'gasto' && !fixaPagaNoMes(f, fin.transacoes) && diaDeVencimento(f) <= diaHoje)
   if (lembretes.length === 0 && contas.length === 0) return null
 
   return (
@@ -55,6 +57,41 @@ function PendenciasDeHoje({ agora }: { agora: number }) {
           <button onClick={() => fin.pagarFixa(f.id)}>Paguei</button>
         </div>
       ))}
+    </div>
+  )
+}
+
+/**
+ * Passos com prazo vencido viram "para reagendar": novas datas sugeridas em lote (até duas por dia, a partir de
+ * amanhã) e aceitas com um toque. Sem vermelho, sem contar dias de atraso (D04 em docs/CONCORRENTES.md).
+ */
+function ParaReagendar() {
+  const s = useStore()
+  const dia = hoje()
+  const lista = vencidos(s.passos, dia)
+  if (lista.length === 0) return null
+  const novas = new Map(sugerirNovasDatas(lista, dia).map((n) => [n.id, n.prazo]))
+  const aplicar = (prazo: (id: string) => string | undefined) => lista.forEach((p) => s.atualizarPasso(p.id, { prazo: prazo(p.id) }))
+
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Para reagendar</h2>
+      <p className="motivo">
+        {lista.length === 1 ? 'Um passo passou da data.' : `${lista.length} passos passaram da data.`} Novas datas sugeridas, até duas por dia:
+      </p>
+      <ul className="lista-simples">
+        {lista.map((p) => (
+          <li key={p.id}>
+            {p.texto} <span className="motivo">→ {nomeDoDia(novas.get(p.id)!)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="linha">
+        <button className="primario" onClick={() => aplicar((id) => novas.get(id))}>
+          Usar estas datas
+        </button>
+        <button onClick={() => aplicar(() => undefined)}>Tirar as datas</button>
+      </div>
     </div>
   )
 }
@@ -201,8 +238,8 @@ export function Agora() {
               <PassoForm
                 pergunta="Ainda não? Qual é o próximo movimento concreto?"
                 projetoId={projeto.id}
-                onSalvar={(t, e) => {
-                  s.criarPasso(projeto.id, t, e)
+                onSalvar={(t, e, d) => {
+                  s.criarPasso(projeto.id, t, e, undefined, d)
                   setCelebrar(null)
                 }}
               />
@@ -216,7 +253,7 @@ export function Agora() {
           <button
             className="discreto"
             onClick={() => {
-              s.atualizarPasso(passoId, { feitoEm: undefined })
+              s.reabrirPasso(passoId)
               setCelebrar(null)
             }}
           >
@@ -370,17 +407,7 @@ export function Agora() {
             )}
 
             {modo === 'quebrando' ? (
-              <PassoForm
-                pergunta="Qual é o menor pedaço disso que dá para fazer em 2 minutos?"
-                rotuloBotao="Fazer este primeiro"
-                sugerir={false}
-                energiaInicial={1}
-                onSalvar={(t, e) => {
-                  s.criarPasso(escolha.passo.projetoId, t, e, escolha.passo.id)
-                  setModo('normal')
-                }}
-                onCancelar={() => setModo('normal')}
-              />
+              <Quebrar passo={escolha.passo} onPronto={() => setModo('normal')} />
             ) : modo === 'agendando' ? (
               <>
                 <p className="rotulo">Reservar um horário para este passo. Quando chegar a hora, ele aparece aqui primeiro.</p>
@@ -429,12 +456,13 @@ export function Agora() {
           )
         )}
         <div className="cartao compacto energia">
-          <SituacaoAgora />
+          {!cfg.modulosDesligados.includes('agenda') && <SituacaoAgora />}
           <label className="rotulo">Sua energia agora</label>
           <SeletorEnergia valor={energia} onChange={setEnergia} />
         </div>
         <PendenciasDeHoje agora={agora} />
-        <RestoDoDia />
+        <ParaReagendar />
+        {!cfg.modulosDesligados.includes('agenda') && <RestoDoDia />}
       </div>
     </section>
   )

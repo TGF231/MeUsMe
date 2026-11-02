@@ -6,8 +6,18 @@ import { conectarGoogle, desconectarGoogle, sincronizarGoogle } from '../google'
 import { atalhoAtual, atalhoLegivel, definirIniciaComWindows, iniciaComWindows } from '../nativo/desktop'
 import { Sincronizacao } from '../components/Sincronizacao'
 import { Sobre } from '../components/Sobre'
-import { ehDesktop, ehNativo } from '../nativo/plataforma'
-import { abrirAjusteDeHorarioExato, horarioExatoLiberado, lerPermissao, notificar, pedirPermissao, type Permissao } from '../notificacoes'
+import { OPCIONAIS, PERFIS, type Aba } from '../navegacao'
+import { Captura as PluginCaptura } from '../nativo/captura'
+import { ehAndroid, ehDesktop, ehNativo } from '../nativo/plataforma'
+import {
+  abrirAjusteDeHorarioExato,
+  horarioExatoLiberado,
+  lerPermissao,
+  notificar,
+  pedirPermissao,
+  testarComAppFechado,
+  type Permissao,
+} from '../notificacoes'
 import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { useMotor } from '../stores/motor'
@@ -21,12 +31,15 @@ function Notificacoes() {
   const cfg = useConfig()
   const [permissao, setPermissao] = useState<Permissao | null>(null)
   const [exato, setExato] = useState<boolean | null>(null)
+  const [bateria, setBateria] = useState<boolean | null>(null)
+  const [testando, setTestando] = useState(false)
   const nativo = ehNativo()
 
   useEffect(() => {
     const atualizar = () => {
       void lerPermissao().then(setPermissao)
       void horarioExatoLiberado().then(setExato)
+      if (ehAndroid()) void PluginCaptura.bateria().then((b) => setBateria(b.otimizado))
     }
     atualizar()
     // Relê ao voltar das configurações do sistema.
@@ -62,9 +75,28 @@ function Notificacoes() {
           </button>
         </div>
       )}
-      <button onClick={() => void notificar('Teste do MeUsMe', 'Se você está vendo isto, os avisos estão funcionando.', 'teste')}>
-        Enviar notificação de teste
-      </button>
+      {bateria && (
+        <div className="dica">
+          O Android está economizando bateria do MeUsMe, e isso pode atrasar ou segurar avisos. Na lista que abre, escolha o MeUsMe e marque “Não
+          otimizar”.{' '}
+          <button className="mini-botao" onClick={() => void PluginCaptura.abrirBateria()}>
+            Abrir ajustes de bateria
+          </button>
+        </div>
+      )}
+      <div className="linha">
+        <button onClick={() => void notificar('Teste do MeUsMe', 'Se você está vendo isto, os avisos estão funcionando.', 'teste')}>
+          Enviar notificação de teste
+        </button>
+        {nativo && (
+          <button onClick={() => void testarComAppFechado().then(() => setTestando(true))}>Testar com o app fechado</button>
+        )}
+      </div>
+      {testando && (
+        <p className="dica neutra" role="status">
+          Agora feche o MeUsMe e espere 1 minuto. Se o aviso não chegar, confira a permissão, os alarmes e a bateria acima.
+        </p>
+      )}
       <p className="dica neutra">
         {nativo
           ? 'No app Android, os avisos da próxima semana ficam agendados no sistema e tocam mesmo com o app fechado.'
@@ -135,6 +167,64 @@ function Google() {
   return <GoogleNavegador />
 }
 
+/**
+ * Outras agendas do Google lidas junto com a principal, como a compartilhada com a equipe (D08). Só leitura, pelo ID:
+ * listar as agendas da conta pediria outro escopo e nova verificação do Google.
+ */
+function OutrasAgendas({ onMensagem }: { onMensagem: (m: string) => void }) {
+  const agenda = useAgenda()
+  const [nome, setNome] = useState('')
+  const [id, setId] = useState('')
+  const salvar = async (lista: { id: string; nome: string }[]) => {
+    agenda.configurarGoogle({ googleAgendas: lista })
+    try {
+      const n = await sincronizarGoogle()
+      onMensagem(`Sincronizado: ${n} compromisso${n === 1 ? '' : 's'} nos próximos 30 dias.`)
+    } catch (e) {
+      onMensagem((e as Error).message)
+    }
+  }
+  return (
+    <details open={agenda.googleAgendas.length > 0}>
+      <summary>Outras agendas (só leitura)</summary>
+      <p className="motivo">
+        Para ver junto uma agenda que não é a sua principal, como a compartilhada com colegas: no Google Agenda, abra Configurações da agenda →
+        Integrar agenda e copie o <b>ID da agenda</b>. Os compromissos dela aparecem aqui com o nome que você der, e não são alterados.
+      </p>
+      {agenda.googleAgendas.map((a) => (
+        <div key={a.id} className="linha entre item">
+          <span>
+            {a.nome} <span className="motivo">· {a.id}</span>
+          </span>
+          <button className="discreto" aria-label={`Parar de ler ${a.nome}`} onClick={() => void salvar(agenda.googleAgendas.filter((x) => x.id !== a.id))}>
+            Remover
+          </button>
+        </div>
+      ))}
+      <form
+        className="form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!nome.trim() || !id.trim() || agenda.googleAgendas.some((a) => a.id === id.trim())) return
+          void salvar([...agenda.googleAgendas, { id: id.trim(), nome: nome.trim() }])
+          setNome('')
+          setId('')
+        }}
+      >
+        <label className="rotulo" htmlFor="agenda-nome">
+          Nome (como vai aparecer)
+        </label>
+        <input id="agenda-nome" required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Equipe" />
+        <label className="rotulo" htmlFor="agenda-id">
+          ID da agenda
+        </label>
+        <input id="agenda-id" required value={id} onChange={(e) => setId(e.target.value)} placeholder="xxxx@group.calendar.google.com" spellCheck={false} />
+        <button type="submit">Ler esta agenda</button>
+      </form>
+    </details>
+  )
+}
+
 function GoogleNavegador() {
   const agenda = useAgenda()
   const [clientId, setClientId] = useState(agenda.googleClientId)
@@ -160,6 +250,7 @@ function GoogleNavegador() {
         <>
           <p className="motivo">Conectado. Seus compromissos aparecem na Agenda e na tela Agora, e o que você agenda aqui vai para o Google.</p>
           <button onClick={() => (desconectarGoogle(), setMensagem('Desconectado.'))}>Desconectar</button>
+          <OutrasAgendas onMensagem={setMensagem} />
         </>
       ) : (
         <>
@@ -344,6 +435,46 @@ function Aparencia() {
   )
 }
 
+/** Seções do app (D14) e perfis prontos (D13): desligar só tira do menu, os dados continuam. */
+function Secoes() {
+  const { modulosDesligados, ajustar } = useConfig()
+  const perfilAtual = PERFIS.find((p) => p.desligados.length === modulosDesligados.length && p.desligados.every((d) => modulosDesligados.includes(d)))
+  const alternar = (id: Aba, ligar: boolean) =>
+    ajustar({ modulosDesligados: ligar ? modulosDesligados.filter((d) => d !== id) : [...modulosDesligados, id] })
+  return (
+    <div className="cartao">
+      <h2 className="titulo">Seções do app</h2>
+      <p className="rotulo" id="perfis">
+        Começar de um perfil
+      </p>
+      <div className="chips" role="group" aria-labelledby="perfis">
+        {PERFIS.map((p) => (
+          <button
+            key={p.id}
+            className={perfilAtual?.id === p.id ? 'ativo' : ''}
+            aria-pressed={perfilAtual?.id === p.id}
+            title={p.descricao}
+            onClick={() => ajustar({ modulosDesligados: p.desligados })}
+          >
+            {p.nome}
+          </button>
+        ))}
+      </div>
+      {OPCIONAIS.map((m) => (
+        <label key={m.id} className="check">
+          <input type="checkbox" checked={!modulosDesligados.includes(m.id)} onChange={(e) => alternar(m.id, e.target.checked)} />
+          <span>
+            {m.nome} <span className="motivo">· {m.descricao}</span>
+          </span>
+        </label>
+      ))}
+      <p className="motivo">
+        Agora, Caixa e Ajustes ficam sempre. Desligar só tira a seção do menu e da tela Agora: nada é apagado, e ligar de novo traz tudo de volta.
+      </p>
+    </div>
+  )
+}
+
 function Acessibilidade() {
   const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, ajustar } = useConfig()
   return (
@@ -484,6 +615,7 @@ export function Ajustes() {
   return (
     <section className="tela grade-ajustes">
       <Aparencia />
+      <Secoes />
       <Acessibilidade />
       <Captura />
       <Sincronizacao />

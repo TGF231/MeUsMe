@@ -34,7 +34,18 @@ export interface Passo {
   minutosManuais?: number
   /** Palpite de duração feito antes ou durante o passo; comparado com o real no Histórico. */
   estimativaMin?: number
+  /** Dia limite (AAAA-MM-DD). Pesa na escolha de Agora; vencido vira "para reagendar", nunca alerta. */
+  prazo?: string
+  /** Só concorre em Agora a partir deste dia (AAAA-MM-DD). */
+  aPartirDe?: string
+  /** Ao concluir, o passo volta sozinho, com "só a partir de" na próxima data (V08). */
+  repetir?: 'diario' | 'semanal' | 'mensal'
+  /** Id do passo concluído que gerou esta repetição (para "Não terminei" desfazer as duas coisas). */
+  repeteDe?: string
 }
+
+/** Datas opcionais de um passo, em AAAA-MM-DD. */
+export type Datas = Pick<Passo, 'prazo' | 'aPartirDe' | 'repetir'>
 
 /** Projeto reaproveitável: nome, chegada e passos, criados de uma vez com um toque. */
 export interface Modelo {
@@ -138,6 +149,8 @@ export interface Evento {
   diaInteiro?: boolean
   origem: 'local' | 'google'
   googleId?: string
+  /** Nome da agenda do Google, quando não é a principal: só leitura, não se apaga daqui. */
+  agendaGoogle?: string
   /** Passo associado a este horário reservado. */
   passoId?: string
 }

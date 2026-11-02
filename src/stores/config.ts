@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { Aba } from '../navegacao'
 
 interface Estado {
   /** "HH:MM" ou vazio para desligar. */
@@ -34,6 +35,8 @@ interface Estado {
   avisosFicam: boolean
   /** Texto secundário no tom principal e bordas fortes (também liga com prefers-contrast). Sincroniza. */
   contrasteAlto: boolean
+  /** Seções escondidas do menu (Ajustes → Seções do app). Os dados continuam guardados. Sincroniza. */
+  modulosDesligados: Aba[]
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -61,6 +64,7 @@ export const useConfig = create<Estado>()(
       alvosGrandes: false,
       avisosFicam: false,
       contrasteAlto: false,
+      modulosDesligados: [],
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>

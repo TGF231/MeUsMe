@@ -52,6 +52,7 @@ const COLECOES: Colecao[] = [
   { nome: 'agenda.eventos', loja: useAgenda, campo: 'eventos', tipo: 'lista' },
   { nome: 'agenda.lembretes', loja: useAgenda, campo: 'lembretes', tipo: 'lista' },
   { nome: 'agenda.googleClientId', loja: useAgenda, campo: 'googleClientId', tipo: 'valor' },
+  { nome: 'agenda.googleAgendas', loja: useAgenda, campo: 'googleAgendas', tipo: 'valor' },
 
   { nome: 'config.horaCheckIn', loja: useConfig, campo: 'horaCheckIn', tipo: 'valor' },
   { nome: 'config.horaContas', loja: useConfig, campo: 'horaContas', tipo: 'valor' },
@@ -63,6 +64,7 @@ const COLECOES: Colecao[] = [
   { nome: 'config.revisaoFeitaEm', loja: useConfig, campo: 'revisaoFeitaEm', tipo: 'valor' },
   { nome: 'config.horasDeEspera', loja: useConfig, campo: 'horasDeEspera', tipo: 'valor' },
   { nome: 'config.organizarSozinho', loja: useConfig, campo: 'organizarSozinho', tipo: 'valor' },
+  { nome: 'config.modulosDesligados', loja: useConfig, campo: 'modulosDesligados', tipo: 'valor' },
   // Acessibilidade é da pessoa, vale em todo aparelho; o tamanho do texto depende da tela e não vai.
   { nome: 'config.alvosGrandes', loja: useConfig, campo: 'alvosGrandes', tipo: 'valor' },
   { nome: 'config.avisosFicam', loja: useConfig, campo: 'avisosFicam', tipo: 'valor' },

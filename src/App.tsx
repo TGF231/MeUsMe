@@ -8,6 +8,7 @@ import { Introducao } from './components/Introducao'
 import { usoDoArmazenamento } from './erros'
 import { organizar } from './motor/executar'
 import { EXEMPLOS_DE_CAMPO } from './motor/tutorial'
+import { lerEntrada } from './entrada'
 import { useNavegacao, type Aba } from './navegacao'
 import { Captura, processarCapturas } from './nativo/captura'
 import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
@@ -23,6 +24,7 @@ import { useStore } from './store'
 import { AVISO_MS, useAvisos, useConfig } from './stores/config'
 import { useSincronizacao } from './sync/motor'
 import { BotaoVoz } from './components/BotaoVoz'
+import { Busca } from './components/Busca'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -32,6 +34,12 @@ const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'projetos', nome: 'Projetos' },
   { id: 'historico', nome: 'Histórico' },
 ]
+
+/** Links de entrada já tratados: o mesmo compartilhamento não entra duas vezes na Caixa. */
+const recebidas = new Set<string>()
+
+/** Abas do menu sem as seções desligadas em Ajustes (D14). */
+const abasVisiveis = (desligados: Aba[]) => ABAS.filter((a) => !desligados.includes(a.id))
 
 /** O corpo do aviso com o trecho que disparou a regra em negrito. */
 function ComDestaque({ texto, destaque }: Readonly<{ texto: string; destaque?: string }>) {
@@ -120,7 +128,7 @@ function desfazerUltimoAviso(e: KeyboardEvent) {
   fechar(ultimo.id)
 }
 
-function CapturaRapida({ onFechar }: { onFechar: () => void }) {
+function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; comVoz?: boolean }) {
   const [texto, setTexto] = useState('')
   const [exemplo] = useState(() => EXEMPLOS_DE_CAMPO[Math.floor(Math.random() * EXEMPLOS_DE_CAMPO.length)])
   const janela = useJanelaModal()
@@ -158,6 +166,7 @@ function CapturaRapida({ onFechar }: { onFechar: () => void }) {
             />
             {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
             <BotaoVoz
+              iniciar={comVoz}
               onTexto={(falado) => {
                 void organizar([texto.trim(), falado].filter(Boolean).join(' '))
                 onFechar()
@@ -179,7 +188,11 @@ export default function App() {
   const aba = useNavegacao((n) => n.aba)
   const setAba = useNavegacao((n) => n.ir)
   const introducaoVista = useConfig((c) => c.introducaoVista)
+  const desligados = useConfig((c) => c.modulosDesligados)
+  const abas = abasVisiveis(desligados)
   const [capturando, setCapturando] = useState(false)
+  const [comVoz, setComVoz] = useState(false)
+  const [buscando, setBuscando] = useState(false)
   const naCaixa = useStore((s) => s.capturas.length)
   useAgendador()
   useSincronizacao()
@@ -190,6 +203,10 @@ export default function App() {
       if (e.ctrlKey && e.code === 'Space') {
         e.preventDefault()
         setCapturando(true)
+      } else if (e.ctrlKey && e.code === 'KeyK') {
+        // Ctrl+K: buscar em tudo (V07).
+        e.preventDefault()
+        setBuscando(true)
       } else if (ehDesktop() && e.ctrlKey && ['Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'Digit0', 'Numpad0'].includes(e.code)) {
         // App Windows: o zoom do WebView vem desligado, então Ctrl + / Ctrl − / Ctrl 0 mudam o tamanho do texto do app.
         e.preventDefault()
@@ -197,10 +214,11 @@ export default function App() {
         const mais = e.code === 'Equal' || e.code === 'NumpadAdd'
         ajustar({ tamanhoTexto: e.code.endsWith('0') ? 1 : proximoTamanho(tamanhoTexto, mais ? 1 : -1) })
       } else if (e.altKey && !e.ctrlKey && /^Digit[1-7]$/.test(e.code)) {
-        // Alt+1 a Alt+7: as seções na ordem da navegação, sem passar por todas com Tab.
+        // Alt+1 a Alt+7: as seções visíveis, na ordem da navegação, sem passar por todas com Tab.
         e.preventDefault()
         const n = Number(e.code.slice(-1))
-        useNavegacao.getState().ir(n <= ABAS.length ? ABAS[n - 1].id : 'ajustes')
+        const visiveis = abasVisiveis(useConfig.getState().modulosDesligados)
+        if (n <= visiveis.length + 1) useNavegacao.getState().ir(n <= visiveis.length ? visiveis[n - 1].id : 'ajustes')
       } else desfazerUltimoAviso(e)
     }
     window.addEventListener('keydown', atalho)
@@ -239,6 +257,32 @@ export default function App() {
     ]
     return () => ouvintes.forEach((o) => void o.then((h) => h.remove()))
   }, [])
+  // Compartilhar e o atalho "Capturar por voz" (Android) e o compartilhar do app instalado na web chegam como link.
+  useEffect(() => {
+    const receber = (url?: string | null) => {
+      const e = url && !recebidas.has(url) ? lerEntrada(url) : null
+      if (!e || !url) return
+      recebidas.add(url)
+      if (e.texto) {
+        useStore.getState().capturar(e.texto)
+        useAvisos.getState().mostrar('Guardado na Caixa', e.texto.length > 80 ? `${e.texto.slice(0, 80)}…` : e.texto)
+      }
+      if (e.voz || e.abrir) {
+        setComVoz(Boolean(e.voz))
+        setCapturando(true)
+      }
+    }
+    if (!ehNativo()) {
+      const url = location.href
+      if (lerEntrada(url)) history.replaceState(null, '', location.pathname)
+      receber(url)
+      return
+    }
+    void AppNativo.getLaunchUrl().then((r) => receber(r?.url))
+    const ouvinte = AppNativo.addListener('appUrlOpen', (r) => receber(r.url))
+    return () => void ouvinte.then((h) => h.remove())
+  }, [])
+
   const estado = useRef({ aba, capturando })
   useEffect(() => {
     estado.current = { aba, capturando }
@@ -253,6 +297,11 @@ export default function App() {
     })
     return () => void ouvinte.then((h) => h.remove())
   }, [])
+
+  // Seção desligada enquanto estava aberta (aqui ou em outro aparelho, pela sincronização): volta para Agora.
+  useEffect(() => {
+    if (desligados.includes(aba)) setAba('agora')
+  }, [aba, desligados, setAba])
 
   const nomeDaAba = aba === 'ajustes' ? 'Ajustes' : ABAS.find((a) => a.id === aba)!.nome
   // Atalhos de teclado só fazem sentido (e só são anunciados) fora do celular.
@@ -279,7 +328,7 @@ export default function App() {
         <button className="primario nav-capturar" onClick={() => setCapturando(true)} title="Captura rápida (Ctrl+Espaço)">
           <span aria-hidden="true">+</span> Capturar <kbd>Ctrl+Espaço</kbd>
         </button>
-        {ABAS.map((a, i) => (
+        {abas.map((a, i) => (
           <button
             key={a.id}
             className={aba === a.id ? 'ativo' : ''}
@@ -297,8 +346,8 @@ export default function App() {
           className={`nav-ajustes ${aba === 'ajustes' ? 'ativo' : ''}`}
           onClick={() => setAba('ajustes')}
           aria-current={aba === 'ajustes' ? 'page' : undefined}
-          title={teclado ? `Ajustes (Alt+${ABAS.length + 1})` : undefined}
-          aria-keyshortcuts={teclado ? `Alt+${ABAS.length + 1}` : undefined}
+          title={teclado ? `Ajustes (Alt+${abas.length + 1})` : undefined}
+          aria-keyshortcuts={teclado ? `Alt+${abas.length + 1}` : undefined}
         >
           <Icone nome="ajustes" />
           <span>Ajustes</span>
@@ -315,15 +364,26 @@ export default function App() {
             </span>
             <span className="so-lateral">{nomeDaAba}</span>
           </h1>
-          <button
-            className={`discreto icone-botao so-estreito ${aba === 'ajustes' ? 'ativo' : ''}`}
-            onClick={() => setAba(aba === 'ajustes' ? 'agora' : 'ajustes')}
-            aria-label="Ajustes"
-            aria-current={aba === 'ajustes' ? 'page' : undefined}
-            title="Ajustes"
-          >
-            <Icone nome="ajustes" />
-          </button>
+          <span className="linha">
+            <button
+              className="discreto icone-botao"
+              onClick={() => setBuscando(true)}
+              aria-label="Buscar"
+              title={teclado ? 'Buscar (Ctrl+K)' : 'Buscar'}
+              aria-keyshortcuts={teclado ? 'Control+K' : undefined}
+            >
+              <Icone nome="buscar" />
+            </button>
+            <button
+              className={`discreto icone-botao so-estreito ${aba === 'ajustes' ? 'ativo' : ''}`}
+              onClick={() => setAba(aba === 'ajustes' ? 'agora' : 'ajustes')}
+              aria-label="Ajustes"
+              aria-current={aba === 'ajustes' ? 'page' : undefined}
+              title="Ajustes"
+            >
+              <Icone nome="ajustes" />
+            </button>
+          </span>
         </header>
 
         <main id="conteudo" tabIndex={-1}>
@@ -348,7 +408,8 @@ export default function App() {
         +
       </button>
 
-      {capturando && <CapturaRapida onFechar={() => setCapturando(false)} />}
+      {buscando && <Busca onFechar={() => setBuscando(false)} />}
+      {capturando && <CapturaRapida comVoz={comVoz} onFechar={() => (setCapturando(false), setComVoz(false))} />}
     </div>
   )
 }

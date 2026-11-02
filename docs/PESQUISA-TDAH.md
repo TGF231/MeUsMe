@@ -25,6 +25,15 @@ O que a pesquisa diz, o que isso muda no MeUsMe e até onde a evidência vai. Re
 | 11 | O esforço **aumenta perto da meta** (gradiente de meta), e progresso já marcado acelera o fim. | estudos de campo (fora do TDAH) | [Kivetz et al. 2006](https://business.columbia.edu/faculty/research/goal-gradient-hypothesis-resurrected-purchase-acceleration-illusionary-goal) |
 | 12 | Ritmo circadiano **atrasado** em boa parte dos adultos (cronotipo vespertino). | revisão sistemática (62 estudos) | [Coogan & McGowan 2017](https://mural.maynoothuniversity.ie/11298) |
 
+## Regras para funções novas
+
+Valem para tudo o que entrar no app, e vêm dos achados acima e da pesquisa de concorrentes ([CONCORRENTES.md](CONCORRENTES.md)).
+
+- **Nada se move sozinho (D03).** O app pode propor uma data, um horário ou uma ordem, mas sempre diz o motivo em uma frase e espera você aceitar. Reagendar por conta própria tira a sensação de controle, que é o que já falta quando as prioridades parecem aleatórias (1, 7). Exemplos: a escolha do Agora mostra o motivo; os passos vencidos ganham datas sugeridas, aplicadas só com "Usar estas datas".
+- **Sem vermelho nem placar de atraso (D04).** Data que passou vira "para reagendar", nunca contagem de dias perdidos (7).
+- **Nunca bloquear o começo.** Campos novos são opcionais e ficam recolhidos; palpite, prazo e datas não podem ser exigidos para começar um passo (6, 8).
+- **Desligar só esconde (D14).** Nada é apagado por uma preferência.
+
 ## Revisão de cada função
 
 **Mantida** quando já estava de acordo com a pesquisa, **ajustada** quando mudou, **nova** quando foi criada nesta revisão.
@@ -33,19 +42,22 @@ O que a pesquisa diz, o que isso muda no MeUsMe e até onde a evidência vai. Re
 
 - **Mantida:** uma sugestão por vez, escolhida por energia, foco e distância do fim (1, 11). Escolher entre muitas opções é justamente a decisão que trava.
 - **Mantida:** compromissos e horários reservados passam na frente (1: a ajuda no ponto de execução).
-- **Mantida:** "Grande demais" quebra em um passo de 2 minutos com energia baixa (2, 6).
+- **Ajustada:** "Grande demais" (e o novo "Quebrar" em Projetos) começa pelo pedaço de 2 minutos com energia baixa e segue com "e depois disso?" até você dizer que basta; os pedaços entram antes do original, na ordem escrita e com o mesmo prazo (2, 6). Quebrar sem nuvem: as perguntas guiam, e quem escreve os passos é você.
 - **Nova:** *Combinado: só 5 minutos*. Diminui o tamanho do compromisso inicial, que é onde a baixa expectativa de conseguir pesa (6). Aos 5 minutos de foco, o app diz que dá para parar sem culpa.
 - **Nova:** barra de progresso até a linha de chegada, contando o que já foi feito desde o começo (11). Resposta direta ao "cada passo mais perto parece mais inalcançável".
 - **Nova:** anel do bloco de foco: o tempo passando fica visível, fora da cabeça (1, 3).
+- **Nova:** linha do tempo do resto do dia: compromissos, horários reservados e o tempo livre até a meia-noite numa faixa só (1, 3).
 - **Nova:** palpite de tempo, opcional e sem bloquear o começo; no fim aparece palpite × real (3).
 - **Nova:** recepção sem culpa para quem volta depois de 3 dias ou mais, com atalho para começar leve (7).
 - **Mantida:** aviso de pausa no tempo escolhido e alerta fixo de 1h30 no mesmo passo (9).
 - **Mantida:** estacionar ideias durante o foco (8).
+- **Nova:** prazo e "só a partir de" nos passos, opcionais e recolhidos no formulário. O prazo pesa na escolha (vencido conta como "hoje", nunca mais) e o motivo diz quanto falta (1, 3). Passos vencidos aparecem como **para reagendar**, com novas datas sugeridas em lote, até duas por dia, aceitas com um toque: sem vermelho e sem contar dias de atraso, para o atraso não virar culpa (7).
 
 ### Caixa (captura)
 
 - **Mantida:** captura em um toque, por atalho global no Windows e pelas notificações de banco no Android (8). "Organizar fica para depois" separa capturar de decidir.
 - **Nova:** "Quero comprar: esperar 48h" manda a vontade para a lista de espera (4, 10).
+- **Nova:** capturar sem abrir o app: Compartilhar → MeUsMe (texto e links vão para a Caixa), o bloco Capturar nas Configurações rápidas e o atalho Capturar por voz no ícone (8).
 - **Nova:** captura sem digitar: microfone para ditar e recado de voz gravado direto na Caixa (8). Escrever é atrito na hora em que a ideia aparece; o recado tira da cabeça em um toque e deixa o organizar para depois.
 
 ### Projetos
@@ -53,6 +65,7 @@ O que a pesquisa diz, o que isso muda no MeUsMe e até onde a evidência vai. Re
 - **Mantida:** linha de chegada obrigatória, definida enquanto há energia (11).
 - **Mantida:** só o próximo passo aparece; os demais ficam recolhidos.
 - **Nova:** barra de progresso nos cartões e no detalhe (11).
+- **Nova:** passos que se repetem (todo dia, semana ou mês): depois de feito, o passo volta sozinho com "só a partir de" na data seguinte, sem ocupar o Agora antes da hora. Recriar a mesma tarefa é demanda que o apoio externo deve tirar (8).
 - **Nova:** modelos: um projeto que se repete (lavar roupa, mercado) volta inteiro com um toque, com os passos já quebrados (2, 8). Quebrar em passos é a parte que pede energia; refazer isso toda vez é a demanda que o apoio externo deve tirar.
 - **Nova:** passos já feitos voltam com "De novo" (no projeto e no Histórico), e o formulário sugere passos anteriores e verbos concretos para começar a frase (2, 8). Os verbos também evitam o passo vago, que é o que trava na hora de começar.
 
@@ -65,6 +78,8 @@ Toda semana, no dia escolhido: esvaziar a Caixa, escolher **um** projeto em foco
 - **Mantida:** aviso antes dos compromissos e o cartão "comece a fechar o que está fazendo" 30 minutos antes. Transições levam mais tempo do que parece (3).
 - **Mantida:** horário reservado para um passo: um plano "quando for X horas, faço Y" (5).
 - **Nova:** aviso da revisão semanal e da lista de espera.
+- **Nova:** diagnóstico dos lembretes no Android: além da permissão e dos alarmes exatos, avisa quando a economia de bateria pode segurar os avisos e oferece um teste que chega com o app fechado. Um lembrete que falha sem aviso derruba a confiança no apoio externo (1, 8).
+- **Nova:** ler outras agendas do Google pelo ID, como a compartilhada com a equipe, só para leitura. Os compromissos de trabalho entram na tela Agora, onde passam na frente dos passos (1).
 
 ### Histórico e check-in
 
@@ -76,11 +91,20 @@ Toda semana, no dia escolhido: esvaziar a Caixa, escolher **um** projeto em foco
 
 - **Mantida:** aviso de conta fixa na véspera e no dia, e o botão "Paguei" na tela Agora (10).
 - **Mantida:** gastos lançados sozinhos pelas notificações do banco, sem depender de lembrar (8, 10).
-- **Nova:** **Antes de comprar**, uma lista de espera de 24h a 1 semana. Quando o prazo passa, o app pergunta se ainda quer, e mostra quanto ficou no bolso com as desistências (4, 10).
+- **Nova:** compra parcelada no lançamento: cada parcela entra no mês dela, e o "livre por dia" dos meses seguintes já conta com ela (10).
+- **Nova:** importação de extrato **OFX**, o formato que quase todo banco exporta, sem escolher colunas: um caminho que não depende da notificação do banco nem de Open Finance (8, 10).
+- **Nova:** **de onde chegam os lançamentos**: quando cada fonte (notificações de cada banco, Open Finance, extrato) trouxe dado pela última vez e o ritmo de costume. Se uma fonte automática passa bem do próprio ritmo (nunca menos de 7 dias), o Resumo avisa em tom neutro, para o buraco não ser descoberto só no fim do mês (8, 10).
+- **Nova:** **Antes de comprar**, uma lista de espera de 24h a 1 semana. Cada item mostra o efeito no "livre por dia" até o fim do mês ("de R$ 146 para R$ 136, ≈ 2 dias do livre de hoje"), para a espera ter um número concreto (4). Quando o prazo passa, o app pergunta se ainda quer, e mostra quanto ficou no bolso com as desistências (4, 10).
 
 ### Windows
 
 - **Mantida:** captura global e tempo por programa (8), sem guardar o título da janela.
+
+### Seções e perfis
+
+- **Nova:** busca em tudo (lupa ou Ctrl+K). Com tudo num lugar só, achar uma coisa não pode depender de lembrar onde ela foi parar (8).
+
+- **Nova:** **perfis prontos** na introdução (só tarefas; tarefas e agenda; tudo com dinheiro) em vez de montar o sistema, e **seções que se desligam** em Ajustes. Menos telas e menos decisões reduzem a demanda (8); desligar só esconde, nada é apagado.
 
 ## O que não entrou, e por quê
 

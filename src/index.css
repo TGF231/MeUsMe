@@ -397,6 +397,19 @@ h2.titulo {
   border-bottom: 1px solid var(--borda);
 }
 
+/* Passo com três ações: no celular o texto fica com a largura e as ações descem para a linha de baixo. */
+.linha.entre.passo-item {
+  flex-wrap: wrap;
+}
+
+.passo-item > span:first-child {
+  flex: 1 1 14rem;
+}
+
+.passo-item > .linha {
+  margin-left: auto;
+}
+
 .segmentado {
   display: flex;
   gap: 6px;
@@ -549,7 +562,10 @@ button:disabled {
   cursor: default;
 }
 
-input[type='checkbox'] {
+input[type='checkbox'],
+input[type='radio'] {
+  flex-shrink: 0;
+  padding: 0;
   width: 20px;
   min-height: 20px;
   height: 20px;
@@ -1637,4 +1653,50 @@ button.perigo:hover {
 /* Título de seção com cara de rótulo: <h2 className="rotulo"> para o leitor de tela pular por títulos, com a margem que o <p> tinha. */
 :is(h2, h3).rotulo {
   margin: 1em 0;
+}
+
+.introducao fieldset.perfis {
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+  text-align: left;
+}
+
+.resultados-busca {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.resultados-busca button {
+  width: 100%;
+  text-align: left;
+}
+
+/* Linha do tempo do resto do dia (V12): compromissos na cor de marca, horários reservados em informação. */
+.faixa-do-dia {
+  position: relative;
+  height: 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-controle);
+  background: var(--rebaixado);
+  overflow: hidden;
+}
+
+.faixa-do-dia .bloco {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--acento-linha);
+}
+
+.faixa-do-dia .bloco.reservado {
+  background: var(--info);
+}
+
+.linha-do-tempo .motivo {
+  margin: 4px 0 8px;
+  font-size: 0.8rem;
 }
