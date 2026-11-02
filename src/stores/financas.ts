@@ -325,3 +325,29 @@ export function compararComMesesAnteriores(transacoes: Transacao[], mes: string,
     .sort((a, b) => Math.abs(b.diferenca) - Math.abs(a.diferenca))
   return { meses: anteriores.length, diferencas }
 }
+
+/**
+ * Assinaturas esquecidas (V29 em docs/CONCORRENTES.md): gastos com a mesma descrição (sem números) em cada um dos 3
+ * meses anteriores, com valores parecidos (o maior até 20% acima do menor), que ainda não são conta fixa nem foram
+ * dispensados. Devolve a ocorrência mais recente de cada um.
+ */
+export function provaveisAssinaturas(transacoes: Transacao[], fixas: ContaFixa[], mes: string, dispensadas: string[] = []) {
+  const meses = [1, 2, 3].map((n) => mesAntes(mes, n))
+  const grupos = new Map<string, Transacao[]>()
+  for (const t of transacoes) {
+    if (t.valor >= 0 || t.categoriaId === TRANSFERENCIA || !meses.some((m) => t.data.startsWith(m))) continue
+    const chave = normalizar(normalizarTexto(t.descricao))
+    if (chave) grupos.set(chave, [...(grupos.get(chave) ?? []), t])
+  }
+  const jaFixa = (chave: string) => fixas.some((f) => chave.includes(normalizar(normalizarTexto(f.nome))) || normalizar(normalizarTexto(f.nome)).includes(chave))
+  return [...grupos.entries()]
+    .filter(([chave, ts]) => {
+      if (dispensadas.includes(chave) || jaFixa(chave) || !meses.every((m) => ts.some((t) => t.data.startsWith(m)))) return false
+      const valores = ts.map((t) => -t.valor)
+      return Math.max(...valores) <= 1.2 * Math.min(...valores)
+    })
+    .map(([chave, ts]) => {
+      const ultima = ts.reduce((a, b) => (b.data > a.data ? b : a))
+      return { chave, descricao: ultima.descricao, valor: -ultima.valor, dia: Number(ultima.data.slice(8)), categoriaId: ultima.categoriaId, contaId: ultima.contaId }
+    })
+}

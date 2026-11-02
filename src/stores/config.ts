@@ -46,6 +46,8 @@ interface Estado {
   ultimoBackup: number
   /** Última cópia automática em Documentos/MeUsMe (Android, src/nativo/backupAutomatico.ts). Não sincroniza. */
   ultimoBackupAuto: number
+  /** Assinaturas que você disse que ainda usa (V29): não perguntam de novo. Não sincroniza. */
+  assinaturasOk: string[]
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -78,6 +80,7 @@ export const useConfig = create<Estado>()(
       versaoVista: '',
       ultimoBackup: 0,
       ultimoBackupAuto: 0,
+      assinaturasOk: [],
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>

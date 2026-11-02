@@ -13,6 +13,7 @@ import {
   diaDeVencimento,
   fixaPagaNoMes,
   palavraDaRegra,
+  provaveisAssinaturas,
   previsaoDoMes,
   resumoDoMes,
   saldoDaConta,
@@ -23,7 +24,7 @@ import type { ContaFixa, Transacao } from '../types'
 import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 import { Simbolo } from '../components/Icone'
 import { apagarComDesfazer } from '../desfazer'
-import { useAvisos } from '../stores/config'
+import { useAvisos, useConfig } from '../stores/config'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -44,6 +45,42 @@ const nomeDoMes = (mes: string) => {
 const mudarMes = (mes: string, delta: number) => {
   const [a, m] = mes.split('-').map(Number)
   return mesISO(new Date(a, m - 1 + delta, 1))
+}
+
+/**
+ * Assinaturas esquecidas (V29 em docs/CONCORRENTES.md): o que se repetiu nos 3 meses anteriores e ainda não é conta
+ * fixa. "Virar conta fixa" passa a avisar o vencimento; "Ainda uso" não pergunta mais.
+ */
+function Assinaturas({ mes }: { mes: string }) {
+  const f = useFinancas()
+  const cfg = useConfig()
+  const lista = provaveisAssinaturas(f.transacoes, f.fixas, mes, cfg.assinaturasOk).slice(0, 3)
+  if (lista.length === 0) return null
+  const dispensar = (chave: string) => cfg.ajustar({ assinaturasOk: [...cfg.assinaturasOk, chave] })
+
+  return (
+    <div className="cartao compacto">
+      <h2 className="rotulo">Parecem assinaturas</h2>
+      <p className="motivo">Apareceram todo mês nos últimos 3 meses. Ainda usa?</p>
+      {lista.map((a) => (
+        <div key={a.chave} className="linha entre item">
+          <span>
+            {a.descricao} <span className="motivo">· {reais(a.valor)}, por volta do dia {a.dia}</span>
+          </span>
+          <span className="linha">
+            <button
+              onClick={() => f.salvarFixa({ nome: a.descricao, valor: a.valor, dia: a.dia, tipo: 'gasto', categoriaId: a.categoriaId, contaId: a.contaId })}
+            >
+              Virar conta fixa
+            </button>
+            <button className="discreto" onClick={() => dispensar(a.chave)}>
+              Ainda uso
+            </button>
+          </span>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomatico>; onVerFontes: () => void }) {
@@ -81,6 +118,7 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
       <div className="col">
         <StatusBancos sync={sync} />
         <AvisoFontesParadas onVer={onVerFontes} />
+        <Assinaturas mes={mes} />
         <div className="cartao foco destaque">
           <h2 className="rotulo">Livre para gastar por dia até o fim do mês</h2>
           <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>

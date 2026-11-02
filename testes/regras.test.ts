@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { compararComMesesAnteriores, mesAntes, palavraDaRegra, sugerirCategoria, useFinancas } from '../src/stores/financas.ts'
+import { compararComMesesAnteriores, mesAntes, provaveisAssinaturas, palavraDaRegra, sugerirCategoria, useFinancas } from '../src/stores/financas.ts'
 import type { Categoria, Transacao } from '../src/types.ts'
 
 const categorias: Categoria[] = [
@@ -68,4 +68,20 @@ test('metas: guardar soma, tirar não passa de zero, chegar ao alvo conclui e vo
   guardar(-1000)
   assert.equal(useFinancas.getState().metas[0].concluidaEm, undefined)
   assert.equal(useFinancas.getState().metas[0].guardado, 99000)
+})
+
+test('assinaturas: mesma descrição nos 3 meses anteriores, valor parecido, fora das fixas e das dispensadas', () => {
+  const g = (id: string, descricao: string, data: string, valor: number): Transacao => ({ id, contaId: 'nu', categoriaId: null, valor, descricao, data, criadoEm: 0 })
+  const transacoes = [
+    ...['08', '09', '10'].map((m, i) => g(`n${m}`, `NETFLIX.COM ${i}`, `2026-${m}-05`, -3990)),
+    ...['08', '09', '10'].map((m) => g(`s${m}`, 'Spotify', `2026-${m}-10`, -2190)),
+    ...['08', '09', '10'].map((m) => g(`a${m}`, 'Aluguel', `2026-${m}-01`, -150000)),
+    ...['08', '10'].map((m) => g(`c${m}`, 'Cinema', `2026-${m}-20`, -5000)),
+    g('m08', 'Mercado', '2026-08-03', -10000),
+    g('m09', 'Mercado', '2026-09-03', -30000),
+    g('m10', 'Mercado', '2026-10-03', -12000),
+  ]
+  const fixas = [{ id: 'f', nome: 'Aluguel', valor: 150000, dia: 1, tipo: 'gasto' as const, categoriaId: null, contaId: 'nu' }]
+  const r = provaveisAssinaturas(transacoes, fixas, '2026-11', ['spotify'])
+  assert.deepEqual(r.map((a) => [a.descricao, a.valor, a.dia]), [['NETFLIX.COM 2', 3990, 5]])
 })
