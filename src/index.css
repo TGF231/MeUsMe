@@ -6,14 +6,14 @@
 :root {
   --fundo: var(--megui-bg);
   --superficie: var(--megui-surface);
-  --superficie-2: var(--megui-surface2);
+  --superficie-2: var(--megui-surface-2);
   --rebaixado: var(--megui-sunken);
   --linha-alt: var(--megui-linha-alt);
   --texto: var(--megui-ink);
-  --suave: var(--megui-ink2);
-  --apagado: var(--megui-ink3);
+  --suave: var(--megui-ink-2);
+  --apagado: var(--megui-ink-3);
   --borda: var(--megui-border);
-  --borda-2: var(--megui-border2);
+  --borda-2: var(--megui-border-2);
   /* Cores de estado, independentes do acento. */
   --ok: var(--megui-ok);
   --aviso: var(--megui-warn);
@@ -33,24 +33,12 @@
   --raio: var(--megui-raio);
   --raio-controle: var(--megui-raio);
   --fonte-mono: var(--megui-fonte-mono);
-  --peso-forte: var(--megui-tipo-titulo-peso);
+  --peso-forte: var(--megui-peso-forte);
   --mov-feedback: var(--megui-mov-feedback);
 
   font-family: var(--megui-fonte-ui);
   color: var(--texto);
   background: var(--fundo);
-  color-scheme: light;
-}
-
-/* Tema escuro: as cores já trocam no megui.css; aqui só os controles nativos do navegador. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-tema]) {
-    color-scheme: dark;
-  }
-}
-
-:root[data-tema='escuro'] {
-  color-scheme: dark;
 }
 
 /* Anel de foco do MegUI em tudo que recebe foco pelo teclado. */
@@ -1664,17 +1652,17 @@ button.perigo:hover {
 @media (prefers-contrast: more) {
   :root {
     --suave: var(--megui-ink);
-    --apagado: var(--megui-ink2);
-    --borda: var(--megui-ink3);
-    --borda-2: var(--megui-ink2);
+    --apagado: var(--megui-ink-2);
+    --borda: var(--megui-ink-3);
+    --borda-2: var(--megui-ink-2);
   }
 }
 
 :root[data-contraste='alto'] {
   --suave: var(--megui-ink);
-  --apagado: var(--megui-ink2);
-  --borda: var(--megui-ink3);
-  --borda-2: var(--megui-ink2);
+  --apagado: var(--megui-ink-2);
+  --borda: var(--megui-ink-3);
+  --borda-2: var(--megui-ink-2);
 }
 
 /* Título de seção com cara de rótulo: <h2 className="rotulo"> para o leitor de tela pular por títulos, com a margem que o <p> tinha. */

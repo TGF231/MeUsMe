@@ -9,8 +9,8 @@ function megui(seletor: string) {
   const bloco = css.slice(css.indexOf(`${seletor} {`)).split('}')[0]
   return Object.fromEntries([...bloco.matchAll(/--megui-([\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]))
 }
-const CLARO = megui(':root')
-const ESCURO = megui('[data-tema="escuro"]')
+const CLARO = megui(':root, [data-theme="claro"], [data-tema="claro"]')
+const ESCURO = megui('[data-theme="escuro"], [data-tema="escuro"]')
 
 test('a assinatura e a paleta usada nos cálculos batem com o megui.css', () => {
   for (const [modo, p] of [['claro', CLARO], ['escuro', ESCURO]] as const) {
@@ -54,7 +54,7 @@ for (const { nome, acento } of [{ nome: 'Assinatura', acento: ASSINATURA }, ...A
     assert.ok(contraste(acento.escuro.linha, PALETA.superficieEscuro) >= 3)
   })
   test(`${nome}: as três tintas continuam legíveis sobre o acento suave (≥ 4,5:1)`, () => {
-    for (const tinta of ['ink', 'ink2', 'ink3']) {
+    for (const tinta of ['ink', 'ink-2', 'ink-3']) {
       assert.ok(contraste(CLARO[tinta], acento.claro.suave) >= 4.5, `claro ${tinta}`)
       assert.ok(contraste(ESCURO[tinta], acento.escuro.suave) >= 4.5, `escuro ${tinta}`)
     }
