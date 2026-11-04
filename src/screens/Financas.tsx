@@ -121,7 +121,7 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
         <Assinaturas mes={mes} />
         <div className="cartao foco destaque">
           <h2 className="rotulo">Livre para gastar por dia até o fim do mês</h2>
-          <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
+          <p className={`grande valor ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
           <p className="motivo">
             Saldo {reais(p.saldo)} · a pagar {reais(p.aPagar)}
             {p.aReceber > 0 && ` · a receber ${reais(p.aReceber)}`} · {p.diasRestantes} dia{p.diasRestantes > 1 ? 's' : ''}

@@ -636,7 +636,14 @@ input.mini {
   font-size: 0.85rem;
 }
 
+/* Valor em destaque vai em mono (MegUI): o Atkinson Mono separa 0 de O, 1 de l, 5 de S. */
+.valor {
+  font-family: var(--fonte-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 .valor-grande {
+  font-family: var(--fonte-mono);
   font-size: 1.8rem;
   font-weight: var(--peso-forte);
   text-align: center;
