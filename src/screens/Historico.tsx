@@ -10,6 +10,7 @@ import { minutosDoPasso, useStore } from '../store'
 import { useAgenda } from '../stores/agenda'
 import { dataISO, duracao, hora, hoje, nomeDoDia } from '../util'
 import { Simbolo } from '../components/Icone'
+import { contagemDasRotinas } from '../rotinas'
 
 const DIA = 86_400_000
 
@@ -19,6 +20,7 @@ export function Historico() {
   const agora = useAgora(60_000)
   const projetoDe = (id: string | null) => s.projetos.find((p) => p.id === id)
   const cal = calibracao(s.passos, s.sessoes)
+  const rotinas = contagemDasRotinas(s.passos, agora)
 
   // Resumo: últimos 7 dias
   const desde7 = new Date(agora).setHours(0, 0, 0, 0) - 6 * DIA
@@ -74,6 +76,21 @@ export function Historico() {
               </p>
             )}
           </div>
+
+          {rotinas.length > 0 && (
+            <div className="cartao">
+              <h2 className="rotulo">Rotinas nas últimas 4 semanas</h2>
+              {rotinas.map((r) => (
+                <div key={r.id} className="linha entre">
+                  <span>{r.texto}</span>
+                  <span className="motivo">
+                    {r.vezes} de {r.esperado} {{ diario: 'dias', semanal: 'semanas', mensal: 'mês' }[r.repetir]}
+                  </span>
+                </div>
+              ))}
+              <p className="motivo">Sem sequência para quebrar: uma semana sem fazer só deixa de somar.</p>
+            </div>
+          )}
 
           <div className="cartao">
             <h2 className="rotulo">Últimos 7 dias</h2>
