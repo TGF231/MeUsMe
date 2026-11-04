@@ -29,7 +29,7 @@ import { BotaoVoz } from './components/BotaoVoz'
 import { Busca } from './components/Busca'
 import { OQueMudou } from './components/OQueMudou'
 import { novidadesPendentes } from './novidades'
-import { Botao } from './tema/megui-react.mjs'
+import { Botao, Dialogo } from './tema/megui-react.mjs'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -137,6 +137,9 @@ function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; com
   const [texto, setTexto] = useState('')
   const [exemplo] = useState(() => EXEMPLOS_DE_CAMPO[Math.floor(Math.random() * EXEMPLOS_DE_CAMPO.length)])
   const janela = useJanelaModal()
+  const campo = useRef<HTMLInputElement>(null)
+  // O ✕ do Dialogo vem antes no foco; quem abre a captura quer escrever, então o campo leva o foco (depois do showModal).
+  useEffect(() => campo.current?.focus(), [])
 
   return (
     <dialog
@@ -148,7 +151,15 @@ function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; com
         onFechar()
       }}
     >
-      <div className="modal">
+      <Dialogo
+        titulo="Captura rápida"
+        role="none"
+        aria-modal={undefined}
+        aria-label={undefined}
+        className="modal-megui"
+        largura="100%"
+        aoFechar={onFechar}
+      >
         <form
           className="form"
           onSubmit={(e) => {
@@ -163,6 +174,7 @@ function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; com
           <div className="linha">
             {/* O aria-label repete o rótulo: sem ele, a WebView do Android entrega ao TalkBack só o exemplo como dica. */}
             <input
+              ref={campo}
               id="captura-rapida"
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
@@ -182,7 +194,7 @@ function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; com
             Guardar na caixa
           </Botao>
         </form>
-      </div>
+      </Dialogo>
       {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, como no tutorial (ComoEscrever). */}
       <button type="button" className="fundo-fechar" aria-label="Fechar a captura rápida" onClick={onFechar} />
     </dialog>
