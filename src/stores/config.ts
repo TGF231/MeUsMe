@@ -52,6 +52,8 @@ interface Estado {
   marcos: boolean
   /** Menos espaço entre e dentro dos cartões (D17). Não sincroniza: depende da tela. */
   densidade: 'confortavel' | 'compacta'
+  /** Menu de seções só com texto, sem os ícones (D17). Não sincroniza: depende da tela. */
+  soTexto: boolean
 
   ajustar: (m: Partial<Omit<Estado, 'ajustar' | 'marcarDisparado'>>) => void
   marcarDisparado: (chave: string) => void
@@ -87,6 +89,7 @@ export const useConfig = create<Estado>()(
       assinaturasOk: [],
       marcos: true,
       densidade: 'confortavel',
+      soTexto: false,
 
       ajustar: (m) => set(m),
       marcarDisparado: (chave) =>

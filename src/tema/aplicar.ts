@@ -13,9 +13,9 @@ export function temaEfetivo() {
   return tema === 'auto' ? (sistemaEscuro() ? 'escuro' : 'claro') : tema
 }
 
-/** Tamanho do texto (tudo no app é em rem, então cresce junto), alvos grandes, contraste alto e densidade (data-*, em index.css). */
+/** Tamanho do texto (tudo no app é em rem, então cresce junto), alvos grandes, contraste alto, densidade e menu só com texto (data-*, em index.css). */
 function aplicarAcessibilidade() {
-  const { tamanhoTexto, alvosGrandes, contrasteAlto, densidade } = useConfig.getState()
+  const { tamanhoTexto, alvosGrandes, contrasteAlto, densidade, soTexto } = useConfig.getState()
   const raiz = document.documentElement
   if (tamanhoTexto === 1) raiz.style.removeProperty('font-size')
   else raiz.style.fontSize = `${tamanhoTexto * 100}%`
@@ -25,6 +25,8 @@ function aplicarAcessibilidade() {
   else delete raiz.dataset.contraste
   if (densidade === 'compacta') raiz.dataset.densidade = 'compacta'
   else delete raiz.dataset.densidade
+  if (soTexto) raiz.dataset.icones = 'nao'
+  else delete raiz.dataset.icones
 }
 
 /**
@@ -67,7 +69,8 @@ export function manterTema() {
       s.tamanhoTexto !== anterior.tamanhoTexto ||
       s.alvosGrandes !== anterior.alvosGrandes ||
       s.contrasteAlto !== anterior.contrasteAlto ||
-      s.densidade !== anterior.densidade
+      s.densidade !== anterior.densidade ||
+      s.soTexto !== anterior.soTexto
     )
       aplicarAcessibilidade()
     anterior = s

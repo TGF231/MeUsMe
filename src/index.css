@@ -1473,6 +1473,11 @@ button.perigo:hover {
 }
 
 /* Progresso do MegUI: a barra é marca sem texto, então usa --acento-linha (3:1 no escuro), como as outras marcas. */
+/* Menu só com texto (D17): os nomes das seções ficam, só os ícones saem. */
+:root[data-icones='nao'] .abas svg {
+  display: none;
+}
+
 /* Botao do MegUI (a ação principal é variante="acento"): no toque, o mesmo tamanho dos outros botões do app. */
 .mg-botao {
   min-height: var(--megui-toque-retrato);

@@ -486,7 +486,7 @@ function Secoes() {
 }
 
 function Acessibilidade() {
-  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, densidade, ajustar } = useConfig()
+  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, densidade, soTexto, ajustar } = useConfig()
   return (
     <div className="cartao">
       <h2 className="titulo">Acessibilidade</h2>
@@ -519,6 +519,12 @@ function Acessibilidade() {
         ))}
       </div>
       <p className="motivo">Compacta mostra mais de uma vez, com menos espaço entre os cartões. Vale só para este aparelho.</p>
+      <label className="check">
+        <input type="checkbox" checked={soTexto} onChange={(e) => ajustar({ soTexto: e.target.checked })} />
+        <span>
+          Menu só com texto <span className="motivo">· tira os ícones das seções; os nomes ficam.</span>
+        </span>
+      </label>
       <label className="check">
         <input type="checkbox" checked={contrasteAlto} onChange={(e) => ajustar({ contrasteAlto: e.target.checked })} />
         <span>Contraste alto</span>
