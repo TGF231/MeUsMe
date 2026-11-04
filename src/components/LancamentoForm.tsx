@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { dividirEmParcelas } from '../compra'
 import { sugerirCategoria, useFinancas } from '../stores/financas'
 import { hoje, lerValor, reais } from '../util'
+import { Botao, BotaoInterruptor, Campo } from '../tema/megui-react.mjs'
 
 interface Props {
   inicial?: { valor?: number; descricao?: string; tipo?: 'gasto' | 'receita' }
@@ -47,14 +48,14 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
       }}
     >
       <div className="segmentado" role="group" aria-label="Tipo">
-        <button type="button" className={tipo === 'gasto' ? 'ativo' : ''} aria-pressed={tipo === 'gasto'} onClick={() => setTipo('gasto')}>
+        <BotaoInterruptor ligado={tipo === 'gasto'} onClick={() => setTipo('gasto')}>
           Gastei
-        </button>
-        <button type="button" className={tipo === 'receita' ? 'ativo' : ''} aria-pressed={tipo === 'receita'} onClick={() => setTipo('receita')}>
+        </BotaoInterruptor>
+        <BotaoInterruptor ligado={tipo === 'receita'} onClick={() => setTipo('receita')}>
           Recebi
-        </button>
+        </BotaoInterruptor>
       </div>
-      <input
+      <Campo mono
         required
         className="valor-grande"
         inputMode="decimal"
@@ -67,14 +68,13 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
       <input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Com o quê? (opcional)" aria-label="Descrição" />
       <div className="chips" role="group" aria-label="Categoria">
         {categorias.map((c) => (
-          <button
+          <BotaoInterruptor
             key={c.id}
-            type="button"
-            className={categoriaId === c.id ? 'ativo' : ''} aria-pressed={categoriaId === c.id}
+            ligado={categoriaId === c.id}
             onClick={() => setCategoriaEscolhida(categoriaId === c.id ? null : c.id)}
           >
             {c.nome}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
       <div className="linha">
@@ -99,9 +99,9 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
         )}
       </div>
       <div className="linha">
-        <button type="submit" className="primario" disabled={!valor}>
+        <Botao variante="acento" type="submit" disabled={!valor}>
           {valor ? `Registrar ${reais(Math.abs(valor))}${tipo === 'gasto' && parcelas > 1 ? ` em ${parcelas}x` : ''}` : 'Registrar'}
-        </button>
+        </Botao>
         {onCancelar && (
           <button type="button" onClick={onCancelar}>
             Cancelar

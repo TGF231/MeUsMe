@@ -6,14 +6,14 @@
 :root {
   --fundo: var(--megui-bg);
   --superficie: var(--megui-surface);
-  --superficie-2: var(--megui-surface2);
+  --superficie-2: var(--megui-surface-2);
   --rebaixado: var(--megui-sunken);
   --linha-alt: var(--megui-linha-alt);
   --texto: var(--megui-ink);
-  --suave: var(--megui-ink2);
-  --apagado: var(--megui-ink3);
+  --suave: var(--megui-ink-2);
+  --apagado: var(--megui-ink-3);
   --borda: var(--megui-border);
-  --borda-2: var(--megui-border2);
+  --borda-2: var(--megui-border-2);
   /* Cores de estado, independentes do acento. */
   --ok: var(--megui-ok);
   --aviso: var(--megui-warn);
@@ -33,24 +33,12 @@
   --raio: var(--megui-raio);
   --raio-controle: var(--megui-raio);
   --fonte-mono: var(--megui-fonte-mono);
-  --peso-forte: var(--megui-tipo-titulo-peso);
+  --peso-forte: var(--megui-peso-forte);
   --mov-feedback: var(--megui-mov-feedback);
 
   font-family: var(--megui-fonte-ui);
   color: var(--texto);
   background: var(--fundo);
-  color-scheme: light;
-}
-
-/* Tema escuro: as cores já trocam no megui.css; aqui só os controles nativos do navegador. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-tema]) {
-    color-scheme: dark;
-  }
-}
-
-:root[data-tema='escuro'] {
-  color-scheme: dark;
 }
 
 /* Anel de foco do MegUI em tudo que recebe foco pelo teclado. */
@@ -107,10 +95,21 @@ main[tabindex='-1']:focus {
   box-sizing: border-box;
 }
 
+/*
+ * Adaptações do MeUsMe sobre a folha de componentes do MegUI (megui-componentes.css), que é de ferramenta de mesa:
+ * corpo em 1rem (16px, o mínimo confortável no toque) e link em --acento-linha, que lê no escuro (o acento puro não).
+ */
 body {
   margin: 0;
   background: var(--fundo);
+  font-size: 1rem;
+  line-height: var(--megui-tipo-corpo-altura);
   -webkit-tap-highlight-color: transparent;
+}
+
+a,
+a:hover {
+  color: var(--acento-linha);
 }
 
 button,
@@ -150,18 +149,6 @@ button {
 
 button:hover {
   background: var(--superficie-2);
-}
-
-button.primario {
-  background: var(--acento);
-  color: var(--acento-texto);
-  border-color: var(--acento);
-  font-weight: var(--peso-forte);
-}
-
-button.primario:hover {
-  background: var(--acento-hover);
-  border-color: var(--acento-hover);
 }
 
 button.ativo {
@@ -424,6 +411,18 @@ h2.titulo {
   margin-left: auto;
 }
 
+/* Nota do passo (V10): bloco próprio, com as quebras de linha e links longos que não estouram a tela. */
+.nota-passo {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+textarea.nota-passo {
+  width: 100%;
+  font: inherit;
+}
+
 .segmentado {
   display: flex;
   gap: 6px;
@@ -570,6 +569,33 @@ dialog.fundo::backdrop {
   gap: 10px;
 }
 
+/* Dialogo do MegUI dentro do <dialog> nativo: mesma largura e camada do .modal, e a faixa e o ✕ com o alvo de toque. */
+.modal-megui {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+}
+
+.modal-megui .mg-dialogo__barra {
+  height: auto;
+  min-height: var(--megui-toque-retrato);
+  padding-left: var(--megui-esp-4);
+}
+
+.modal-megui .mg-dialogo__fechar {
+  width: var(--megui-toque-retrato);
+  height: var(--megui-toque-retrato);
+  min-height: 0;
+  padding: 0;
+}
+
+.modal-megui .mg-dialogo__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 1rem;
+}
+
 /* Componentes compartilhados (formulários, chips, agenda, finanças) */
 
 button:disabled {
@@ -625,7 +651,14 @@ input.mini {
   font-size: 0.85rem;
 }
 
+/* Valor em destaque vai em mono (MegUI): o Atkinson Mono separa 0 de O, 1 de l, 5 de S. */
+.valor {
+  font-family: var(--fonte-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 .valor-grande {
+  font-family: var(--fonte-mono);
   font-size: 1.8rem;
   font-weight: var(--peso-forte);
   text-align: center;
@@ -1466,6 +1499,44 @@ button.perigo:hover {
   width: 100%;
 }
 
+/* Progresso do MegUI: a barra é marca sem texto, então usa --acento-linha (3:1 no escuro), como as outras marcas. */
+/* Menu só com texto (D17): os nomes das seções ficam, só os ícones saem. */
+:root[data-icones='nao'] .abas svg {
+  display: none;
+}
+
+/* Botao do MegUI (a ação principal é variante="acento"): no toque, o mesmo tamanho dos outros botões do app. */
+.mg-botao {
+  min-height: var(--megui-toque-retrato);
+  padding: 10px 16px;
+  font-size: 1rem;
+}
+
+/* Campo do MegUI (valores em mono): no toque, a altura e o respiro dos outros campos do app. */
+.mg-campo {
+  min-height: var(--megui-toque-retrato);
+  padding: 12px 14px;
+}
+
+.mg-campo:not(.valor-grande) {
+  font-size: 1rem;
+}
+
+/* BotaoInterruptor do MegUI: a folha usa a altura de controle de mesa (28px); no toque vale o alvo do retrato, o texto do corpo do app (1rem) e no meio. */
+.mg-interruptor {
+  min-height: var(--megui-toque-retrato);
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.mg-progresso__barra {
+  background: var(--acento-linha);
+}
+
+.mg-progresso__rotulo {
+  font-size: 0.875rem;
+}
+
 /* Bloco de foco: anel que se fecha com o tempo */
 
 .anel-bloco {
@@ -1652,17 +1723,17 @@ button.perigo:hover {
 @media (prefers-contrast: more) {
   :root {
     --suave: var(--megui-ink);
-    --apagado: var(--megui-ink2);
-    --borda: var(--megui-ink3);
-    --borda-2: var(--megui-ink2);
+    --apagado: var(--megui-ink-2);
+    --borda: var(--megui-ink-3);
+    --borda-2: var(--megui-ink-2);
   }
 }
 
 :root[data-contraste='alto'] {
   --suave: var(--megui-ink);
-  --apagado: var(--megui-ink2);
-  --borda: var(--megui-ink3);
-  --borda-2: var(--megui-ink2);
+  --apagado: var(--megui-ink-2);
+  --borda: var(--megui-ink-3);
+  --borda-2: var(--megui-ink-2);
 }
 
 /* Título de seção com cara de rótulo: <h2 className="rotulo"> para o leitor de tela pular por títulos, com a margem que o <p> tinha. */

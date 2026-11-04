@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { usoDeApps, type UsoDeApp } from '../nativo/desktop'
 import { ehDesktop } from '../nativo/plataforma'
 import { duracao, hoje } from '../util'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 /** Tempo por programa medido pelo app Windows (src-tauri/src/uso.rs). */
 export function UsoDoComputador() {
@@ -29,12 +30,12 @@ export function UsoDoComputador() {
       <div className="linha entre">
         <h2 className="rotulo">Tempo no computador</h2>
         <div className="segmentado mini-segmentado" role="group" aria-label="Período">
-          <button className={periodo === 1 ? 'ativo' : ''} aria-pressed={periodo === 1} onClick={() => setPeriodo(1)}>
+          <BotaoInterruptor ligado={periodo === 1} onClick={() => setPeriodo(1)}>
             Hoje
-          </button>
-          <button className={periodo === 7 ? 'ativo' : ''} aria-pressed={periodo === 7} onClick={() => setPeriodo(7)}>
+          </BotaoInterruptor>
+          <BotaoInterruptor ligado={periodo === 7} onClick={() => setPeriodo(7)}>
             7 dias
-          </button>
+          </BotaoInterruptor>
         </div>
       </div>
       {ranking.length === 0 ? (

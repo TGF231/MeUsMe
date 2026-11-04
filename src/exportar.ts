@@ -18,7 +18,8 @@ export function paraMarkdown(d: { projetos: Projeto[]; passos: Passo[]; capturas
       !p.feitoEm && p.aPartirDe && `a partir de ${dataBR(p.aPartirDe)}`,
       p.repetir && `repete ${{ diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }[p.repetir]}`,
     ].filter(Boolean)
-    return `- [${p.feitoEm ? 'x' : ' '}] ${p.texto}${extras.length ? ` (${extras.join(', ')})` : ''}`
+    const nota = p.nota ? `\n${p.nota.replace(/^/gm, '  > ')}` : ''
+    return `- [${p.feitoEm ? 'x' : ' '}] ${p.texto}${extras.length ? ` (${extras.join(', ')})` : ''}${nota}`
   }
   const doProjeto = (id: string | null) => d.passos.filter((p) => p.projetoId === id).sort((a, b) => a.ordem - b.ordem)
   const partes = [`# MeUsMe\n\nExportado em ${dataBR(hoje)}.`]

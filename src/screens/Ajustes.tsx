@@ -29,6 +29,7 @@ import { useStatusSync } from '../sync/motor'
 import { ACENTOS_PRONTOS, pareceSemantica, resolverAcento } from '../tema/cores'
 import { temaEfetivo } from '../tema/aplicar'
 import { baixarArquivo, hoje } from '../util'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 
 function Notificacoes() {
@@ -67,9 +68,9 @@ function Notificacoes() {
           Este navegador não oferece notificações aqui. No celular elas exigem o app publicado em https e instalado na tela inicial.
         </p>
       ) : permissao === null ? null : (
-        <button className="primario" onClick={async () => setPermissao(await pedirPermissao())}>
+        <Botao variante="acento" onClick={async () => setPermissao(await pedirPermissao())}>
           Ativar notificações
-        </button>
+        </Botao>
       )}
       {exato === false && (
         <div className="dica">
@@ -126,18 +127,18 @@ function Notificacoes() {
       <label className="rotulo">Avisar antes de compromissos</label>
       <div className="chips" role="group" aria-label="Avisar antes de compromissos">
         {[0, 5, 10, 15, 30, 60].map((m) => (
-          <button key={m} className={cfg.minutosAntesEvento === m ? 'ativo' : ''} aria-pressed={cfg.minutosAntesEvento === m} onClick={() => cfg.ajustar({ minutosAntesEvento: m })}>
+          <BotaoInterruptor key={m} ligado={cfg.minutosAntesEvento === m} onClick={() => cfg.ajustar({ minutosAntesEvento: m })}>
             {m === 0 ? 'Na hora' : `${m} min`}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
 
       <label className="rotulo">Perguntar se quer pausar depois de</label>
       <div className="chips" role="group" aria-label="Perguntar se quer pausar depois de">
         {[0, 15, 25, 45, 60].map((m) => (
-          <button key={m} className={cfg.avisoFocoMin === m ? 'ativo' : ''} aria-pressed={cfg.avisoFocoMin === m} onClick={() => cfg.ajustar({ avisoFocoMin: m })}>
+          <BotaoInterruptor key={m} ligado={cfg.avisoFocoMin === m} onClick={() => cfg.ajustar({ avisoFocoMin: m })}>
             {m === 0 ? 'Nunca' : `${m} min`}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
       <p className="motivo">Com 1h30 no mesmo passo, o app sempre avisa, para o tempo não passar sem você perceber.</p>
@@ -145,13 +146,13 @@ function Notificacoes() {
       <label className="rotulo">Revisão da semana (aviso às 10h)</label>
       <div className="chips" role="group" aria-label="Revisão da semana (aviso às 10h)">
         {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((nome, d) => (
-          <button key={d} className={cfg.diaRevisao === d ? 'ativo' : ''} aria-pressed={cfg.diaRevisao === d} onClick={() => cfg.ajustar({ diaRevisao: d })}>
+          <BotaoInterruptor key={d} ligado={cfg.diaRevisao === d} onClick={() => cfg.ajustar({ diaRevisao: d })}>
             {nome}
-          </button>
+          </BotaoInterruptor>
         ))}
-        <button className={cfg.diaRevisao < 0 ? 'ativo' : ''} aria-pressed={cfg.diaRevisao < 0} onClick={() => cfg.ajustar({ diaRevisao: -1 })}>
+        <BotaoInterruptor ligado={cfg.diaRevisao < 0} onClick={() => cfg.ajustar({ diaRevisao: -1 })}>
           Desligada
-        </button>
+        </BotaoInterruptor>
       </div>
     </div>
   )
@@ -261,9 +262,9 @@ function GoogleNavegador() {
           {agenda.googleClientId ? (
             <>
               <p className="motivo">Traga seus compromissos do Google para a Agenda e a tela Agora. Você autoriza na tela do próprio Google.</p>
-              <button className="primario" onClick={() => conectar(agenda.googleClientId)}>
+              <Botao variante="acento" onClick={() => conectar(agenda.googleClientId)}>
                 Conectar ao Google
-              </button>
+              </Botao>
             </>
           ) : (
             <p className="motivo">Esta versão do app foi compilada sem a conexão com o Google. A Agenda funciona normalmente, só com o que você marca aqui.</p>
@@ -388,9 +389,9 @@ function Aparencia() {
             ['escuro', 'Escuro'],
           ] as const
         ).map(([id, nome]) => (
-          <button key={id} className={cfg.tema === id ? 'ativo' : ''} aria-pressed={cfg.tema === id} onClick={() => cfg.ajustar({ tema: id })}>
+          <BotaoInterruptor key={id} ligado={cfg.tema === id} onClick={() => cfg.ajustar({ tema: id })}>
             {nome}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
       <p className="motivo">Automático segue o tema do sistema. Vale só para este aparelho.</p>
@@ -427,7 +428,7 @@ function Aparencia() {
         </p>
       )}
       <div className="linha previa">
-        <button className="primario">Botão principal</button>
+        <Botao variante="acento">Botão principal</Botao>
         <button className="ativo">Selecionado</button>
         <span className="selo">etiqueta</span>
       </div>
@@ -453,15 +454,14 @@ function Secoes() {
       </p>
       <div className="chips" role="group" aria-labelledby="perfis">
         {PERFIS.map((p) => (
-          <button
+          <BotaoInterruptor
             key={p.id}
-            className={perfilAtual?.id === p.id ? 'ativo' : ''}
-            aria-pressed={perfilAtual?.id === p.id}
+            ligado={perfilAtual?.id === p.id}
             title={p.descricao}
             onClick={() => ajustar({ modulosDesligados: p.desligados })}
           >
             {p.nome}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
       {OPCIONAIS.map((m) => (
@@ -486,7 +486,7 @@ function Secoes() {
 }
 
 function Acessibilidade() {
-  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, densidade, ajustar } = useConfig()
+  const { tamanhoTexto, alvosGrandes, avisosFicam, contrasteAlto, densidade, soTexto, ajustar } = useConfig()
   return (
     <div className="cartao">
       <h2 className="titulo">Acessibilidade</h2>
@@ -495,9 +495,9 @@ function Acessibilidade() {
       </p>
       <div className="segmentado" role="group" aria-labelledby="tamanho-texto">
         {TAMANHOS_TEXTO.map(([t, nome]) => (
-          <button key={t} className={tamanhoTexto === t ? 'ativo' : ''} aria-pressed={tamanhoTexto === t} onClick={() => ajustar({ tamanhoTexto: t })}>
+          <BotaoInterruptor key={t} ligado={tamanhoTexto === t} onClick={() => ajustar({ tamanhoTexto: t })}>
             {nome}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
       <p className="motivo">
@@ -513,12 +513,18 @@ function Acessibilidade() {
             ['compacta', 'Compacta'],
           ] as const
         ).map(([v, nome]) => (
-          <button key={v} className={densidade === v ? 'ativo' : ''} aria-pressed={densidade === v} onClick={() => ajustar({ densidade: v })}>
+          <BotaoInterruptor key={v} ligado={densidade === v} onClick={() => ajustar({ densidade: v })}>
             {nome}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
       <p className="motivo">Compacta mostra mais de uma vez, com menos espaço entre os cartões. Vale só para este aparelho.</p>
+      <label className="check">
+        <input type="checkbox" checked={soTexto} onChange={(e) => ajustar({ soTexto: e.target.checked })} />
+        <span>
+          Menu só com texto <span className="motivo">· tira os ícones das seções; os nomes ficam.</span>
+        </span>
+      </label>
       <label className="check">
         <input type="checkbox" checked={contrasteAlto} onChange={(e) => ajustar({ contrasteAlto: e.target.checked })} />
         <span>Contraste alto</span>

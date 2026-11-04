@@ -25,6 +25,7 @@ import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 import { Simbolo } from '../components/Icone'
 import { apagarComDesfazer } from '../desfazer'
 import { useAvisos, useConfig } from '../stores/config'
+import { Botao, BotaoInterruptor, Campo } from '../tema/megui-react.mjs'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -121,7 +122,7 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
         <Assinaturas mes={mes} />
         <div className="cartao foco destaque">
           <h2 className="rotulo">Livre para gastar por dia até o fim do mês</h2>
-          <p className={`grande ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
+          <p className={`grande valor ${p.porDia < 0 ? 'negativo' : ''}`}>{reais(p.porDia)}</p>
           <p className="motivo">
             Saldo {reais(p.saldo)} · a pagar {reais(p.aPagar)}
             {p.aReceber > 0 && ` · a receber ${reais(p.aReceber)}`} · {p.diasRestantes} dia{p.diasRestantes > 1 ? 's' : ''}
@@ -136,9 +137,9 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
             <LancamentoForm onPronto={() => setLancando(false)} onCancelar={() => setLancando(false)} />
           </div>
         ) : (
-          <button className="primario grande-botao" onClick={() => setLancando(true)}>
+          <Botao variante="acento" className="grande-botao" onClick={() => setLancando(true)}>
             Registrar gasto ou entrada
-          </button>
+          </Botao>
         )}
 
         {f.fixas.length > 0 && (
@@ -257,13 +258,13 @@ function EditarLancamento({ t, onPronto }: { t: Transacao; onPronto: () => void 
     >
       <input value={descricao} onChange={(e) => setDescricao(e.target.value)} aria-label="Descrição" placeholder="Descrição" />
       <div className="linha">
-        <input required className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
+        <Campo mono required className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
         <input required type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" />
       </div>
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           Salvar
-        </button>
+        </Botao>
         <button type="button" onClick={onPronto}>
           Cancelar
         </button>
@@ -322,9 +323,9 @@ function Lancamentos() {
         <span>Resultado {reais(receitas - gastos)}</span>
       </p>
       {semCategoria > 0 && (
-        <button className={soSemCategoria ? 'ativo' : ''} aria-pressed={soSemCategoria} onClick={() => setSoSemCategoria(!soSemCategoria)}>
+        <BotaoInterruptor ligado={soSemCategoria} onClick={() => setSoSemCategoria(!soSemCategoria)}>
           {soSemCategoria ? 'Mostrar todos' : `${semCategoria} sem categoria: organizar`}
-        </button>
+        </BotaoInterruptor>
       )}
       {lista.length === 0 && <p className="vazio-texto">Nada neste mês.</p>}
       {dias.map((dia) => (
@@ -413,16 +414,16 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
       }}
     >
       <div className="segmentado" role="group" aria-label="Tipo">
-        <button type="button" className={tipo === 'gasto' ? 'ativo' : ''} aria-pressed={tipo === 'gasto'} onClick={() => setTipo('gasto')}>
+        <BotaoInterruptor ligado={tipo === 'gasto'} onClick={() => setTipo('gasto')}>
           Conta a pagar
-        </button>
-        <button type="button" className={tipo === 'receita' ? 'ativo' : ''} aria-pressed={tipo === 'receita'} onClick={() => setTipo('receita')}>
+        </BotaoInterruptor>
+        <BotaoInterruptor ligado={tipo === 'receita'} onClick={() => setTipo('receita')}>
           Entrada fixa
-        </button>
+        </BotaoInterruptor>
       </div>
       <input required aria-label="Nome" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder={tipo === 'gasto' ? 'Ex.: Aluguel, Internet' : 'Ex.: Salário'} />
       <div className="linha">
-        <input required aria-label="Valor" className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} placeholder="Valor" />
+        <Campo mono required aria-label="Valor" className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} placeholder="Valor" />
         <input required className="flex" type="number" min={1} max={31} value={dia} onChange={(e) => setDia(e.target.value)} aria-label="Dia do mês" />
       </div>
       <div className="linha">
@@ -447,9 +448,9 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
         )}
       </div>
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           Salvar
-        </button>
+        </Botao>
         <button type="button" onClick={onPronto}>
           Cancelar
         </button>
@@ -473,9 +474,9 @@ function Fixas() {
           <FormFixa onPronto={() => setCriando(false)} />
         </div>
       ) : (
-        <button className="primario" onClick={() => setCriando(true)}>
+        <Botao variante="acento" onClick={() => setCriando(true)}>
           Nova conta fixa
-        </button>
+        </Botao>
       )}
       {f.fixas.length > 0 && (
         <div className="cartao">
@@ -671,8 +672,8 @@ function OpenFinance({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
         O Client Secret fica salvo só neste aparelho e não vai para o backup. Não configure em computador compartilhado.
       </p>
       <div className="linha">
-        <button
-          className="primario"
+        <Botao
+          variante="acento"
           disabled={!clientId || !clientSecret || !itens.trim() || sync.rodando}
           onClick={async () => {
             const novo = { clientId, clientSecret, itemIds: itens.split(/[\s,;]+/).filter(Boolean), ultimaSync: cfg?.ultimaSync }
@@ -683,7 +684,7 @@ function OpenFinance({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
           }}
         >
           {sync.rodando ? 'Sincronizando…' : 'Salvar e sincronizar'}
-        </button>
+        </Botao>
         {cfg && (
           <button onClick={() => setEditando(false)}>Cancelar</button>
         )}
@@ -790,8 +791,8 @@ function Importar() {
               <b className={l.valor < 0 ? '' : 'positivo'}>{reais(l.valor)}</b>
             </div>
           ))}
-          <button
-            className="primario"
+          <Botao
+            variante="acento"
             disabled={convertido.ok.length === 0}
             onClick={() => {
               const novas = f.importar(
@@ -811,7 +812,7 @@ function Importar() {
             }}
           >
             Importar {convertido.ok.length} lançamentos
-          </button>
+          </Botao>
         </div>
       )}
       {linhas && !colunas && <p className="dica">Não reconheci as colunas automaticamente. Escolha acima qual é a data, o valor e a descrição.</p>}
@@ -847,7 +848,7 @@ function AjustesFinancas() {
             </div>
             <div className="linha entre">
               <span className="motivo">Saldo inicial</span>
-              <input
+              <Campo mono
                 className="mini"
                 inputMode="decimal"
                 defaultValue={(c.saldoInicial / 100).toFixed(2).replace('.', ',')}
@@ -882,7 +883,7 @@ function AjustesFinancas() {
               </span>
               <span className="linha">
                 {c.tipo === 'gasto' && (
-                  <input
+                  <Campo mono
                     className="mini"
                     inputMode="decimal"
                     placeholder="Sem limite"

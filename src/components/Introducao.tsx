@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PERFIS } from '../navegacao'
 import { useStore } from '../store'
 import { useConfig } from '../stores/config'
+import { Botao } from '../tema/megui-react.mjs'
 
 const TELAS = [
   {
@@ -76,9 +77,9 @@ export function Introducao() {
             </fieldset>
             <div className="linha centralizada">
               {/* O Continuar some na última tela: o foco passa para cá em vez de cair no começo da página. */}
-              <button className="primario" autoFocus onClick={criarExemplo}>
+              <Botao variante="acento" autoFocus onClick={criarExemplo}>
                 Começar com um projeto de exemplo
-              </button>
+              </Botao>
               <button onClick={concluir}>Começar vazio</button>
             </div>
             <p className="motivo">O MeUsMe é um programa de organização de tarefas.</p>
@@ -87,9 +88,9 @@ export function Introducao() {
           </>
         ) : (
           <div className="linha centralizada">
-            <button className="primario" onClick={() => setI(i + 1)}>
+            <Botao variante="acento" onClick={() => setI(i + 1)}>
               Continuar
-            </button>
+            </Botao>
             <button className="discreto" onClick={concluir}>
               Pular
             </button>

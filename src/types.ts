@@ -44,6 +44,8 @@ export interface Passo {
   repetir?: 'diario' | 'semanal' | 'mensal'
   /** Id do passo concluído que gerou esta repetição (para "Não terminei" desfazer as duas coisas). */
   repeteDe?: string
+  /** Contexto curto junto do passo (V10): link, endereço, o que não esquecer. Só texto; anexos esperam o IndexedDB. */
+  nota?: string
 }
 
 /** Datas opcionais de um passo, em AAAA-MM-DD. */

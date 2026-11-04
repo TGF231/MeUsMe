@@ -5,6 +5,15 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.7.0',
+    itens: [
+      'Passos com nota: link, endereço ou o que não esquecer, junto do passo, no Agora e na busca.',
+      'Histórico: rotinas com a contagem das últimas 4 semanas ("2 de 4 semanas"), sem sequência para quebrar.',
+      'Visual: fonte mono nova nos valores, botões e barras de progresso no mesmo desenho dos outros programas da família.',
+      'Ajustes: menu só com texto, sem os ícones das seções.',
+    ],
+  },
+  {
     versao: '0.6.0',
     itens: [
       'Agora: "Montar meu dia" sugere passos com horário no tempo livre, e "Refazer o resto do dia" reencaixa o que ficou para trás.',

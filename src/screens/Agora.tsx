@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { calibracao, diasDesde, marcoDePassos, revisaoPendente, somarDias, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
+import { NotaDoPasso } from '../components/NotaDoPasso'
 import { PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
 import { BarraProgresso } from '../components/Progresso'
@@ -18,6 +19,7 @@ import type { Energia, Evento, Passo, Projeto } from '../types'
 import { duracao, hora, inicioDoDia, nomeDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 import { Simbolo } from '../components/Icone'
+import { Botao } from '../tema/megui-react.mjs'
 
 const relogio = (ms: number) => {
   const s = Math.floor(ms / 1000)
@@ -88,9 +90,9 @@ function ParaReagendar() {
         ))}
       </ul>
       <div className="linha">
-        <button className="primario" onClick={() => aplicar((id) => novas.get(id))}>
+        <Botao variante="acento" onClick={() => aplicar((id) => novas.get(id))}>
           Usar estas datas
-        </button>
+        </Botao>
         <button onClick={() => aplicar(() => undefined)}>Tirar as datas</button>
       </div>
     </div>
@@ -172,9 +174,9 @@ function MontarDia({ energia, agora }: Readonly<{ energia: Energia; agora: numbe
       )}
       <div className="linha">
         {marcadas.length > 0 && (
-          <button className="primario" onClick={reservar}>
+          <Botao variante="acento" onClick={reservar}>
             Reservar {marcadas.length === 1 ? 'este horário' : `estes ${marcadas.length} horários`}
-          </button>
+          </Botao>
         )}
         <button onClick={() => setAberto(false)}>{propostas.length ? 'Agora não' : 'Ok'}</button>
       </div>
@@ -295,9 +297,9 @@ function RefazerResto({ agora }: Readonly<{ agora: number }>) {
         </p>
       )}
       <div className="linha">
-        <button className="primario" onClick={reencaixar}>
+        <Botao variante="acento" onClick={reencaixar}>
           Reencaixar
-        </button>
+        </Botao>
         <button onClick={tirarHorarios}>Só tirar os horários que passaram</button>
       </div>
     </div>
@@ -435,15 +437,15 @@ export function Agora() {
               </p>
               <p>Você chegou lá?</p>
               <div className="linha">
-                <button
-                  className="primario"
+                <Botao
+                  variante="acento"
                   onClick={() => {
                     s.concluirProjeto(projeto.id)
                     setCelebrar(null)
                   }}
                 >
                   Sim, concluir projeto
-                </button>
+                </Botao>
               </div>
               <PassoForm
                 pergunta="Ainda não? Qual é o próximo movimento concreto?"
@@ -455,9 +457,9 @@ export function Agora() {
               />
             </>
           ) : (
-            <button className="primario" onClick={() => setCelebrar(null)}>
+            <Botao variante="acento" onClick={() => setCelebrar(null)}>
               Próximo
-            </button>
+            </Botao>
           )}
           {/* Toque errado no Feito (tremor, ponteira, acionador): o passo volta para a fila como estava. */}
           <button
@@ -484,6 +486,7 @@ export function Agora() {
         <div className="cartao foco">
           {projeto && <p className="projeto">{projeto.titulo}</p>}
           <p className="passo">{passoAtivo.texto}</p>
+          <NotaDoPasso nota={passoAtivo.nota} />
           <p className="relogio">{relogio(decorrido)}</p>
           <AnelDoBloco decorrido={decorrido} blocoMin={cfg.avisoFocoMin || 25} />
           {decorrido >= 5 * 60_000 && decorrido < 10 * 60_000 && (
@@ -494,9 +497,9 @@ export function Agora() {
             <p className="motivo centralizado">Total neste passo: {duracao(minutosDoPasso(passoAtivo, s.sessoes, agora))}</p>
           )}
           <div className="linha">
-            <button className="primario" onClick={() => concluir(passoAtivo.id)}>
+            <Botao variante="acento" onClick={() => concluir(passoAtivo.id)}>
               Feito
-            </button>
+            </Botao>
             <button onClick={() => s.encerrarSessao(sessao.id)}>Pausar</button>
           </div>
         </div>
@@ -537,15 +540,15 @@ export function Agora() {
               recomeçar.
             </p>
             <div className="linha">
-              <button
-                className="primario"
+              <Botao
+                variante="acento"
                 onClick={() => {
                   setEnergia(1)
                   setDiasLonge(0)
                 }}
               >
                 Começar leve
-              </button>
+              </Botao>
               <button className="discreto" onClick={() => setDiasLonge(0)}>
                 Ok
               </button>
@@ -560,9 +563,9 @@ export function Agora() {
               {hora(eventoAgora.inicio)}–{hora(eventoAgora.fim)} · termina em {duracao((eventoAgora.fim - agora) / 60_000)}
             </p>
             <div className="linha">
-              <button className="primario" onClick={() => encerrarEvento(eventoAgora)}>
+              <Botao variante="acento" onClick={() => encerrarEvento(eventoAgora)}>
                 Já terminou
-              </button>
+              </Botao>
               <button onClick={() => adiar(eventoAgora)}>Ver outra coisa</button>
             </div>
           </div>
@@ -574,9 +577,9 @@ export function Agora() {
               Às {hora(eventoChegando.inicio)}. Comece a fechar o que está fazendo: trocar de atividade leva mais tempo do que parece.
             </p>
             <div className="linha">
-              <button className="primario" onClick={() => adiar(eventoChegando)}>
+              <Botao variante="acento" onClick={() => adiar(eventoChegando)}>
                 Ok, estou de olho
-              </button>
+              </Botao>
             </div>
           </div>
         ) : !escolha ? (
@@ -600,6 +603,7 @@ export function Agora() {
           <div className="cartao foco">
             {escolha.projeto ? <p className="projeto">{escolha.projeto.titulo}</p> : <p className="projeto">Tarefa solta</p>}
             <p className="passo">{escolha.passo.texto}</p>
+            <NotaDoPasso nota={escolha.passo.nota} />
             <p className="motivo">
               <PontosEditaveis energia={escolha.passo.energia} onChange={(e) => s.atualizarPasso(escolha.passo.id, { energia: e })} />{' '}
               {escolha.motivo}
@@ -631,9 +635,9 @@ export function Agora() {
               </>
             ) : (
               <>
-                <button className="primario grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
+                <Botao variante="acento" className="grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
                   Começar
-                </button>
+                </Botao>
                 <p className="motivo centralizado">Combinado: só 5 minutos. Depois você decide se continua.</p>
                 <div className="linha">
                   <button onClick={() => concluir(escolha.passo.id)}>Já fiz</button>

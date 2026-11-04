@@ -3,6 +3,7 @@ import { criarNoGoogle, ErroGoogle } from '../google'
 import { useAgenda } from '../stores/agenda'
 import { useAvisos } from '../stores/config'
 import { duracao, hoje, horaInput, juntarDataHora } from '../util'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const DURACOES = [15, 30, 45, 60, 90, 120]
 
@@ -62,9 +63,9 @@ export function EventoForm({ inicial, rotulo = 'Criar compromisso', onPronto, on
       <label className="rotulo">Duração</label>
       <div className="chips" role="group" aria-label="Duração">
         {DURACOES.map((d) => (
-          <button key={d} type="button" className={minutos === d ? 'ativo' : ''} aria-pressed={minutos === d} onClick={() => setMinutos(d)}>
+          <BotaoInterruptor key={d} ligado={minutos === d} onClick={() => setMinutos(d)}>
             {duracao(d)}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
       {agenda.googleConectado && (
@@ -74,9 +75,9 @@ export function EventoForm({ inicial, rotulo = 'Criar compromisso', onPronto, on
         </label>
       )}
       <div className="linha">
-        <button type="submit" className="primario" disabled={salvando}>
+        <Botao variante="acento" type="submit" disabled={salvando}>
           {salvando ? 'Salvando…' : rotulo}
-        </button>
+        </Botao>
         {onCancelar && (
           <button type="button" onClick={onCancelar}>
             Cancelar

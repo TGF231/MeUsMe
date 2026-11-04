@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAgenda } from '../stores/agenda'
 import type { Lembrete } from '../types'
 import { hoje, horaInput, juntarDataHora } from '../util'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const REPETIR: Record<Lembrete['repetir'], string> = {
   nunca: 'Uma vez',
@@ -41,15 +42,15 @@ export function LembreteForm({ inicial = '', onPronto, onCancelar }: Props) {
       </div>
       <div className="chips" role="group" aria-label="Repetir">
         {(Object.keys(REPETIR) as Lembrete['repetir'][]).map((r) => (
-          <button key={r} type="button" className={repetir === r ? 'ativo' : ''} aria-pressed={repetir === r} onClick={() => setRepetir(r)}>
+          <BotaoInterruptor key={r} ligado={repetir === r} onClick={() => setRepetir(r)}>
             {REPETIR[r]}
-          </button>
+          </BotaoInterruptor>
         ))}
       </div>
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           Criar lembrete
-        </button>
+        </Botao>
         {onCancelar && (
           <button type="button" onClick={onCancelar}>
             Cancelar

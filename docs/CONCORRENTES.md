@@ -180,7 +180,7 @@ Ganho e custo de cada item **para você**. Resumo: 20 itens de encaixe alto, 23 
 | V16 | **Rotinas com cronômetro por etapa** | baixo | Manhã e noite em etapas com tempo. | Sem sinal no seu uso, e se sobrepõe aos passos que se repetem (V08). | M · só no aparelho · trilha 4 (React) | 2 → 3 |
 | V17 | **Visão de semana e de mês** | médio | Visão do mês dos compromissos. | A semana já aparece em telas largas; o mês ocupa espaço e ajuda pouco a escolher o próximo passo. | M · só no aparelho · trilha 4 (React) | 2 → 3 |
 | V18 | **Notificação com ações e soneca** ✅ feito | médio | "Feito" e "daqui a 10 min" na própria notificação: resolve sem abrir o app (U5) e dá ao lembrete um caminho de volta. | Ações exigem código nativo no Android; no navegador e no Windows é preciso conferir o que é possível. Não vi queixa sua sobre lembretes: vale depois de testá-los no celular real. | M · Android nativo · trilha 10 (Android) | 1 → 2 |
-| V19 | **Hábitos sem sequência** | baixo | Contagem semanal sem sequência. | Sem sinal no seu uso, e a pesquisa do app deixou gamificação de fora de propósito. | M · só no aparelho · trilha 5 (Estado e dados locais) | 3 → 3 |
+| V19 | **Hábitos sem sequência** ✅ feito | baixo | Contagem semanal sem sequência. | Sem sinal no seu uso, e a pesquisa do app deixou gamificação de fora de propósito. | M · só no aparelho · trilha 5 (Estado e dados locais) | 3 → 3 |
 
 #### Começar e fazer junto
 
@@ -235,7 +235,7 @@ Ganho e custo de cada item **para você**. Resumo: 20 itens de encaixe alto, 23 
 | D14 | **Tudo-em-um fica poluído** ✅ feito | **alto** | Resolve a tensão entre "tudo em um lugar" e "me perco em ferramenta pesada" (D5): liga só o que usa. | Mexe no menu e nas rotas; os dados continuam gravados; é preciso testar cada combinação ligada ou desligada. | M · só no aparelho · trilha 4 (React) | 1 → 1 |
 | D15 | **Método financeiro difícil de aprender** | médio | Começa só com o "livre por dia". | Para você, que já usa tudo, ajuda pouco; é mais para quem chega novo. | M · só no aparelho · trilha 4 (React) | 2 → 3 |
 | D16 | **Atualização muda o app de lugar** ✅ feito | médio | Você publicou quatro versões entre 27 e 30/10: uma tela "O que mudou" explica cada uma. | Texto a escrever a cada versão; precisa ser curto. | P · só no aparelho · trilha 4 (React) | 2 → 2 |
-| D17 | **Visual que divide opiniões** | baixo | Compacto ou confortável. | Mais um ajuste; já existem tema, tamanho de texto e botões maiores. | P · só no aparelho · trilha 3 (HTML e CSS) | 3 → 3 |
+| D17 | **Visual que divide opiniões** ✅ feito | baixo | Compacto ou confortável. | Mais um ajuste; já existem tema, tamanho de texto e botões maiores. | P · só no aparelho · trilha 3 (HTML e CSS) | 3 → 3 |
 
 #### Confiança e dados
 

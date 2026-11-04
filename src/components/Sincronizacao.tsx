@@ -15,6 +15,7 @@ import {
   usandoServidorProprio,
 } from '../sync/remoto'
 import { hora } from '../util'
+import { Botao } from '../tema/megui-react.mjs'
 
 function copiar(texto: string, avisar: (m: string) => void, mensagem: string) {
   navigator.clipboard?.writeText(texto).then(
@@ -225,9 +226,9 @@ export function Sincronizacao() {
             autoComplete="email"
             aria-label="E-mail"
           />
-          <button type="submit" className="primario" disabled={ocupado || !/.+@.+\..+/.test(email)}>
+          <Botao variante="acento" type="submit" disabled={ocupado || !/.+@.+\..+/.test(email)}>
             {ocupado ? 'Enviando…' : 'Enviar código'}
-          </button>
+          </Botao>
         </form>
       ) : (
         <form
@@ -254,9 +255,9 @@ export function Sincronizacao() {
               autoFocus
               aria-label="Código"
             />
-            <button type="submit" className="primario" disabled={ocupado || codigo.replace(/\D/g, '').length < 6}>
+            <Botao variante="acento" type="submit" disabled={ocupado || codigo.replace(/\D/g, '').length < 6}>
               {ocupado ? 'Entrando…' : 'Entrar'}
-            </button>
+            </Botao>
           </div>
           <div className="linha">
             <button type="button" className="discreto" onClick={() => void tentar(() => enviarCodigo(email.trim()))} disabled={ocupado}>

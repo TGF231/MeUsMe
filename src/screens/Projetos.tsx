@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DeNovo } from '../components/DeNovo'
+import { NotaDoPasso } from '../components/NotaDoPasso'
 import { CamposDeData, PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
 import { BarraProgresso } from '../components/Progresso'
@@ -11,6 +12,7 @@ import { minutosDoPasso, pendentes, useStore } from '../store'
 import type { Datas, Passo, Projeto } from '../types'
 import { dataCurta, duracao, hoje } from '../util'
 import { Simbolo } from '../components/Icone'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
   const criar = useStore((s) => s.criarProjeto)
@@ -36,9 +38,9 @@ function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
       <p className="dica neutra">
         Defina agora, enquanto há energia. No fim do caminho, isso impede a meta de ficar se afastando.
       </p>
-      <button type="submit" className="primario">
+      <Botao variante="acento" type="submit">
         Criar
-      </button>
+      </Botao>
     </form>
   )
 }
@@ -62,6 +64,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   const [quebrando, setQuebrando] = useState(false)
   const [texto, setTexto] = useState(passo.texto)
   const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir })
+  const [nota, setNota] = useState(passo.nota ?? '')
 
   if (quebrando) return <Quebrar passo={passo} onPronto={() => setQuebrando(false)} />
 
@@ -71,7 +74,8 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
         className="linha"
         onSubmit={(e) => {
           e.preventDefault()
-          if (texto.trim()) s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe, repetir: datas.repetir })
+          if (texto.trim())
+            s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe, repetir: datas.repetir, nota: nota.trim() || undefined })
           setEditando(false)
         }}
       >
@@ -83,6 +87,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
           </button>
         </div>
         <CamposDeData datas={datas} onChange={setDatas} />
+        <textarea className="nota-passo" rows={2} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Nota (opcional): link, endereço, o que não esquecer" aria-label="Nota do passo" />
       </form>
     )
 
@@ -94,7 +99,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
       </button>
       <button
         className="discreto"
-        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir }), setEditando(true))}
+        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir }), setNota(passo.nota ?? ''), setEditando(true))}
         aria-label={`Editar ${passo.texto}`}
       >
         Editar
@@ -113,6 +118,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
     <>
       <p className="passo">{passo.texto}</p>
       <DatasDoPasso passo={passo} />
+      <NotaDoPasso nota={passo.nota} />
       <div className="linha entre">
         <span className="motivo">{energia}</span>
         {acoes}
@@ -122,6 +128,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
     <div className="linha entre item passo-item">
       <span>
         {energia} {passo.texto} <DatasDoPasso passo={passo} />
+        <NotaDoPasso nota={passo.nota} />
       </span>
       {acoes}
     </div>
@@ -182,9 +189,9 @@ function EditarProjeto({ projeto, onPronto, onApagado }: { projeto: Projeto; onP
       <label className="rotulo">Linha de chegada</label>
       <input required aria-label="Linha de chegada" value={chegada} onChange={(e) => setChegada(e.target.value)} />
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           Salvar
-        </button>
+        </Botao>
         <button type="button" onClick={onPronto}>
           Cancelar
         </button>
@@ -242,10 +249,10 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                     <button onClick={() => s.reabrirProjeto(id)}>Reabrir projeto</button>
                   ) : (
                     <>
-                      <button className={s.focoId === id ? 'ativo' : ''} aria-pressed={s.focoId === id} onClick={() => s.definirFoco(s.focoId === id ? null : id)}>
+                      <BotaoInterruptor ligado={s.focoId === id} onClick={() => s.definirFoco(s.focoId === id ? null : id)}>
                         <Simbolo c={s.focoId === id ? '★' : '☆'} />
                         {s.focoId === id ? 'Em foco' : 'Colocar em foco'}
-                      </button>
+                      </BotaoInterruptor>
                       <button
                         onClick={() => {
                           const resto = fila.length ? ` Ainda há ${fila.length} passo${fila.length > 1 ? 's' : ''} na fila.` : ''
@@ -379,9 +386,9 @@ export function Projetos() {
           }}
         />
       ) : (
-        <button className="primario" onClick={() => setCriando(true)}>
+        <Botao variante="acento" onClick={() => setCriando(true)}>
           Novo projeto
-        </button>
+        </Botao>
       )}
       {!criando && <Modelos onCriado={setAberto} />}
 
