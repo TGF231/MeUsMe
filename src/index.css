@@ -424,6 +424,18 @@ h2.titulo {
   margin-left: auto;
 }
 
+/* Nota do passo (V10): bloco próprio, com as quebras de linha e links longos que não estouram a tela. */
+.nota-passo {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+textarea.nota-passo {
+  width: 100%;
+  font: inherit;
+}
+
 .segmentado {
   display: flex;
   gap: 6px;

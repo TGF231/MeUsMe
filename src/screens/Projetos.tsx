@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DeNovo } from '../components/DeNovo'
+import { NotaDoPasso } from '../components/NotaDoPasso'
 import { CamposDeData, PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
 import { BarraProgresso } from '../components/Progresso'
@@ -62,6 +63,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
   const [quebrando, setQuebrando] = useState(false)
   const [texto, setTexto] = useState(passo.texto)
   const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir })
+  const [nota, setNota] = useState(passo.nota ?? '')
 
   if (quebrando) return <Quebrar passo={passo} onPronto={() => setQuebrando(false)} />
 
@@ -71,7 +73,8 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
         className="linha"
         onSubmit={(e) => {
           e.preventDefault()
-          if (texto.trim()) s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe, repetir: datas.repetir })
+          if (texto.trim())
+            s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe, repetir: datas.repetir, nota: nota.trim() || undefined })
           setEditando(false)
         }}
       >
@@ -83,6 +86,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
           </button>
         </div>
         <CamposDeData datas={datas} onChange={setDatas} />
+        <textarea className="nota-passo" rows={2} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Nota (opcional): link, endereço, o que não esquecer" aria-label="Nota do passo" />
       </form>
     )
 
@@ -94,7 +98,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
       </button>
       <button
         className="discreto"
-        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir }), setEditando(true))}
+        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir }), setNota(passo.nota ?? ''), setEditando(true))}
         aria-label={`Editar ${passo.texto}`}
       >
         Editar
@@ -113,6 +117,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
     <>
       <p className="passo">{passo.texto}</p>
       <DatasDoPasso passo={passo} />
+      <NotaDoPasso nota={passo.nota} />
       <div className="linha entre">
         <span className="motivo">{energia}</span>
         {acoes}
@@ -122,6 +127,7 @@ function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: b
     <div className="linha entre item passo-item">
       <span>
         {energia} {passo.texto} <DatasDoPasso passo={passo} />
+        <NotaDoPasso nota={passo.nota} />
       </span>
       {acoes}
     </div>

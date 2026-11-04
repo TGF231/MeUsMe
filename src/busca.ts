@@ -48,7 +48,7 @@ export function buscar(f: Fontes, termo: string, desligados: Aba[] = [], limite 
     if (casa(p.titulo, p.chegada))
       r.push({ chave: `projeto:${p.id}`, tipo: 'Projeto', texto: p.titulo, detalhe: p.concluidoEm ? 'concluído' : p.chegada, aba: 'projetos', projetoId: p.id, quando: p.criadoEm })
   for (const p of f.passos)
-    if (casa(p.texto))
+    if (casa(p.texto, p.nota))
       r.push({
         chave: `passo:${p.id}`,
         tipo: p.feitoEm ? 'Passo feito' : 'Passo',

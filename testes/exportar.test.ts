@@ -90,3 +90,8 @@ test('.ics com compromissos, dia inteiro, lembrete que se repete com alarme, tex
   assert.ok(linhas.every((l) => l.length <= 75))
   assert.ok(linhas.some((l) => l.startsWith(' x')))
 })
+
+test('Markdown: a nota do passo vai logo abaixo, como citação, linha a linha', () => {
+  const md = paraMarkdown({ projetos: [], passos: [passo('mala', 1, { projetoId: null, nota: 'chave na gaveta\nhttps://exemplo.com' })], capturas: [], ideias: [] }, '2026-11-04')
+  assert.match(md, /- \[ \] mala\n {2}> chave na gaveta\n {2}> https:\/\/exemplo\.com/)
+})

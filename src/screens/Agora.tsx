@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { calibracao, diasDesde, marcoDePassos, revisaoPendente, somarDias, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
+import { NotaDoPasso } from '../components/NotaDoPasso'
 import { PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
 import { BarraProgresso } from '../components/Progresso'
@@ -484,6 +485,7 @@ export function Agora() {
         <div className="cartao foco">
           {projeto && <p className="projeto">{projeto.titulo}</p>}
           <p className="passo">{passoAtivo.texto}</p>
+          <NotaDoPasso nota={passoAtivo.nota} />
           <p className="relogio">{relogio(decorrido)}</p>
           <AnelDoBloco decorrido={decorrido} blocoMin={cfg.avisoFocoMin || 25} />
           {decorrido >= 5 * 60_000 && decorrido < 10 * 60_000 && (
@@ -600,6 +602,7 @@ export function Agora() {
           <div className="cartao foco">
             {escolha.projeto ? <p className="projeto">{escolha.projeto.titulo}</p> : <p className="projeto">Tarefa solta</p>}
             <p className="passo">{escolha.passo.texto}</p>
+            <NotaDoPasso nota={escolha.passo.nota} />
             <p className="motivo">
               <PontosEditaveis energia={escolha.passo.energia} onChange={(e) => s.atualizarPasso(escolha.passo.id, { energia: e })} />{' '}
               {escolha.motivo}
