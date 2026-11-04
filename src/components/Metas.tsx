@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { apagarComDesfazer } from '../desfazer'
 import { useFinancas } from '../stores/financas'
 import { lerValor, reais } from '../util'
+import { Campo } from '../tema/megui-react.mjs'
 
 /**
  * Metas de economia (V25 em docs/CONCORRENTES.md): a linha de chegada dos projetos, em dinheiro. O guardado é
@@ -46,7 +47,7 @@ export function Metas() {
                   setValores({ ...valores, [m.id]: '' })
                 }}
               >
-                <input
+                <Campo mono
                   className="mini"
                   inputMode="decimal"
                   placeholder="R$ guardado"
@@ -72,7 +73,7 @@ export function Metas() {
         }}
       >
         <input aria-label="Nova meta" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Nova meta (ex.: viagem)" />
-        <input className="mini" inputMode="decimal" aria-label="Valor da meta" value={alvo} onChange={(e) => setAlvo(e.target.value)} placeholder="R$ alvo" />
+        <Campo mono className="mini" inputMode="decimal" aria-label="Valor da meta" value={alvo} onChange={(e) => setAlvo(e.target.value)} placeholder="R$ alvo" />
         <button type="submit">Criar</button>
       </form>
     </div>

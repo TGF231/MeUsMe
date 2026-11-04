@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { dividirEmParcelas } from '../compra'
 import { sugerirCategoria, useFinancas } from '../stores/financas'
 import { hoje, lerValor, reais } from '../util'
-import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor, Campo } from '../tema/megui-react.mjs'
 
 interface Props {
   inicial?: { valor?: number; descricao?: string; tipo?: 'gasto' | 'receita' }
@@ -55,7 +55,7 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
           Recebi
         </BotaoInterruptor>
       </div>
-      <input
+      <Campo mono
         required
         className="valor-grande"
         inputMode="decimal"

@@ -25,7 +25,7 @@ import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 import { Simbolo } from '../components/Icone'
 import { apagarComDesfazer } from '../desfazer'
 import { useAvisos, useConfig } from '../stores/config'
-import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor, Campo } from '../tema/megui-react.mjs'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -258,7 +258,7 @@ function EditarLancamento({ t, onPronto }: { t: Transacao; onPronto: () => void 
     >
       <input value={descricao} onChange={(e) => setDescricao(e.target.value)} aria-label="Descrição" placeholder="Descrição" />
       <div className="linha">
-        <input required className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
+        <Campo mono required className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} aria-label="Valor" />
         <input required type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" />
       </div>
       <div className="linha">
@@ -423,7 +423,7 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
       </div>
       <input required aria-label="Nome" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder={tipo === 'gasto' ? 'Ex.: Aluguel, Internet' : 'Ex.: Salário'} />
       <div className="linha">
-        <input required aria-label="Valor" className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} placeholder="Valor" />
+        <Campo mono required aria-label="Valor" className="flex" inputMode="decimal" value={valorTexto} onChange={(e) => setValorTexto(e.target.value)} placeholder="Valor" />
         <input required className="flex" type="number" min={1} max={31} value={dia} onChange={(e) => setDia(e.target.value)} aria-label="Dia do mês" />
       </div>
       <div className="linha">
@@ -848,7 +848,7 @@ function AjustesFinancas() {
             </div>
             <div className="linha entre">
               <span className="motivo">Saldo inicial</span>
-              <input
+              <Campo mono
                 className="mini"
                 inputMode="decimal"
                 defaultValue={(c.saldoInicial / 100).toFixed(2).replace('.', ',')}
@@ -883,7 +883,7 @@ function AjustesFinancas() {
               </span>
               <span className="linha">
                 {c.tipo === 'gasto' && (
-                  <input
+                  <Campo mono
                     className="mini"
                     inputMode="decimal"
                     placeholder="Sem limite"

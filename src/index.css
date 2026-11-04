@@ -1485,6 +1485,16 @@ button.perigo:hover {
   font-size: 1rem;
 }
 
+/* Campo do MegUI (valores em mono): no toque, a altura e o respiro dos outros campos do app. */
+.mg-campo {
+  min-height: var(--megui-toque-retrato);
+  padding: 12px 14px;
+}
+
+.mg-campo:not(.valor-grande) {
+  font-size: 1rem;
+}
+
 /* BotaoInterruptor do MegUI: a folha usa a altura de controle de mesa (28px); no toque vale o alvo do retrato, o texto do corpo do app (1rem) e no meio. */
 .mg-interruptor {
   min-height: var(--megui-toque-retrato);
