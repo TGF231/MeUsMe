@@ -569,6 +569,33 @@ dialog.fundo::backdrop {
   gap: 10px;
 }
 
+/* Dialogo do MegUI dentro do <dialog> nativo: mesma largura e camada do .modal, e a faixa e o ✕ com o alvo de toque. */
+.modal-megui {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+}
+
+.modal-megui .mg-dialogo__barra {
+  height: auto;
+  min-height: var(--megui-toque-retrato);
+  padding-left: var(--megui-esp-4);
+}
+
+.modal-megui .mg-dialogo__fechar {
+  width: var(--megui-toque-retrato);
+  height: var(--megui-toque-retrato);
+  min-height: 0;
+  padding: 0;
+}
+
+.modal-megui .mg-dialogo__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 1rem;
+}
+
 /* Componentes compartilhados (formulários, chips, agenda, finanças) */
 
 button:disabled {
