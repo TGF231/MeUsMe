@@ -10,6 +10,7 @@ import { apertos, linhaDoTempo } from '../linhaDoTempo'
 import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
 import type { Evento } from '../types'
 import { dataISO, duracao, hora, inicioDoDia, nomeDoDia } from '../util'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const REPETIR = { nunca: '', diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }
 
@@ -241,9 +242,9 @@ export function Agenda() {
       <div className="visao-dia">
         <div className="dias">
           {dias.map((d) => (
-            <button key={d} className={d === dia ? 'ativo' : ''} aria-pressed={d === dia} onClick={() => setDia(d)}>
+            <BotaoInterruptor key={d} ligado={d === dia} onClick={() => setDia(d)}>
               {nomeDoDia(dataISO(d))}
-            </button>
+            </BotaoInterruptor>
           ))}
         </div>
         <div className="cartao">

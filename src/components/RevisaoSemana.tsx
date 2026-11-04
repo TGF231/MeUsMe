@@ -6,6 +6,7 @@ import { useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import { mesISO, reais } from '../util'
 import { Simbolo } from './Icone'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const DIA = 86_400_000
 
@@ -63,10 +64,10 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
         ) : (
           <div className="chips" role="group" aria-label="Projeto em foco">
             {ativos.map((p) => (
-              <button key={p.id} className={s.focoId === p.id ? 'ativo' : ''} aria-pressed={s.focoId === p.id} onClick={() => s.definirFoco(s.focoId === p.id ? null : p.id)}>
+              <BotaoInterruptor key={p.id} ligado={s.focoId === p.id} onClick={() => s.definirFoco(s.focoId === p.id ? null : p.id)}>
                 {s.focoId === p.id && <Simbolo c="★" />}
                 {p.titulo}
-              </button>
+              </BotaoInterruptor>
             ))}
           </div>
         )}

@@ -5,6 +5,7 @@ import { hoje, useStore } from '../store'
 import type { CheckIn, Energia } from '../types'
 import { inicioDoDia } from '../util'
 import { SeletorEnergia } from './SeletorEnergia'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 /**
  * Encerrar o dia (V15 em docs/CONCORRENTES.md), junto do check-in: o que foi feito hoje e, se algum passo com prazo
@@ -64,9 +65,9 @@ export function CheckInForm({ onPronto }: { onPronto?: () => void }) {
         <label className="rotulo">Como você está?</label>
         <div className="segmentado" role="group" aria-label="Como você está">
           {([1, 2, 3, 4, 5] as CheckIn['humor'][]).map((h) => (
-            <button key={h} type="button" className={humor === h ? 'ativo' : ''} aria-pressed={humor === h} onClick={() => setHumor(h)}>
+            <BotaoInterruptor key={h} ligado={humor === h} onClick={() => setHumor(h)}>
               {HUMORES[h]}
-            </button>
+            </BotaoInterruptor>
           ))}
         </div>
         <label className="rotulo">Energia</label>

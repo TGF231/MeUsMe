@@ -25,6 +25,7 @@ import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 import { Simbolo } from '../components/Icone'
 import { apagarComDesfazer } from '../desfazer'
 import { useAvisos, useConfig } from '../stores/config'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -322,9 +323,9 @@ function Lancamentos() {
         <span>Resultado {reais(receitas - gastos)}</span>
       </p>
       {semCategoria > 0 && (
-        <button className={soSemCategoria ? 'ativo' : ''} aria-pressed={soSemCategoria} onClick={() => setSoSemCategoria(!soSemCategoria)}>
+        <BotaoInterruptor ligado={soSemCategoria} onClick={() => setSoSemCategoria(!soSemCategoria)}>
           {soSemCategoria ? 'Mostrar todos' : `${semCategoria} sem categoria: organizar`}
-        </button>
+        </BotaoInterruptor>
       )}
       {lista.length === 0 && <p className="vazio-texto">Nada neste mês.</p>}
       {dias.map((dia) => (
@@ -413,12 +414,12 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
       }}
     >
       <div className="segmentado" role="group" aria-label="Tipo">
-        <button type="button" className={tipo === 'gasto' ? 'ativo' : ''} aria-pressed={tipo === 'gasto'} onClick={() => setTipo('gasto')}>
+        <BotaoInterruptor ligado={tipo === 'gasto'} onClick={() => setTipo('gasto')}>
           Conta a pagar
-        </button>
-        <button type="button" className={tipo === 'receita' ? 'ativo' : ''} aria-pressed={tipo === 'receita'} onClick={() => setTipo('receita')}>
+        </BotaoInterruptor>
+        <BotaoInterruptor ligado={tipo === 'receita'} onClick={() => setTipo('receita')}>
           Entrada fixa
-        </button>
+        </BotaoInterruptor>
       </div>
       <input required aria-label="Nome" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder={tipo === 'gasto' ? 'Ex.: Aluguel, Internet' : 'Ex.: Salário'} />
       <div className="linha">

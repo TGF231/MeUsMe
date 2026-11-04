@@ -1485,6 +1485,13 @@ button.perigo:hover {
 }
 
 /* Progresso do MegUI: a barra é marca sem texto, então usa --acento-linha (3:1 no escuro), como as outras marcas. */
+/* BotaoInterruptor do MegUI: a folha usa a altura de controle de mesa (28px); no toque vale o alvo do retrato, o texto do corpo do app (1rem) e no meio. */
+.mg-interruptor {
+  min-height: var(--megui-toque-retrato);
+  justify-content: center;
+  font-size: 1rem;
+}
+
 .mg-progresso__barra {
   background: var(--acento-linha);
 }

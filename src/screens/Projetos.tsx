@@ -12,6 +12,7 @@ import { minutosDoPasso, pendentes, useStore } from '../store'
 import type { Datas, Passo, Projeto } from '../types'
 import { dataCurta, duracao, hoje } from '../util'
 import { Simbolo } from '../components/Icone'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
   const criar = useStore((s) => s.criarProjeto)
@@ -248,10 +249,10 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                     <button onClick={() => s.reabrirProjeto(id)}>Reabrir projeto</button>
                   ) : (
                     <>
-                      <button className={s.focoId === id ? 'ativo' : ''} aria-pressed={s.focoId === id} onClick={() => s.definirFoco(s.focoId === id ? null : id)}>
+                      <BotaoInterruptor ligado={s.focoId === id} onClick={() => s.definirFoco(s.focoId === id ? null : id)}>
                         <Simbolo c={s.focoId === id ? '★' : '☆'} />
                         {s.focoId === id ? 'Em foco' : 'Colocar em foco'}
-                      </button>
+                      </BotaoInterruptor>
                       <button
                         onClick={() => {
                           const resto = fila.length ? ` Ainda há ${fila.length} passo${fila.length > 1 ? 's' : ''} na fila.` : ''

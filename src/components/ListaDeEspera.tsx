@@ -7,6 +7,7 @@ import type { Desejo } from '../types'
 import { lerDinheiro } from '../motor/extratores'
 import { dataISO, hora, lerValor, nomeDoDia, reais } from '../util'
 import { LancamentoForm } from './LancamentoForm'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const PRAZOS = [24, 48, 72, 168]
 const nomePrazo = (h: number) => (h === 168 ? '1 semana' : `${h}h`)
@@ -64,9 +65,9 @@ export function ListaDeEspera() {
         </div>
         <div className="chips" role="group" aria-label="Quanto tempo esperar">
           {PRAZOS.map((h) => (
-            <button type="button" key={h} className={cfg.horasDeEspera === h ? 'ativo' : ''} aria-pressed={cfg.horasDeEspera === h} onClick={() => cfg.ajustar({ horasDeEspera: h })}>
+            <BotaoInterruptor key={h} ligado={cfg.horasDeEspera === h} onClick={() => cfg.ajustar({ horasDeEspera: h })}>
               {nomePrazo(h)}
-            </button>
+            </BotaoInterruptor>
           ))}
         </div>
       </form>

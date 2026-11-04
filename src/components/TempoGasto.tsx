@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { minutosDoPasso, useStore } from '../store'
 import type { Passo } from '../types'
 import { duracao } from '../util'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const OPCOES = [5, 15, 30, 45, 60, 90, 120]
 
@@ -32,16 +33,16 @@ export function TempoGasto({ passo, perguntar = false }: { passo: Passo; pergunt
       <span className="rotulo">{cronometrado ? 'Somar tempo feito fora do cronômetro:' : 'Quanto tempo levou, mais ou menos?'}</span>
       <div className="chips" role="group" aria-label="Tempo">
         {OPCOES.map((m) => (
-          <button
+          <BotaoInterruptor
             key={m}
-            className={passo.minutosManuais === m ? 'ativo' : ''} aria-pressed={passo.minutosManuais === m}
+            ligado={passo.minutosManuais === m}
             onClick={() => {
               atualizar(passo.id, { minutosManuais: m })
               setAberto(false)
             }}
           >
             {duracao(m)}
-          </button>
+          </BotaoInterruptor>
         ))}
         <button className="discreto" onClick={() => setAberto(false)}>
           {passo.minutosManuais ? 'Manter' : 'Não sei'}
