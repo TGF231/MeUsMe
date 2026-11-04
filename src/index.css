@@ -95,10 +95,21 @@ main[tabindex='-1']:focus {
   box-sizing: border-box;
 }
 
+/*
+ * Adaptações do MeUsMe sobre a folha de componentes do MegUI (megui-componentes.css), que é de ferramenta de mesa:
+ * corpo em 1rem (16px, o mínimo confortável no toque) e link em --acento-linha, que lê no escuro (o acento puro não).
+ */
 body {
   margin: 0;
   background: var(--fundo);
+  font-size: 1rem;
+  line-height: var(--megui-tipo-corpo-altura);
   -webkit-tap-highlight-color: transparent;
+}
+
+a,
+a:hover {
+  color: var(--acento-linha);
 }
 
 button,
@@ -1464,6 +1475,15 @@ button.perigo:hover {
   flex-direction: column;
   gap: 4px;
   width: 100%;
+}
+
+/* Progresso do MegUI: a barra é marca sem texto, então usa --acento-linha (3:1 no escuro), como as outras marcas. */
+.mg-progresso__barra {
+  background: var(--acento-linha);
+}
+
+.mg-progresso__rotulo {
+  font-size: 0.875rem;
 }
 
 /* Bloco de foco: anel que se fecha com o tempo */
