@@ -6,6 +6,7 @@ import { decidirAgora, descrever } from '../motor/executar'
 import type { MotorRede } from '../motor/interpretar'
 import { ERROU, TUTORIAL } from '../motor/tutorial'
 import { useConfig } from '../stores/config'
+import { Botao } from '../tema/megui-react.mjs'
 
 /** Escreva e veja o que o app faria, sem criar nada. */
 function Experimente() {
@@ -83,14 +84,14 @@ export function ComoEscrever({ onFechar }: Readonly<{ onFechar: () => void }>) {
         </div>
         <div className="linha">
           {fim ? (
-            <button className="primario" autoFocus onClick={fechar}>
+            <Botao variante="acento" autoFocus onClick={fechar}>
               Entendi
-            </button>
+            </Botao>
           ) : (
             <>
-              <button className="primario" autoFocus onClick={() => setI(i + 1)}>
+              <Botao variante="acento" autoFocus onClick={() => setI(i + 1)}>
                 Continuar
-              </button>
+              </Botao>
               <button className="discreto" onClick={fechar}>
                 Pular
               </button>

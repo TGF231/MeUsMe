@@ -20,6 +20,7 @@ import { useMotor } from '../stores/motor'
 import type { Classe } from '../motor/regras'
 import type { Captura } from '../types'
 import { dataISO, reais } from '../util'
+import { Botao } from '../tema/megui-react.mjs'
 
 type Modo =
   | { tipo: 'passo'; projetoId: string | null }
@@ -60,9 +61,9 @@ function NovoProjeto({ ctx }: Readonly<{ ctx: Contexto }>) {
       <label className="rotulo">Linha de chegada: como você vai saber que terminou?</label>
       <input required aria-label="Linha de chegada" autoFocus value={chegada} onChange={(e) => setChegada(e.target.value)} placeholder="Ex.: currículo enviado para 3 vagas" />
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           Criar projeto
-        </button>
+        </Botao>
         <button type="button" onClick={() => ctx.setModo(null)}>
           Cancelar
         </button>
@@ -170,20 +171,20 @@ function AcoesDaCaptura({ ctx }: Readonly<{ ctx: Contexto }>) {
     <>
       <div className="linha acoes">
         {sugerido && (
-          <button className="primario" onClick={sugerido[1]}>
+          <Botao variante="acento" onClick={sugerido[1]}>
             {sugerido[0]}
-          </button>
+          </Botao>
         )}
         {semDirecao &&
           saidaEntrada.map(([rotulo, receita]) => (
-            <button key={rotulo} className="primario" onClick={() => setModo({ tipo: 'gasto', receita })}>
+            <Botao variante="acento" key={rotulo} onClick={() => setModo({ tipo: 'gasto', receita })}>
               {rotulo} de {reais(dinheiro.valor)}
-            </button>
+            </Botao>
           ))}
         {dinheiro && !semDirecao && (
-          <button className="primario" onClick={() => setModo({ tipo: 'gasto' })}>
+          <Botao variante="acento" onClick={() => setModo({ tipo: 'gasto' })}>
             Registrar {dinheiro.direcao === 'entrada' ? 'entrada' : 'gasto'} de {reais(dinheiro.valor)}
-          </button>
+          </Botao>
         )}
         {sugestao !== 'passo' && <button onClick={tarefa}>Tarefa solta</button>}
         {ativos.length > 0 && (
@@ -270,15 +271,15 @@ function SepararColados({ itens, onFechar }: Readonly<{ itens: string[]; onFecha
       ))}
       <div className="linha">
         {marcados.length > 0 && (
-          <button
-            className="primario"
+          <Botao
+            variante="acento"
             onClick={() => {
               void guardarVarios(marcados)
               onFechar()
             }}
           >
             Guardar {marcados.length === 1 ? '1 item' : `${marcados.length} itens`}
-          </button>
+          </Botao>
         )}
         <button
           onClick={() => {
@@ -348,9 +349,9 @@ export function Caixa() {
               <button type="button" className="icone-botao" onClick={() => setTutorial(true)} aria-label="Como escrever rápido">
                 ?
               </button>
-              <button type="submit" className="primario">
+              <Botao variante="acento" type="submit">
                 Guardar
-              </button>
+              </Botao>
             </div>
           </form>
           {colados && <SepararColados itens={colados} onFechar={() => setColados(null)} />}

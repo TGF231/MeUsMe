@@ -1,6 +1,7 @@
 import { useJanelaModal } from '../hooks'
 import { novidadesPendentes } from '../novidades'
 import { useConfig } from '../stores/config'
+import { Botao } from '../tema/megui-react.mjs'
 
 /** "O que mudou" (D16 em docs/CONCORRENTES.md): uma vez por versão, fecha com Esc ou "Entendi". */
 export function OQueMudou({ onFechar }: Readonly<{ onFechar: () => void }>) {
@@ -37,9 +38,9 @@ export function OQueMudou({ onFechar }: Readonly<{ onFechar: () => void }>) {
           </section>
         ))}
         <p className="motivo">Tudo continua no mesmo lugar. O que é novo pode ser ignorado.</p>
-        <button className="primario" autoFocus onClick={fechar}>
+        <Botao variante="acento" autoFocus onClick={fechar}>
           Entendi
-        </button>
+        </Botao>
       </div>
     </dialog>
   )

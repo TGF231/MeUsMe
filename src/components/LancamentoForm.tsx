@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { dividirEmParcelas } from '../compra'
 import { sugerirCategoria, useFinancas } from '../stores/financas'
 import { hoje, lerValor, reais } from '../util'
-import { BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 interface Props {
   inicial?: { valor?: number; descricao?: string; tipo?: 'gasto' | 'receita' }
@@ -99,9 +99,9 @@ export function LancamentoForm({ inicial, onPronto, onCancelar }: Props) {
         )}
       </div>
       <div className="linha">
-        <button type="submit" className="primario" disabled={!valor}>
+        <Botao variante="acento" type="submit" disabled={!valor}>
           {valor ? `Registrar ${reais(Math.abs(valor))}${tipo === 'gasto' && parcelas > 1 ? ` em ${parcelas}x` : ''}` : 'Registrar'}
-        </button>
+        </Botao>
         {onCancelar && (
           <button type="button" onClick={onCancelar}>
             Cancelar

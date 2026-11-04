@@ -25,7 +25,7 @@ import { hora, lerValor, mesISO, nomeDoDia, reais } from '../util'
 import { Simbolo } from '../components/Icone'
 import { apagarComDesfazer } from '../desfazer'
 import { useAvisos, useConfig } from '../stores/config'
-import { BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 type Sub = 'resumo' | 'lancamentos' | 'fixas' | 'espera' | 'importar' | 'ajustes'
 
@@ -137,9 +137,9 @@ function Resumo({ sync, onVerFontes }: { sync: ReturnType<typeof useSyncAutomati
             <LancamentoForm onPronto={() => setLancando(false)} onCancelar={() => setLancando(false)} />
           </div>
         ) : (
-          <button className="primario grande-botao" onClick={() => setLancando(true)}>
+          <Botao variante="acento" className="grande-botao" onClick={() => setLancando(true)}>
             Registrar gasto ou entrada
-          </button>
+          </Botao>
         )}
 
         {f.fixas.length > 0 && (
@@ -262,9 +262,9 @@ function EditarLancamento({ t, onPronto }: { t: Transacao; onPronto: () => void 
         <input required type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Data" />
       </div>
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           Salvar
-        </button>
+        </Botao>
         <button type="button" onClick={onPronto}>
           Cancelar
         </button>
@@ -448,9 +448,9 @@ function FormFixa({ onPronto }: { onPronto: () => void }) {
         )}
       </div>
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           Salvar
-        </button>
+        </Botao>
         <button type="button" onClick={onPronto}>
           Cancelar
         </button>
@@ -474,9 +474,9 @@ function Fixas() {
           <FormFixa onPronto={() => setCriando(false)} />
         </div>
       ) : (
-        <button className="primario" onClick={() => setCriando(true)}>
+        <Botao variante="acento" onClick={() => setCriando(true)}>
           Nova conta fixa
-        </button>
+        </Botao>
       )}
       {f.fixas.length > 0 && (
         <div className="cartao">
@@ -672,8 +672,8 @@ function OpenFinance({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
         O Client Secret fica salvo só neste aparelho e não vai para o backup. Não configure em computador compartilhado.
       </p>
       <div className="linha">
-        <button
-          className="primario"
+        <Botao
+          variante="acento"
           disabled={!clientId || !clientSecret || !itens.trim() || sync.rodando}
           onClick={async () => {
             const novo = { clientId, clientSecret, itemIds: itens.split(/[\s,;]+/).filter(Boolean), ultimaSync: cfg?.ultimaSync }
@@ -684,7 +684,7 @@ function OpenFinance({ sync }: { sync: ReturnType<typeof useSyncAutomatico> }) {
           }}
         >
           {sync.rodando ? 'Sincronizando…' : 'Salvar e sincronizar'}
-        </button>
+        </Botao>
         {cfg && (
           <button onClick={() => setEditando(false)}>Cancelar</button>
         )}
@@ -791,8 +791,8 @@ function Importar() {
               <b className={l.valor < 0 ? '' : 'positivo'}>{reais(l.valor)}</b>
             </div>
           ))}
-          <button
-            className="primario"
+          <Botao
+            variante="acento"
             disabled={convertido.ok.length === 0}
             onClick={() => {
               const novas = f.importar(
@@ -812,7 +812,7 @@ function Importar() {
             }}
           >
             Importar {convertido.ok.length} lançamentos
-          </button>
+          </Botao>
         </div>
       )}
       {linhas && !colunas && <p className="dica">Não reconheci as colunas automaticamente. Escolha acima qual é a data, o valor e a descrição.</p>}

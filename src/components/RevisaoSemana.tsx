@@ -6,7 +6,7 @@ import { useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import { mesISO, reais } from '../util'
 import { Simbolo } from './Icone'
-import { BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const DIA = 86_400_000
 
@@ -111,9 +111,9 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
       )}
 
       <div className="linha">
-        <button className="primario" onClick={terminar}>
+        <Botao variante="acento" onClick={terminar}>
           Revisão feita
-        </button>
+        </Botao>
         <button className="discreto" onClick={terminar}>
           Pular esta semana
         </button>

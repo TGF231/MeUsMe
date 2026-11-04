@@ -5,6 +5,7 @@ import type { Datas, Energia } from '../types'
 import { SeletorEnergia } from './SeletorEnergia'
 import { BotaoVoz } from './BotaoVoz'
 import { Simbolo } from './Icone'
+import { Botao } from '../tema/megui-react.mjs'
 
 // Verbos que indicam intenção vaga em vez de ação concreta.
 const VAGOS = /\b(pensar|ver|resolver|organizar|decidir|melhorar|estudar|planejar|cuidar|arrumar|tentar|trabalhar|focar|entender)\b/i
@@ -117,9 +118,9 @@ export function PassoForm({
       <SeletorEnergia valor={energia} onChange={setEnergia} />
       {comDatas && <CamposDeData datas={datas} onChange={setDatas} />}
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           {rotuloBotao}
-        </button>
+        </Botao>
         {onCancelar && (
           <button type="button" onClick={onCancelar}>
             {rotuloCancelar}

@@ -29,7 +29,7 @@ import { useStatusSync } from '../sync/motor'
 import { ACENTOS_PRONTOS, pareceSemantica, resolverAcento } from '../tema/cores'
 import { temaEfetivo } from '../tema/aplicar'
 import { baixarArquivo, hoje } from '../util'
-import { BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 
 function Notificacoes() {
@@ -68,9 +68,9 @@ function Notificacoes() {
           Este navegador não oferece notificações aqui. No celular elas exigem o app publicado em https e instalado na tela inicial.
         </p>
       ) : permissao === null ? null : (
-        <button className="primario" onClick={async () => setPermissao(await pedirPermissao())}>
+        <Botao variante="acento" onClick={async () => setPermissao(await pedirPermissao())}>
           Ativar notificações
-        </button>
+        </Botao>
       )}
       {exato === false && (
         <div className="dica">
@@ -262,9 +262,9 @@ function GoogleNavegador() {
           {agenda.googleClientId ? (
             <>
               <p className="motivo">Traga seus compromissos do Google para a Agenda e a tela Agora. Você autoriza na tela do próprio Google.</p>
-              <button className="primario" onClick={() => conectar(agenda.googleClientId)}>
+              <Botao variante="acento" onClick={() => conectar(agenda.googleClientId)}>
                 Conectar ao Google
-              </button>
+              </Botao>
             </>
           ) : (
             <p className="motivo">Esta versão do app foi compilada sem a conexão com o Google. A Agenda funciona normalmente, só com o que você marca aqui.</p>
@@ -428,7 +428,7 @@ function Aparencia() {
         </p>
       )}
       <div className="linha previa">
-        <button className="primario">Botão principal</button>
+        <Botao variante="acento">Botão principal</Botao>
         <button className="ativo">Selecionado</button>
         <span className="selo">etiqueta</span>
       </div>

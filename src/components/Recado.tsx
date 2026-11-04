@@ -3,6 +3,7 @@ import { guardarAudio, lerAudio } from '../audios'
 import { useStore } from '../store'
 import { novoId } from '../util'
 import { Simbolo } from './Icone'
+import { Botao } from '../tema/megui-react.mjs'
 
 // Recado é para tirar da cabeça, não para ditar um texto longo.
 const LIMITE_S = 120
@@ -68,10 +69,10 @@ export function GravarRecado() {
   return (
     <div className="linha">
       {gravando ? (
-        <button type="button" className="primario" onClick={gravando.parar}>
+        <Botao variante="acento" type="button" onClick={gravando.parar}>
           <Simbolo c="■" />
           Parar e guardar · {relogio(passados)}
-        </button>
+        </Botao>
       ) : (
         <button type="button" onClick={comecar}>
           <Simbolo c="🎙" />

@@ -29,6 +29,7 @@ import { BotaoVoz } from './components/BotaoVoz'
 import { Busca } from './components/Busca'
 import { OQueMudou } from './components/OQueMudou'
 import { novidadesPendentes } from './novidades'
+import { Botao } from './tema/megui-react.mjs'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -177,9 +178,9 @@ function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; com
               }}
             />
           </div>
-          <button type="submit" className="primario">
+          <Botao variante="acento" type="submit">
             Guardar na caixa
-          </button>
+          </Botao>
         </form>
       </div>
       {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, como no tutorial (ComoEscrever). */}
@@ -339,9 +340,9 @@ export default function App() {
           Pular para o conteúdo
         </a>
         <p className="marca">MeUsMe</p>
-        <button className="primario nav-capturar" onClick={() => setCapturando(true)} title="Captura rápida (Ctrl+Espaço)">
+        <Botao variante="acento" className="nav-capturar" onClick={() => setCapturando(true)} title="Captura rápida (Ctrl+Espaço)">
           <span aria-hidden="true">+</span> Capturar <kbd>Ctrl+Espaço</kbd>
-        </button>
+        </Botao>
         {abas.map((a, i) => (
           <button
             key={a.id}

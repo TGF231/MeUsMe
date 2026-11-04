@@ -151,18 +151,6 @@ button:hover {
   background: var(--superficie-2);
 }
 
-button.primario {
-  background: var(--acento);
-  color: var(--acento-texto);
-  border-color: var(--acento);
-  font-weight: var(--peso-forte);
-}
-
-button.primario:hover {
-  background: var(--acento-hover);
-  border-color: var(--acento-hover);
-}
-
 button.ativo {
   background: var(--acento-leve);
   border-color: var(--acento-linha);
@@ -1485,6 +1473,13 @@ button.perigo:hover {
 }
 
 /* Progresso do MegUI: a barra é marca sem texto, então usa --acento-linha (3:1 no escuro), como as outras marcas. */
+/* Botao do MegUI (a ação principal é variante="acento"): no toque, o mesmo tamanho dos outros botões do app. */
+.mg-botao {
+  min-height: var(--megui-toque-retrato);
+  padding: 10px 16px;
+  font-size: 1rem;
+}
+
 /* BotaoInterruptor do MegUI: a folha usa a altura de controle de mesa (28px); no toque vale o alvo do retrato, o texto do corpo do app (1rem) e no meio. */
 .mg-interruptor {
   min-height: var(--megui-toque-retrato);

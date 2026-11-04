@@ -7,7 +7,7 @@ import type { Desejo } from '../types'
 import { lerDinheiro } from '../motor/extratores'
 import { dataISO, hora, lerValor, nomeDoDia, reais } from '../util'
 import { LancamentoForm } from './LancamentoForm'
-import { BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const PRAZOS = [24, 48, 72, 168]
 const nomePrazo = (h: number) => (h === 168 ? '1 semana' : `${h}h`)
@@ -59,9 +59,9 @@ export function ListaDeEspera() {
         <label className="rotulo">Vontade de comprar algo? Anote e espere antes de decidir.</label>
         <div className="linha">
           <input aria-label="O que você quer comprar" className="flex" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Ex.: 250 fone novo" />
-          <button type="submit" className="primario">
+          <Botao variante="acento" type="submit">
             Esperar {nomePrazo(cfg.horasDeEspera)}
-          </button>
+          </Botao>
         </div>
         <div className="chips" role="group" aria-label="Quanto tempo esperar">
           {PRAZOS.map((h) => (
@@ -88,9 +88,9 @@ export function ListaDeEspera() {
             </span>
             <span className="linha">
               {pronto && (
-                <button className="primario" onClick={() => setComprando(d)}>
+                <Botao variante="acento" onClick={() => setComprando(d)}>
                   Comprei
-                </button>
+                </Botao>
               )}
               <button onClick={() => f.decidirCompra(d.id, 'desisti')}>Desisti</button>
             </span>

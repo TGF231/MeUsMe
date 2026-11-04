@@ -12,7 +12,7 @@ import { minutosDoPasso, pendentes, useStore } from '../store'
 import type { Datas, Passo, Projeto } from '../types'
 import { dataCurta, duracao, hoje } from '../util'
 import { Simbolo } from '../components/Icone'
-import { BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
   const criar = useStore((s) => s.criarProjeto)
@@ -38,9 +38,9 @@ function NovoProjeto({ onCriado }: { onCriado: (id: string) => void }) {
       <p className="dica neutra">
         Defina agora, enquanto há energia. No fim do caminho, isso impede a meta de ficar se afastando.
       </p>
-      <button type="submit" className="primario">
+      <Botao variante="acento" type="submit">
         Criar
-      </button>
+      </Botao>
     </form>
   )
 }
@@ -189,9 +189,9 @@ function EditarProjeto({ projeto, onPronto, onApagado }: { projeto: Projeto; onP
       <label className="rotulo">Linha de chegada</label>
       <input required aria-label="Linha de chegada" value={chegada} onChange={(e) => setChegada(e.target.value)} />
       <div className="linha">
-        <button type="submit" className="primario">
+        <Botao variante="acento" type="submit">
           Salvar
-        </button>
+        </Botao>
         <button type="button" onClick={onPronto}>
           Cancelar
         </button>
@@ -386,9 +386,9 @@ export function Projetos() {
           }}
         />
       ) : (
-        <button className="primario" onClick={() => setCriando(true)}>
+        <Botao variante="acento" onClick={() => setCriando(true)}>
           Novo projeto
-        </button>
+        </Botao>
       )}
       {!criando && <Modelos onCriado={setAberto} />}
 

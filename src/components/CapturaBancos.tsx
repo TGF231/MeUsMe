@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BANCOS } from '../nativo/bancos'
 import { Captura, processarCapturas } from '../nativo/captura'
 import { ehAndroid } from '../nativo/plataforma'
+import { Botao } from '../tema/megui-react.mjs'
 
 interface Candidato {
   pacote: string
@@ -51,9 +52,9 @@ export function CapturaBancos() {
         <p className="motivo">Acesso liberado.</p>
       ) : (
         <>
-          <button className="primario" onClick={() => void Captura.abrirAjustes()}>
+          <Botao variante="acento" onClick={() => void Captura.abrirAjustes()}>
             Liberar acesso às notificações
-          </button>
+          </Botao>
           <details>
             <summary>A opção aparece bloqueada (“configuração restrita”)?</summary>
             <p className="motivo">

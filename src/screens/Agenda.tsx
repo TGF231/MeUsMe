@@ -10,7 +10,7 @@ import { apertos, linhaDoTempo } from '../linhaDoTempo'
 import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
 import type { Evento } from '../types'
 import { dataISO, duracao, hora, inicioDoDia, nomeDoDia } from '../util'
-import { BotaoInterruptor } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const REPETIR = { nunca: '', diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }
 
@@ -274,9 +274,9 @@ export function Agenda() {
             </div>
           ) : (
             <div className="linha">
-              <button className="primario flex" onClick={() => setCriando('evento')}>
+              <Botao variante="acento" className="flex" onClick={() => setCriando('evento')}>
                 Novo compromisso
-              </button>
+              </Botao>
               <button className="flex" onClick={() => setCriando('lembrete')}>
                 Novo lembrete
               </button>
