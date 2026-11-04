@@ -6,7 +6,7 @@ import { decidirAgora, descrever } from '../motor/executar'
 import type { MotorRede } from '../motor/interpretar'
 import { ERROU, TUTORIAL } from '../motor/tutorial'
 import { useConfig } from '../stores/config'
-import { Botao } from '../tema/megui-react.mjs'
+import { Botao, Dialogo } from '../tema/megui-react.mjs'
 
 /** Escreva e veja o que o app faria, sem criar nada. */
 function Experimente() {
@@ -47,6 +47,8 @@ export function ComoEscrever({ onFechar }: Readonly<{ onFechar: () => void }>) {
     onFechar()
   }
   const janela = useJanelaModal()
+  // O ✕ do Dialogo vem antes no foco; quem abre o tutorial segue pelo Continuar, então ele leva o foco (depois do showModal).
+  useEffect(() => janela.current?.querySelector<HTMLButtonElement>('.mg-botao--acento')?.focus(), [janela])
 
   return (
     <dialog
@@ -58,10 +60,15 @@ export function ComoEscrever({ onFechar }: Readonly<{ onFechar: () => void }>) {
         fechar()
       }}
     >
-      <div className="modal tutorial">
-        <p className="rotulo">
-          Como escrever rápido · {i + 1} de {TUTORIAL.length}
-        </p>
+      <Dialogo
+        titulo={`Como escrever rápido · ${i + 1} de ${TUTORIAL.length}`}
+        role="none"
+        aria-modal={undefined}
+        aria-label={undefined}
+        className="modal-megui tutorial"
+        largura="100%"
+        aoFechar={fechar}
+      >
         {/* Ao avançar, o leitor de tela lê a tela nova sem o foco sair do botão. */}
         <div aria-live="polite">
           <h2 className="titulo">{tela.titulo}</h2>
@@ -98,7 +105,7 @@ export function ComoEscrever({ onFechar }: Readonly<{ onFechar: () => void }>) {
             </>
           )}
         </div>
-      </div>
+      </Dialogo>
       {/* Tocar fora fecha: um botão de verdade cobrindo o fundo, alcançável por teclado e leitor de tela. */}
       <button type="button" className="fundo-fechar" aria-label="Fechar o tutorial" onClick={fechar} />
     </dialog>
