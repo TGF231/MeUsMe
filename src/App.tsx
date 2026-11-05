@@ -29,7 +29,9 @@ import { BotaoVoz } from './components/BotaoVoz'
 import { Busca } from './components/Busca'
 import { OQueMudou } from './components/OQueMudou'
 import { novidadesPendentes } from './novidades'
-import { Botao, Dialogo } from './tema/megui-react.mjs'
+import { AcaoPrimaria, BarraTitulo, Botao, Dialogo, FaixaAbas, Janela, Rodape } from './tema/megui-react.mjs'
+import { useJanela } from './janela'
+import { useStatusSync, type StatusSync } from './sync/motor'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
@@ -201,6 +203,16 @@ function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; com
   )
 }
 
+/** Estado da sincronização em uma frase, para o rodapé da janela de computador. */
+function estadoDaSincronizacao(s: StatusSync): { estado: string; situacao: 'ok' | 'aviso' | 'erro' | 'info' | 'neutro' } {
+  if (s.situacao === 'sincronizando') return { estado: 'Sincronizando', situacao: 'info' }
+  if (s.situacao === 'erro') return { estado: 'Sincronização com erro', situacao: 'erro' }
+  if (s.situacao === 'sem-login') return { estado: 'Sincronização sem login', situacao: 'aviso' }
+  if (s.situacao === 'ociosa' && s.ultima)
+    return { estado: `Sincronizado às ${new Date(s.ultima).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`, situacao: 'ok' }
+  return { estado: 'Salvo neste aparelho', situacao: 'ok' }
+}
+
 export default function App() {
   const aba = useNavegacao((n) => n.aba)
   const setAba = useNavegacao((n) => n.ir)
@@ -209,7 +221,12 @@ export default function App() {
   const abas = abasVisiveis(desligados)
   const [capturando, setCapturando] = useState(false)
   const [comVoz, setComVoz] = useState(false)
-  const [buscando, setBuscando] = useState(false)
+  // Texto com que a busca abre (o que já foi digitado na barra de título); false: fechada.
+  const [buscando, setBuscando] = useState<string | false>(false)
+  // Remonta o campo da barra de título quando a busca fecha, para ele voltar vazio.
+  const [buscas, setBuscas] = useState(0)
+  const janela = useJanela()
+  const sync = useStatusSync()
   // "O que mudou" uma vez por versão (D16); sem novidades, só anota a versão vista.
   const [novidades, setNovidades] = useState(() => {
     const c = useConfig.getState()
@@ -231,7 +248,7 @@ export default function App() {
       } else if (e.ctrlKey && e.code === 'KeyK') {
         // Ctrl+K: buscar em tudo (V07).
         e.preventDefault()
-        setBuscando(true)
+        setBuscando('')
       } else if (ehDesktop() && e.ctrlKey && ['Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'Digit0', 'Numpad0'].includes(e.code)) {
         // App Windows: o zoom do WebView vem desligado, então Ctrl + / Ctrl − / Ctrl 0 mudam o tamanho do texto do app.
         e.preventDefault()
@@ -338,13 +355,115 @@ export default function App() {
   // lê o lugar novo (sem isso o foco fica no botão da aba e nada é anunciado) e o Tab segue a partir dali.
   const titulo = useRef<HTMLHeadingElement>(null)
   const primeiraVez = useRef(true)
+  const manterFoco = useRef(false)
   useEffect(() => {
     document.title = aba === 'agora' ? 'MeUsMe' : `${nomeDaAba} · MeUsMe`
     if (primeiraVez.current) primeiraVez.current = false
+    else if (manterFoco.current) document.querySelector<HTMLElement>('.secoes [aria-selected="true"]')?.focus()
     else titulo.current?.focus({ preventScroll: true })
+    manterFoco.current = false
   }, [aba, nomeDaAba])
 
-  // Layout da navegação (abas, trilho ou barra lateral) definido em index.css.
+  const telas = (
+    <>
+      {!introducaoVista ? <Introducao /> : aba === 'agora' && <Agora />}
+      {introducaoVista && (
+        <>
+          {aba === 'agenda' && <Agenda />}
+          {aba === 'caixa' && <Caixa />}
+          {aba === 'financas' && <Financas />}
+          {aba === 'projetos' && <Projetos />}
+          {aba === 'historico' && <Historico />}
+          {aba === 'ajustes' && <Ajustes />}
+        </>
+      )}
+    </>
+  )
+  const modais = (
+    <>
+      {buscando !== false && <Busca inicial={buscando} onFechar={() => (setBuscando(false), setBuscas((n) => n + 1))} />}
+      {novidades && <OQueMudou onFechar={() => setNovidades(false)} />}
+      {capturando && <CapturaRapida comVoz={comVoz} onFechar={() => (setCapturando(false), setComVoz(false))} />}
+    </>
+  )
+
+  // Computador: a Janela do MegUI. As seções viram abas, a captura é a ação primária e o rodapé diz o estado.
+  if (janela) {
+    const secoes = [...abas, { id: 'ajustes' as const, nome: 'Ajustes' }]
+    const ativa = secoes.findIndex((s) => s.id === aba)
+    const ir = (i: number) => setAba(secoes[(i + secoes.length) % secoes.length].id)
+    const rodape = estadoDaSincronizacao(sync)
+    return (
+      <>
+        <Janela
+          altura="tela"
+          barra={
+            <BarraTitulo
+              key={buscas}
+              role="banner"
+              app="MeUsMe"
+              contexto={nomeDaAba}
+              busca="Buscar em tudo"
+              aoBuscar={(texto) => texto && setBuscando(texto)}
+              controles={false}
+            />
+          }
+          abas={
+            // Cada faixa num marco (banner, nav, aside, contentinfo): o leitor de tela pula de uma para outra.
+            <nav aria-label="Seções">
+              <FaixaAbas
+                className="secoes"
+                aria-label="Seções"
+                abas={secoes.map((s) => (s.id === 'caixa' && naCaixa > 0 ? `${s.nome} · ${naCaixa}` : s.nome))}
+                ativa={ativa}
+                aoTrocar={ir}
+                onKeyDown={(e) => {
+                  // Setas e Home/End andam entre as abas (padrão de tablist); o foco fica na faixa.
+                  const destino = { ArrowLeft: ativa - 1, ArrowRight: ativa + 1, Home: 0, End: secoes.length - 1 }[e.key]
+                  if (destino === undefined) return
+                  e.preventDefault()
+                  manterFoco.current = true
+                  ir(destino)
+                }}
+              />
+            </nav>
+          }
+          acao={
+            <aside aria-label="Captura rápida">
+              <AcaoPrimaria
+                icone={<Icone nome="capturar" tamanho={20} />}
+                onClick={() => setCapturando(true)}
+                title="Captura rápida (Ctrl+Espaço)"
+                aria-keyshortcuts="Control+Space"
+              >
+                Capturar
+              </AcaoPrimaria>
+            </aside>
+          }
+          rodape={
+            <Rodape
+              role="contentinfo"
+              estado={rodape.estado}
+              situacao={rodape.situacao}
+              contagem={naCaixa === 1 ? '1 item na caixa' : `${naCaixa} itens na caixa`}
+              versao={__VERSAO__}
+            />
+          }
+        >
+          <main id="conteudo" tabIndex={-1} className="janela-pagina">
+            <h1 ref={titulo} tabIndex={-1} className="titulo-oculto">
+              {nomeDaAba}
+            </h1>
+            {telas}
+          </main>
+        </Janela>
+        <Avisos />
+        {modais}
+      </>
+    )
+  }
+
+  // Toque: layout da navegação (abas, trilho ou barra lateral) definido em index.css.
   return (
     <div className="app">
       <nav className="abas" aria-label="Seções">
@@ -394,7 +513,7 @@ export default function App() {
           <span className="linha">
             <button
               className="discreto icone-botao"
-              onClick={() => setBuscando(true)}
+              onClick={() => setBuscando('')}
               aria-label="Buscar"
               title={teclado ? 'Buscar (Ctrl+K)' : 'Buscar'}
               aria-keyshortcuts={teclado ? 'Control+K' : undefined}
@@ -414,17 +533,7 @@ export default function App() {
         </header>
 
         <main id="conteudo" tabIndex={-1}>
-          {!introducaoVista ? <Introducao /> : aba === 'agora' && <Agora />}
-          {introducaoVista && (
-            <>
-              {aba === 'agenda' && <Agenda />}
-              {aba === 'caixa' && <Caixa />}
-              {aba === 'financas' && <Financas />}
-              {aba === 'projetos' && <Projetos />}
-              {aba === 'historico' && <Historico />}
-              {aba === 'ajustes' && <Ajustes />}
-            </>
-          )}
+          {telas}
         </main>
       </div>
 
@@ -435,9 +544,7 @@ export default function App() {
         +
       </button>
 
-      {buscando && <Busca onFechar={() => setBuscando(false)} />}
-      {novidades && <OQueMudou onFechar={() => setNovidades(false)} />}
-      {capturando && <CapturaRapida comVoz={comVoz} onFechar={() => (setCapturando(false), setComVoz(false))} />}
+      {modais}
     </div>
   )
 }

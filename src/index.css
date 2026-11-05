@@ -35,6 +35,8 @@
   --fonte-mono: var(--megui-fonte-mono);
   --peso-forte: var(--megui-peso-forte);
   --mov-feedback: var(--megui-mov-feedback);
+  /* Alvo de controle: 44px de toque; na janela de computador (data-layout="janela"), o controle de 28px do MegUI. */
+  --alvo: var(--megui-toque-retrato);
 
   font-family: var(--megui-fonte-ui);
   color: var(--texto);
@@ -128,7 +130,7 @@ textarea {
   border: 1px solid var(--borda-2);
   border-radius: var(--raio-controle);
   background: var(--rebaixado);
-  min-height: 44px;
+  min-height: var(--alvo);
 }
 
 input:focus,
@@ -141,7 +143,7 @@ textarea:focus {
 button {
   cursor: pointer;
   padding: 10px 16px;
-  min-height: 44px;
+  min-height: var(--alvo);
   border-radius: var(--raio-controle);
   border: 1px solid var(--borda-2);
   background: var(--superficie);
@@ -172,6 +174,8 @@ button.discreto {
 
 /* Foco não fica escondido (WCAG 2.4.11): o que recebe foco rola para cima da barra de abas e do botão +, que são fixos. */
 html {
+  /* Ajustes → Tamanho do texto multiplica a base (aplicar.ts); tudo no app é em rem e cresce junto. */
+  font-size: calc(var(--escala-texto, 1) * 100%);
   scroll-padding-bottom: calc(150px + env(safe-area-inset-bottom));
 }
 
@@ -190,8 +194,8 @@ html {
 
 .icone-botao {
   padding: 8px;
-  min-height: 44px;
-  min-width: 44px;
+  min-height: var(--alvo);
+  min-width: var(--alvo);
 }
 
 .icone-botao.ativo {
@@ -578,13 +582,13 @@ dialog.fundo::backdrop {
 
 .modal-megui .mg-dialogo__barra {
   height: auto;
-  min-height: var(--megui-toque-retrato);
+  min-height: var(--alvo);
   padding-left: var(--megui-esp-4);
 }
 
 .modal-megui .mg-dialogo__fechar {
-  width: var(--megui-toque-retrato);
-  height: var(--megui-toque-retrato);
+  width: var(--alvo);
+  height: var(--alvo);
   min-height: 0;
   padding: 0;
 }
@@ -637,7 +641,7 @@ input[type='file'] {
 
 .chips button {
   padding: 6px 12px;
-  min-height: 44px;
+  min-height: var(--alvo);
   font-size: 0.85rem;
   border-radius: var(--raio-controle);
 }
@@ -646,7 +650,7 @@ select.mini,
 input.mini {
   width: auto;
   max-width: 150px;
-  min-height: 44px;
+  min-height: var(--alvo);
   padding: 6px 10px;
   font-size: 0.85rem;
 }
@@ -680,7 +684,7 @@ input.mini {
   flex-shrink: 0;
   border-radius: var(--raio-controle);
   padding: 6px 14px;
-  min-height: 44px;
+  min-height: var(--alvo);
   font-size: 0.9rem;
   white-space: nowrap;
 }
@@ -704,7 +708,7 @@ input.mini {
 }
 
 .pendencias button {
-  min-height: 44px;
+  min-height: var(--alvo);
   padding: 6px 12px;
   flex-shrink: 0;
 }
@@ -848,7 +852,7 @@ input.mini {
   display: inline-flex;
   align-items: center;
   padding: 10px 16px;
-  min-height: 44px;
+  min-height: var(--alvo);
   border-radius: var(--raio-controle);
   border: 1px solid var(--borda-2);
   background: var(--superficie);
@@ -1348,7 +1352,7 @@ span.tempo {
 }
 
 .status-bancos button {
-  min-height: 44px;
+  min-height: var(--alvo);
   padding: 6px 12px;
   flex-shrink: 0;
 }
@@ -1428,7 +1432,7 @@ kbd.tecla {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  min-height: 44px;
+  min-height: var(--alvo);
   border: 1px solid var(--borda-2);
   border-radius: var(--raio-controle);
   background: var(--superficie);
@@ -1507,14 +1511,14 @@ button.perigo:hover {
 
 /* Botao do MegUI (a ação principal é variante="acento"): no toque, o mesmo tamanho dos outros botões do app. */
 .mg-botao {
-  min-height: var(--megui-toque-retrato);
+  min-height: var(--alvo);
   padding: 10px 16px;
   font-size: 1rem;
 }
 
 /* Campo do MegUI (valores em mono): no toque, a altura e o respiro dos outros campos do app. */
 .mg-campo {
-  min-height: var(--megui-toque-retrato);
+  min-height: var(--alvo);
   padding: 12px 14px;
 }
 
@@ -1524,7 +1528,7 @@ button.perigo:hover {
 
 /* BotaoInterruptor do MegUI: a folha usa a altura de controle de mesa (28px); no toque vale o alvo do retrato, o texto do corpo do app (1rem) e no meio. */
 .mg-interruptor {
-  min-height: var(--megui-toque-retrato);
+  min-height: var(--alvo);
   justify-content: center;
   font-size: 1rem;
 }
@@ -1564,6 +1568,88 @@ button.perigo:hover {
   stroke: var(--acento-linha);
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear;
+}
+
+/*
+ * Janela de computador (data-layout="janela", posto por useJanela em src/janela.ts: tela larga, deitada e com mouse).
+ * O App troca a casca pela Janela do MegUI (barra de título, faixa de abas, ação primária flutuante e rodapé) e aqui
+ * a densidade vira a de ferramenta de mesa: corpo de 13px e controle de 28px. Celular e tablet seguem com 16px e 44px.
+ */
+:root[data-layout='janela'] {
+  font-size: calc(var(--escala-texto, 1) * var(--megui-tipo-corpo));
+  --alvo: var(--megui-normal-controle);
+}
+
+/* A Janela fixa o corpo em px; em rem, o Ctrl + / Ctrl − (tamanho do texto) continua valendo. */
+.mg-janela {
+  font-size: 1rem;
+}
+
+.mg-janela--tela {
+  height: 100dvh;
+}
+
+:root[data-layout='janela'] :is(button, .botao-arquivo, .mg-botao) {
+  padding: var(--megui-esp-1) var(--megui-esp-3);
+  font-size: 1rem;
+}
+
+:root[data-layout='janela'] :is(input, select, textarea, .mg-campo) {
+  padding: var(--megui-esp-1) var(--megui-esp-2);
+}
+
+:root[data-layout='janela'] .mg-interruptor {
+  font-size: 1rem;
+}
+
+.janela-pagina {
+  max-width: var(--megui-conteudo-max);
+  margin: 0 auto;
+  padding: var(--megui-esp-4) var(--megui-esp-6);
+}
+
+/* As seções são contextos fixos: a aba não fecha. */
+.secoes .mg-aba__fechar {
+  display: none;
+}
+
+.secoes .mg-aba {
+  justify-content: center;
+}
+
+/* Busca da barra de título: o campo é só o texto; o contorno e o anel ficam na caixa. */
+.mg-busca > input {
+  min-height: 0;
+  padding: 0;
+}
+
+.mg-busca > input:focus {
+  outline: none;
+}
+
+.mg-busca:focus-within {
+  outline: 2px solid var(--acento-linha);
+  outline-offset: 1px;
+}
+
+/* O título da seção vive na barra de título; o h1 fica para o leitor de tela e para receber o foco ao trocar de aba. */
+.titulo-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:root[data-layout='janela'] .avisos {
+  top: calc(var(--megui-barra-titulo) + var(--megui-faixa-abas) + var(--megui-esp-2));
+  right: var(--megui-esp-4);
+}
+
+/* Foco não fica escondido (WCAG 2.4.11): o que recebe foco rola para cima da ação primária flutuante. */
+.mg-janela__rolavel {
+  scroll-padding-bottom: var(--megui-acao-reserva);
 }
 
 @media (prefers-reduced-motion: reduce) {
