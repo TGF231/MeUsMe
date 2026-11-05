@@ -1589,7 +1589,7 @@ button.perigo:hover {
   height: 100dvh;
 }
 
-:root[data-layout='janela'] :is(button, .botao-arquivo, .mg-botao) {
+:root[data-layout='janela'] :is(button:not(.mg-botao-janela), .botao-arquivo, .mg-botao) {
   padding: var(--megui-esp-1) var(--megui-esp-3);
   font-size: 1rem;
 }
@@ -1606,6 +1606,14 @@ button.perigo:hover {
   max-width: var(--megui-conteudo-max);
   margin: 0 auto;
   padding: var(--megui-esp-4) var(--megui-esp-6);
+}
+
+/* App Windows sem moldura: a barra de título arrasta a janela (data-tauri-drag-region só vale no próprio elemento,
+ * então o nome e o contexto deixam o clique passar para ela). */
+.mg-barra-titulo__app,
+.mg-barra-titulo__contexto,
+.mg-barra-titulo > .mg-espaco {
+  pointer-events: none;
 }
 
 /* As seções são contextos fixos: a aba não fecha. */
@@ -1630,6 +1638,58 @@ button.perigo:hover {
 .mg-busca:focus-within {
   outline: 2px solid var(--acento-linha);
   outline-offset: 1px;
+}
+
+/*
+ * Cartões na janela de computador: o MegUI não tem cartão flutuante, agrupa com o Grupo (borda de 1px, sem fundo
+ * próprio, título embutido na borda). O cartão que começa com h2 ganha o título na borda, como a legend do Grupo.
+ */
+:root[data-layout='janela'] .cartao {
+  background: transparent;
+  padding: var(--megui-esp-3);
+  gap: var(--megui-esp-2);
+}
+
+:root[data-layout='janela'] .cartao.foco {
+  border-width: 1px;
+  padding: var(--megui-esp-6);
+  min-height: 0;
+}
+
+:root[data-layout='janela'] .cartao.compromisso {
+  background: transparent;
+}
+
+:root[data-layout='janela'] .cartao:has(> h2:first-child) {
+  margin-top: var(--megui-esp-2);
+}
+
+/* Centro do título na linha da borda: sobe o padding do cartão, meia linha de texto e meia borda. */
+:root[data-layout='janela'] .cartao > h2:first-child {
+  align-self: flex-start;
+  margin: calc(-1 * var(--megui-esp-3) - var(--megui-tipo-corpo-altura) * 0.5em - 1px) 0 0 calc(-1 * var(--megui-esp-1));
+  padding: 0 5px;
+  background: var(--superficie);
+  color: var(--suave);
+  font-size: 1rem;
+  line-height: var(--megui-tipo-corpo-altura);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+:root[data-layout='janela'] .cartao.foco > h2:first-child {
+  margin-top: calc(-1 * var(--megui-esp-6) - var(--megui-tipo-corpo-altura) * 0.5em - 1px);
+}
+
+/* Ação solta na tela tem a largura do rótulo, como na BarraAcoes; a barra de ponta a ponta é do toque. */
+:root[data-layout='janela'] :is(.tela, .col) > :is(button, .mg-botao) {
+  align-self: flex-start;
+}
+
+/* Hierarquia por peso antes de tamanho: o passo da vez fica no degrau "destaque" (22px), não nos 32px do toque. */
+:root[data-layout='janela'] .agora .passo {
+  font-size: var(--megui-tipo-destaque);
+  line-height: var(--megui-tipo-destaque-altura);
 }
 
 /* O título da seção vive na barra de título; o h1 fica para o leitor de tela e para receber o foco ao trocar de aba. */

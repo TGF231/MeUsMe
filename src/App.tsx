@@ -1,4 +1,5 @@
 import { App as AppNativo } from '@capacitor/app'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useEffect, useRef, useState } from 'react'
 import { proximoTamanho } from './acessibilidade'
 import { useAgendador } from './agendador'
@@ -405,7 +406,12 @@ export default function App() {
               contexto={nomeDaAba}
               busca="Buscar em tudo"
               aoBuscar={(texto) => texto && setBuscando(texto)}
-              controles={false}
+              // No navegador quem desenha os controles é o próprio navegador; no app Windows, esta barra (sem moldura).
+              controles={ehDesktop()}
+              aoMinimizar={() => void getCurrentWindow().minimize()}
+              aoMaximizar={() => void getCurrentWindow().toggleMaximize()}
+              aoFechar={() => void getCurrentWindow().close()}
+              data-tauri-drag-region
             />
           }
           abas={

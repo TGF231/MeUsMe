@@ -1,4 +1,6 @@
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useEffect, useSyncExternalStore } from 'react'
+import { ehDesktop } from './nativo/plataforma'
 
 /**
  * Quando o MeUsMe vira "programa de computador": tela larga (900px, a --megui-virada do MegUI, que não entra em
@@ -21,6 +23,9 @@ export function useJanela() {
     const raiz = document.documentElement
     if (janela) raiz.dataset.layout = 'janela'
     else delete raiz.dataset.layout
+    // App Windows: a janela abre sem moldura (tauri.conf.json), porque a BarraTitulo do MegUI traz minimizar,
+    // maximizar e fechar; no layout de toque (janela estreita ou em pé) a moldura do sistema volta.
+    if (ehDesktop()) void getCurrentWindow().setDecorations(!janela).catch(() => {})
   }, [janela])
   return janela
 }
