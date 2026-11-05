@@ -49,13 +49,15 @@ const CAMINHOS = {
       <circle cx="8" cy="17" r="2" />
     </>
   ),
+  capturar: <path d="M12 5v14M5 12h14" />,
 }
 
 export type NomeIcone = keyof typeof CAMINHOS
 
-export function Icone({ nome }: { nome: NomeIcone }) {
+/** 22px na navegação de toque; 20px na ação primária e 16px na janela de computador, como no MegUI. */
+export function Icone({ nome, tamanho = 22 }: { nome: NomeIcone; tamanho?: number }) {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width={tamanho} height={tamanho} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {CAMINHOS[nome]}
     </svg>
   )

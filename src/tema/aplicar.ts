@@ -17,8 +17,9 @@ export function temaEfetivo() {
 function aplicarAcessibilidade() {
   const { tamanhoTexto, alvosGrandes, contrasteAlto, densidade, soTexto } = useConfig.getState()
   const raiz = document.documentElement
-  if (tamanhoTexto === 1) raiz.style.removeProperty('font-size')
-  else raiz.style.fontSize = `${tamanhoTexto * 100}%`
+  // Escala, não tamanho: a base muda com o layout (100% no celular, o corpo de 13px do MegUI na janela de computador).
+  if (tamanhoTexto === 1) raiz.style.removeProperty('--escala-texto')
+  else raiz.style.setProperty('--escala-texto', String(tamanhoTexto))
   if (alvosGrandes) raiz.dataset.alvos = 'grandes'
   else delete raiz.dataset.alvos
   if (contrasteAlto) raiz.dataset.contraste = 'alto'

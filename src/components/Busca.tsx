@@ -7,9 +7,12 @@ import { useAgenda } from '../stores/agenda'
 import { useConfig } from '../stores/config'
 import { useFinancas } from '../stores/financas'
 
-/** Busca em tudo (Ctrl+K ou a lupa do topo): escolher um resultado leva à seção dele. */
-export function Busca({ onFechar }: { onFechar: () => void }) {
-  const [termo, setTermo] = useState('')
+/**
+ * Busca em tudo (Ctrl+K, a lupa do topo ou o campo da barra de título): escolher um resultado leva à seção dele.
+ * `inicial` é o que já foi digitado no campo da barra de título, que abre esta janela na primeira letra.
+ */
+export function Busca({ onFechar, inicial = '' }: { onFechar: () => void; inicial?: string }) {
+  const [termo, setTermo] = useState(inicial)
   const janela = useJanelaModal()
   const s = useStore()
   const transacoes = useFinancas((f) => f.transacoes)
@@ -47,7 +50,16 @@ export function Busca({ onFechar }: { onFechar: () => void }) {
           <label className="rotulo" htmlFor="buscar-tudo">
             Buscar em tudo
           </label>
-          <input id="buscar-tudo" type="search" autoFocus value={termo} onChange={(e) => setTermo(e.target.value)} placeholder="passo, projeto, gasto, compromisso…" />
+          {/* O cursor vai para o fim: quem começou a digitar na barra de título continua de onde parou. */}
+          <input
+            id="buscar-tudo"
+            type="search"
+            autoFocus
+            onFocus={(e) => e.currentTarget.setSelectionRange(termo.length, termo.length)}
+            value={termo}
+            onChange={(e) => setTermo(e.target.value)}
+            placeholder="passo, projeto, gasto, compromisso…"
+          />
         </form>
         {termo.trim() && (
           <>
