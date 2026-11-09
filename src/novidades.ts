@@ -5,6 +5,16 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.0',
+    itens: [
+      'Só três abas: Em ação, Em espera e Finanças. Agenda e Histórico ficam no menu de Em ação; Projetos, no de Em espera.',
+      'A Caixa agora se chama Em espera: o que você capturou fica ali até você decidir o que fazer.',
+      'Em ação mostra só o próximo passo; montar e refazer o dia ficam em "Planejar o dia".',
+      'Para marcar compromissos e lembretes, use Capturar. A Agenda fica para consultar.',
+      'Lembretes com nota, como já acontecia com os passos.',
+    ],
+  },
+  {
     versao: '0.7.0',
     itens: [
       'Passos com nota: link, endereço ou o que não esquecer, junto do passo, no Agora e na busca.',
