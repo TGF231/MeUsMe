@@ -639,6 +639,19 @@ input[type='file'] {
   gap: 6px;
 }
 
+/* Menu de dentro da aba (Em ação: Agenda, Histórico; Em espera: Projetos). Os botões levam a outra tela: a tela
+   atual vem em aria-current, com o mesmo desenho do interruptor ligado do MegUI. */
+.menu-aba {
+  margin-bottom: 12px;
+}
+
+.menu-aba .mg-interruptor[aria-current='page'] {
+  background: var(--surface-selected);
+  color: var(--text-body);
+  border-color: var(--action-line);
+  font-weight: var(--megui-peso-forte);
+}
+
 .chips button {
   padding: 6px 12px;
   min-height: var(--alvo);
@@ -1153,6 +1166,12 @@ kbd {
 
   .centro {
     margin: 0 auto;
+  }
+
+  /* O menu de dentro da aba acompanha a tela centrada (Em ação), em vez de ficar sozinho na margem. */
+  .menu-aba:has(+ .centro) {
+    max-width: 720px;
+    margin-inline: auto;
   }
 
   .avisos {

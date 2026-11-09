@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Simbolo } from '../components/Icone'
-import { EventoForm } from '../components/EventoForm'
-import { LembreteForm } from '../components/LembreteForm'
 import { conectarGoogle, ErroGoogle, removerDoGoogle, sincronizarGoogle, temToken } from '../google'
 import { useAgora } from '../hooks'
 import { apagarComDesfazer } from '../desfazer'
@@ -11,7 +9,7 @@ import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
 import { NotaDoPasso } from '../components/NotaDoPasso'
 import type { Evento, Lembrete } from '../types'
 import { dataISO, duracao, hora, inicioDoDia, nomeDoDia } from '../util'
-import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const REPETIR = { nunca: '', diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }
 
@@ -290,7 +288,6 @@ export function Agenda() {
   const agenda = useAgenda()
   const agora = useAgora(60_000)
   const [dia, setDia] = useState(() => inicioDoDia())
-  const [criando, setCriando] = useState<'evento' | 'lembrete' | null>(null)
   const dias = Array.from({ length: 7 }, (_, i) => inicioDoDia(agora + i * 86_400_000))
   const lembretes = agenda.lembretes.filter((l) => !l.concluido).sort((a, b) => a.quando - b.quando)
 
@@ -329,24 +326,10 @@ export function Agenda() {
 
       <div className="colunas">
         <div className="col">
-          {criando === 'evento' ? (
-            <div className="cartao">
-              <EventoForm inicial={{ data: dataISO(dia) }} onPronto={() => setCriando(null)} onCancelar={() => setCriando(null)} />
-            </div>
-          ) : criando === 'lembrete' ? (
-            <div className="cartao">
-              <LembreteForm onPronto={() => setCriando(null)} onCancelar={() => setCriando(null)} />
-            </div>
-          ) : (
-            <div className="linha">
-              <Botao variante="acento" className="flex" onClick={() => setCriando('evento')}>
-                Novo compromisso
-              </Botao>
-              <button className="flex" onClick={() => setCriando('lembrete')}>
-                Novo lembrete
-              </button>
-            </div>
-          )}
+          {/* Marcar é sempre pela captura: um lugar só para pôr as coisas, e a Agenda fica para consultar. */}
+          <p className="motivo">
+            Para marcar, use <b>Capturar</b>: “reunião amanhã 15h” vira compromisso e “lembrar de pagar a luz sexta” vira lembrete.
+          </p>
         </div>
 
         <div className="col">

@@ -4,7 +4,7 @@ import { ehDesktop, ehNativo } from '../nativo/plataforma'
 import { useConfig } from '../stores/config'
 
 const PRINCIPIOS: [string, string][] = [
-  ['Uma coisa por vez', 'Escolher entre muitas opções gasta a energia que seria do começo. A tela Agora decide a ordem; você só decide se começa.'],
+  ['Uma coisa por vez', 'Escolher entre muitas opções gasta a energia que seria do começo. Em ação decide a ordem; você só decide se começa.'],
   ['Tudo fora da cabeça', 'Guardar tudo de cabeça cansa. Captura em um toque, e a ideia que surge no meio do foco fica estacionada, sem desviar.'],
   ['Tempo visível', 'Saber quanto as coisas demoram não é fácil. Anel do bloco, aviso antes dos compromissos e palpite × real no Histórico.'],
   ['Começo pequeno', 'Combinado de 5 minutos, passos de 2 minutos e o alerta de ideia vaga reduzem a barreira para começar.'],

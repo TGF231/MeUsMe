@@ -10,7 +10,7 @@ import { usoDoArmazenamento } from './erros'
 import { organizar } from './motor/executar'
 import { EXEMPLOS_DE_CAMPO } from './motor/tutorial'
 import { lerEntrada } from './entrada'
-import { useNavegacao, type Aba } from './navegacao'
+import { ABA_DA_TELA, useNavegacao, type Aba } from './navegacao'
 import { Captura, processarCapturas } from './nativo/captura'
 import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
 import { manterWidget } from './nativo/widget'
@@ -30,19 +30,62 @@ import { BotaoVoz } from './components/BotaoVoz'
 import { Busca } from './components/Busca'
 import { OQueMudou } from './components/OQueMudou'
 import { novidadesPendentes } from './novidades'
-import { AcaoPrimaria, BarraTitulo, Botao, Dialogo, FaixaAbas, Janela, Rodape } from './tema/megui-react.mjs'
+import { AcaoPrimaria, BarraTitulo, Botao, BotaoInterruptor, Dialogo, FaixaAbas, Janela, Rodape } from './tema/megui-react.mjs'
 import { useJanela } from './janela'
 import { useStatusSync, type StatusSync } from './sync/motor'
 
-const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
-  { id: 'agora', nome: 'Agora' },
-  // A Caixa vem logo depois do Agora: é onde fica o que ainda não foi organizado.
-  { id: 'caixa', nome: 'Caixa' },
-  { id: 'agenda', nome: 'Agenda' },
-  { id: 'financas', nome: 'Finanças' },
-  { id: 'projetos', nome: 'Projetos' },
-  { id: 'historico', nome: 'Histórico' },
-]
+/** Nome de cada tela, para o título da janela e o anúncio do leitor de tela. */
+const NOMES: Record<Aba, string> = {
+  agora: 'Em ação',
+  caixa: 'Em espera',
+  financas: 'Finanças',
+  agenda: 'Agenda',
+  projetos: 'Projetos',
+  historico: 'Histórico',
+  ajustes: 'Ajustes',
+}
+
+// Só três abas: o que está em ação, o que espera ser organizado e o dinheiro, que tem subabas e ajustes próprios.
+const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = (['agora', 'caixa', 'financas'] as const).map((id) => ({ id, nome: NOMES[id] }))
+
+/** As telas de dentro de cada aba, na ordem do menu da própria aba. */
+const VISTAS: Partial<Record<Aba, { id: Aba; nome: string }[]>> = {
+  agora: [
+    { id: 'agora', nome: 'Próximo passo' },
+    { id: 'agenda', nome: 'Agenda' },
+    { id: 'historico', nome: 'Histórico' },
+  ],
+  caixa: [
+    { id: 'caixa', nome: 'Para organizar' },
+    { id: 'projetos', nome: 'Projetos' },
+  ],
+}
+
+/**
+ * Menu de dentro da aba (Em ação: Agenda e Histórico; Em espera: Projetos). Some quando as outras telas da aba estão
+ * desligadas em Ajustes.
+ */
+function MenuDaAba({ aba, desligados, contagem }: Readonly<{ aba: Aba; desligados: Aba[]; contagem: number }>) {
+  const ir = useNavegacao((s) => s.ir)
+  const vistas = (VISTAS[ABA_DA_TELA[aba]] ?? []).filter((v) => !desligados.includes(v.id))
+  if (vistas.length < 2) return null
+  return (
+    <nav className="chips menu-aba" aria-label={`Telas de ${NOMES[ABA_DA_TELA[aba]]}`}>
+      {vistas.map((v) => (
+        // Leva a outra tela: o leitor ouve "página atual", não "botão pressionado".
+        <BotaoInterruptor
+          key={v.id}
+          ligado={v.id === aba}
+          aria-pressed={undefined}
+          aria-current={v.id === aba ? 'page' : undefined}
+          onClick={() => ir(v.id)}
+        >
+          {v.id === 'caixa' && contagem > 0 ? `${v.nome} · ${contagem}` : v.nome}
+        </BotaoInterruptor>
+      ))}
+    </nav>
+  )
+}
 
 /** Links de entrada já tratados: o mesmo compartilhamento não entra duas vezes na Caixa. */
 const recebidas = new Set<string>()
@@ -195,7 +238,7 @@ function CapturaRapida({ onFechar, comVoz = false }: { onFechar: () => void; com
             />
           </div>
           <Botao variante="acento" type="submit">
-            Guardar na caixa
+            Guardar
           </Botao>
         </form>
       </Dialogo>
@@ -311,7 +354,7 @@ export default function App() {
       recebidas.add(url)
       if (e.texto) {
         useStore.getState().capturar(e.texto)
-        useAvisos.getState().mostrar('Guardado na Caixa', e.texto.length > 80 ? `${e.texto.slice(0, 80)}…` : e.texto)
+        useAvisos.getState().mostrar('Ficou em espera', e.texto.length > 80 ? `${e.texto.slice(0, 80)}…` : e.texto)
       }
       if (e.voz || e.abrir) {
         setComVoz(Boolean(e.voz))
@@ -338,6 +381,8 @@ export default function App() {
     const ouvinte = AppNativo.addListener('backButton', () => {
       const { aba, capturando } = estado.current
       if (capturando) setCapturando(false)
+      // Voltar sai da tela de dentro (Agenda, Projetos) para a da aba, e dali para Em ação.
+      else if (ABA_DA_TELA[aba] !== aba) useNavegacao.getState().ir(ABA_DA_TELA[aba])
       else if (aba !== 'agora') useNavegacao.getState().ir('agora')
       else void AppNativo.minimizeApp()
     })
@@ -349,7 +394,9 @@ export default function App() {
     if (desligados.includes(aba)) setAba('agora')
   }, [aba, desligados, setAba])
 
-  const nomeDaAba = aba === 'ajustes' ? 'Ajustes' : ABAS.find((a) => a.id === aba)!.nome
+  const nomeDaAba = NOMES[aba]
+  // A aba que acende na faixa: Agenda acende Em ação, Projetos acende Em espera.
+  const abaAcesa = ABA_DA_TELA[aba]
   // Atalhos de teclado só fazem sentido (e só são anunciados) fora do celular.
   const teclado = !ehAndroid()
 
@@ -368,9 +415,12 @@ export default function App() {
 
   const telas = (
     <>
-      {!introducaoVista ? <Introducao /> : aba === 'agora' && <Agora />}
-      {introducaoVista && (
+      {!introducaoVista ? (
+        <Introducao />
+      ) : (
         <>
+          <MenuDaAba aba={aba} desligados={desligados} contagem={naCaixa} />
+          {aba === 'agora' && <Agora />}
           {aba === 'agenda' && <Agenda />}
           {aba === 'caixa' && <Caixa />}
           {aba === 'financas' && <Financas />}
@@ -392,7 +442,7 @@ export default function App() {
   // Computador: a Janela do MegUI. As seções viram abas, a captura é a ação primária e o rodapé diz o estado.
   if (janela) {
     const secoes = [...abas, { id: 'ajustes' as const, nome: 'Ajustes' }]
-    const ativa = secoes.findIndex((s) => s.id === aba)
+    const ativa = secoes.findIndex((s) => s.id === abaAcesa)
     const ir = (i: number) => setAba(secoes[(i + secoes.length) % secoes.length].id)
     const rodape = estadoDaSincronizacao(sync)
     return (
@@ -452,7 +502,7 @@ export default function App() {
               role="contentinfo"
               estado={rodape.estado}
               situacao={rodape.situacao}
-              contagem={naCaixa === 1 ? '1 item na caixa' : `${naCaixa} itens na caixa`}
+              contagem={naCaixa === 1 ? '1 item em espera' : `${naCaixa} itens em espera`}
               versao={__VERSAO__}
             />
           }
@@ -484,9 +534,9 @@ export default function App() {
         {abas.map((a, i) => (
           <button
             key={a.id}
-            className={aba === a.id ? 'ativo' : ''}
+            className={abaAcesa === a.id ? 'ativo' : ''}
             onClick={() => setAba(a.id)}
-            aria-current={aba === a.id ? 'page' : undefined}
+            aria-current={abaAcesa === a.id ? 'page' : undefined}
             title={teclado ? `${a.nome} (Alt+${i + 1})` : undefined}
             aria-keyshortcuts={teclado ? `Alt+${i + 1}` : undefined}
           >

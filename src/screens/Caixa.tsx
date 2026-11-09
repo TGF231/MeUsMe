@@ -337,7 +337,7 @@ export function Caixa() {
                   setColados(itens)
                 }}
                 placeholder={`Ex.: ${exemplo}`}
-                aria-label="Capturar na Caixa"
+                aria-label="Deixar em espera"
               />
               {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
               <BotaoVoz
@@ -359,7 +359,7 @@ export function Caixa() {
           {tutorial && <ComoEscrever onFechar={() => setTutorial(false)} />}
 
           {s.capturas.length === 0 ? (
-            <p className="vazio-texto">Caixa vazia. Sua cabeça agradece.</p>
+            <p className="vazio-texto">Nada em espera. Sua cabeça agradece.</p>
           ) : (
             <>
               {velhas.length > 0 && (
@@ -369,7 +369,7 @@ export function Caixa() {
                   {velhas.map((c) => (
                     <div key={c.id} className="cartao">
                       <p className="passo pequeno">{c.texto}</p>
-                      <p className="motivo">Na Caixa há {diasDesde(c.adiadaEm ?? c.criadoEm)} dias.</p>
+                      <p className="motivo">Em espera há {diasDesde(c.adiadaEm ?? c.criadoEm)} dias.</p>
                       {c.audio && <OuvirRecado id={c.id} segundos={c.audio.segundos} />}
                       <Processar captura={c} />
                       <button className="discreto" onClick={() => s.adiarCaptura(c.id)}>

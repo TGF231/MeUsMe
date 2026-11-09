@@ -108,7 +108,7 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
       avisos.push({
         chave: `revisao:${dataISO(dia)}`,
         titulo: 'Revisão da semana',
-        corpo: '5 minutos: esvaziar a Caixa, escolher o foco e olhar os próximos dias.',
+        corpo: '5 minutos: organizar o que está em espera, escolher o foco e olhar os próximos dias.',
         quando: juntarDataHora(dataISO(dia), '10:00'),
         valeAte: dia + DIA,
       })

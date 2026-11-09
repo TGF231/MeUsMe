@@ -526,7 +526,7 @@ export function Agora() {
           </div>
           {guardada && (
             <p className="motivo" role="status">
-              <Simbolo c="✓" />“{guardada}” guardada {projeto ? `em ${projeto.titulo}` : 'na Caixa'}. Pode voltar ao passo.
+              <Simbolo c="✓" />“{guardada}” guardada {projeto ? `em ${projeto.titulo}` : 'em espera'}. Pode voltar ao passo.
             </p>
           )}
         </form>
@@ -609,7 +609,7 @@ export function Agora() {
             </p>
           ) : (
             <p>
-              Nada na fila. Jogue o que estiver na cabeça no botão <b>+</b> e transforme em passos na <b>Caixa</b>.
+              Nada na fila. Jogue o que estiver na cabeça no botão <b>+</b> e organize depois, em <b>Em espera</b>.
             </p>
           )}
         </div>

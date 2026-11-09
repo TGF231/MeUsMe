@@ -8,12 +8,12 @@ const TELAS = [
   {
     titulo: 'Uma coisa de cada vez.',
     texto:
-      'A tela Agora mostra só o próximo passo, escolhido pela sua energia e pelo que está mais perto de acabar. Você não precisa decidir entre vinte coisas: só se começa esta.',
+      'Em ação mostra só o próximo passo, escolhido pela sua energia e pelo que está mais perto de acabar. Você não precisa decidir entre vinte coisas: só se começa esta.',
   },
   {
     titulo: 'Tire da cabeça.',
     texto:
-      'Ideia, tarefa, gasto, compromisso: toque em + e escreva. Organizar fica para depois, na Caixa. O que está guardado aqui não precisa ficar ocupando a sua memória.',
+      'Ideia, tarefa, gasto, compromisso: toque em + e escreva. Organizar fica para depois: tudo fica em espera até você decidir. O que está guardado aqui não precisa ficar ocupando a sua memória.',
   },
   {
     titulo: 'Linha de chegada.',

@@ -425,7 +425,7 @@ export function Projetos() {
       {soltas.length > 0 && (
         <>
           <h2>Tarefas soltas ({soltas.length})</h2>
-          <p className="motivo">A tela Agora mostra uma de cada vez. Aqui dá para ver todas, corrigir ou tirar da lista.</p>
+          <p className="motivo">Em ação mostra uma de cada vez. Aqui dá para ver todas, corrigir ou tirar da lista.</p>
           <div className="cartao">
             {soltas.map((p) => (
               <PassoEditavel key={p.id} passo={p} />

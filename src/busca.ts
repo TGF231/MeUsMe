@@ -62,7 +62,7 @@ export function buscar(f: Fontes, termo: string, desligados: Aba[] = [], limite 
     if (casa(i.texto))
       r.push({ chave: `ideia:${i.id}`, tipo: 'Ideia', texto: i.texto, detalhe: i.projetoId ? titulo.get(i.projetoId) : undefined, aba: 'projetos', projetoId: i.projetoId ?? undefined, quando: i.criadoEm })
   for (const c of f.capturas)
-    if (casa(c.texto)) r.push({ chave: `captura:${c.id}`, tipo: 'Na Caixa', texto: c.texto, aba: 'caixa', quando: c.criadoEm })
+    if (casa(c.texto)) r.push({ chave: `captura:${c.id}`, tipo: 'Em espera', texto: c.texto, aba: 'caixa', quando: c.criadoEm })
   for (const t of f.transacoes)
     if (casa(t.descricao))
       r.push({ chave: `lancamento:${t.id}`, tipo: 'Lançamento', texto: t.descricao, detalhe: t.data.split('-').reverse().join('/'), aba: 'financas', quando: t.criadoEm })

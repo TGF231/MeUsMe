@@ -75,5 +75,5 @@ export async function processarCapturas() {
   if (capturas.length > 1 && (registrados || paraRevisar))
     useAvisos
       .getState()
-      .mostrar('Notificações do banco', [registrados && `${registrados} lançamento(s) registrado(s)`, paraRevisar && `${paraRevisar} para revisar na Caixa`].filter(Boolean).join(' · '))
+      .mostrar('Notificações do banco', [registrados && `${registrados} lançamento(s) registrado(s)`, paraRevisar && `${paraRevisar} em espera para revisar`].filter(Boolean).join(' · '))
 }
