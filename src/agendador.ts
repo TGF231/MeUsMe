@@ -63,8 +63,10 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
   // Lembretes (inclui recorrências)
   for (const l of agenda.lembretes) {
     if (l.concluido) continue
+    // A nota vai junto na notificação: é o contexto que faz o lembrete servir na hora.
+    const corpo = l.nota ? `${l.texto}\n${l.nota}` : l.texto
     for (const quando of ocorrencias(l, de - 12 * 60 * MIN, ate))
-      avisos.push({ chave: `lembrete:${l.id}:${quando}`, titulo: 'Lembrete', corpo: l.texto, quando, valeAte: quando + 12 * 60 * MIN })
+      avisos.push({ chave: `lembrete:${l.id}:${quando}`, titulo: 'Lembrete', corpo, quando, valeAte: quando + 12 * 60 * MIN })
   }
   // Sonecas ("Daqui a 10 min" na notificação), enquanto o lembrete não foi concluído.
   for (const s of cfg.sonecas) {
@@ -106,7 +108,7 @@ export function avisosEntre(de: number, ate: number): Aviso[] {
       avisos.push({
         chave: `revisao:${dataISO(dia)}`,
         titulo: 'Revisão da semana',
-        corpo: '5 minutos: esvaziar a Caixa, escolher o foco e olhar os próximos dias.',
+        corpo: '5 minutos: organizar o que está em espera, escolher o foco e olhar os próximos dias.',
         quando: juntarDataHora(dataISO(dia), '10:00'),
         valeAte: dia + DIA,
       })

@@ -72,7 +72,7 @@ export function ListaDeEspera() {
         </div>
       </form>
 
-      {esperando.length === 0 && <p className="vazio-texto">Nada esperando. Quando der vontade de comprar, anote aqui ou na Caixa.</p>}
+      {esperando.length === 0 && <p className="vazio-texto">Nada esperando. Quando der vontade de comprar, anote aqui ou em Capturar.</p>}
       {esperando.map((d) => {
         const pronto = d.decidirEm <= agora
         return (

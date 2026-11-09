@@ -6,7 +6,7 @@ import type { Passo, Transacao } from '../src/types.ts'
 
 const passo = (id: string, ordem: number, extra: Partial<Passo> = {}): Passo => ({ id, projetoId: 'festa', texto: id, energia: 1, ordem, criadoEm: 0, ...extra })
 
-test('Markdown: projetos com passos em ordem, feitos marcados, tarefas soltas, Caixa e ideias', () => {
+test('Markdown: projetos com passos em ordem, feitos marcados, tarefas soltas, Em espera e ideias', () => {
   const md = paraMarkdown(
     {
       projetos: [{ id: 'festa', titulo: 'Festa', chegada: 'Festa feita', criadoEm: 0 }],
@@ -33,7 +33,7 @@ Linha de chegada: Festa feita
 
 - [ ] dentista
 
-## Caixa
+## Em espera
 
 - ligar pro João
 

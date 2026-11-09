@@ -38,3 +38,8 @@ test('seção desligada fica fora; termo vazio não traz nada', () => {
 test('quem começa com o termo vem primeiro', () => {
   assert.equal(buscar(f, 'pedreiro')[0].chave, 'lancamento:t')
 })
+
+test('lembrete aparece pelo que está na nota', () => {
+  const comNota: Fontes = { ...vazio, lembretes: [{ id: 'l', texto: 'Ligar para o dentista', quando: 1, repetir: 'nunca', nota: 'Tel. 3333-0000' }] }
+  assert.deepEqual(buscar(comNota, '3333').map((x) => x.chave), ['lembrete:l'])
+})

@@ -1,18 +1,81 @@
 import { useEffect, useState } from 'react'
 import { Simbolo } from '../components/Icone'
-import { EventoForm } from '../components/EventoForm'
-import { LembreteForm } from '../components/LembreteForm'
 import { conectarGoogle, ErroGoogle, removerDoGoogle, sincronizarGoogle, temToken } from '../google'
 import { useAgora } from '../hooks'
 import { apagarComDesfazer } from '../desfazer'
 import { useStore } from '../store'
 import { apertos, linhaDoTempo } from '../linhaDoTempo'
 import { eventosDoDia, situacaoAgora, useAgenda } from '../stores/agenda'
-import type { Evento } from '../types'
+import { NotaDoPasso } from '../components/NotaDoPasso'
+import type { Evento, Lembrete } from '../types'
 import { dataISO, duracao, hora, inicioDoDia, nomeDoDia } from '../util'
-import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
+import { BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const REPETIR = { nunca: '', diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }
+
+/** Lembrete da lista, com a nota embaixo e o botão para escrever ou mudar a nota no lugar. */
+function ItemLembrete({ lembrete: l, agora }: Readonly<{ lembrete: Lembrete; agora: number }>) {
+  const agenda = useAgenda()
+  const [editando, setEditando] = useState(false)
+  const [nota, setNota] = useState('')
+
+  return (
+    <div className="item">
+      <div className="linha entre">
+        <span>
+          {l.texto}
+          <br />
+          <span className={`motivo ${l.quando <= agora ? 'atencao' : ''}`}>
+            {l.quando <= agora ? 'agora' : `${nomeDoDia(dataISO(l.quando))} às ${hora(l.quando)}`}
+            {REPETIR[l.repetir] && ` · ${REPETIR[l.repetir]}`}
+          </span>
+          {!editando && <NotaDoPasso nota={l.nota} />}
+        </span>
+        <span className="linha">
+          <button onClick={() => agenda.concluirLembrete(l.id)}>Feito</button>
+          {!editando && (
+            <button className="discreto" onClick={() => (setNota(l.nota ?? ''), setEditando(true))} aria-label={`Nota do lembrete ${l.texto}`}>
+              Nota
+            </button>
+          )}
+          <button
+            className="discreto"
+            onClick={() => apagarComDesfazer(useAgenda, 'lembretes', l.id, l.texto, () => agenda.removerLembrete(l.id))}
+            aria-label={`Apagar lembrete ${l.texto}`}
+          >
+            ×
+          </button>
+        </span>
+      </div>
+      {editando && (
+        <form
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            agenda.atualizarLembrete(l.id, { nota: nota.trim() || undefined })
+            setEditando(false)
+          }}
+        >
+          <textarea
+            className="nota-passo"
+            rows={2}
+            autoFocus
+            value={nota}
+            onChange={(e) => setNota(e.target.value)}
+            placeholder="Link, endereço, o que não esquecer"
+            aria-label={`Nota do lembrete ${l.texto}`}
+          />
+          <div className="linha">
+            <button type="submit">Salvar nota</button>
+            <button type="button" className="discreto" onClick={() => setEditando(false)}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  )
+}
 
 export function SituacaoAgora() {
   const eventos = useAgenda((s) => s.eventos)
@@ -225,7 +288,6 @@ export function Agenda() {
   const agenda = useAgenda()
   const agora = useAgora(60_000)
   const [dia, setDia] = useState(() => inicioDoDia())
-  const [criando, setCriando] = useState<'evento' | 'lembrete' | null>(null)
   const dias = Array.from({ length: 7 }, (_, i) => inicioDoDia(agora + i * 86_400_000))
   const lembretes = agenda.lembretes.filter((l) => !l.concluido).sort((a, b) => a.quando - b.quando)
 
@@ -264,24 +326,10 @@ export function Agenda() {
 
       <div className="colunas">
         <div className="col">
-          {criando === 'evento' ? (
-            <div className="cartao">
-              <EventoForm inicial={{ data: dataISO(dia) }} onPronto={() => setCriando(null)} onCancelar={() => setCriando(null)} />
-            </div>
-          ) : criando === 'lembrete' ? (
-            <div className="cartao">
-              <LembreteForm onPronto={() => setCriando(null)} onCancelar={() => setCriando(null)} />
-            </div>
-          ) : (
-            <div className="linha">
-              <Botao variante="acento" className="flex" onClick={() => setCriando('evento')}>
-                Novo compromisso
-              </Botao>
-              <button className="flex" onClick={() => setCriando('lembrete')}>
-                Novo lembrete
-              </button>
-            </div>
-          )}
+          {/* Marcar é sempre pela captura: um lugar só para pôr as coisas, e a Agenda fica para consultar. */}
+          <p className="motivo">
+            Para marcar, use <b>Capturar</b>: “reunião amanhã 15h” vira compromisso e “lembrar de pagar a luz sexta” vira lembrete.
+          </p>
         </div>
 
         <div className="col">
@@ -290,26 +338,7 @@ export function Agenda() {
               <h2>Lembretes</h2>
               <div className="cartao">
                 {lembretes.map((l) => (
-                  <div key={l.id} className="linha entre item">
-                    <span>
-                      {l.texto}
-                      <br />
-                      <span className={`motivo ${l.quando <= agora ? 'atencao' : ''}`}>
-                        {l.quando <= agora ? 'agora' : `${nomeDoDia(dataISO(l.quando))} às ${hora(l.quando)}`}
-                        {REPETIR[l.repetir] && ` · ${REPETIR[l.repetir]}`}
-                      </span>
-                    </span>
-                    <span className="linha">
-                      <button onClick={() => agenda.concluirLembrete(l.id)}>Feito</button>
-                      <button
-                        className="discreto"
-                        onClick={() => apagarComDesfazer(useAgenda, 'lembretes', l.id, l.texto, () => agenda.removerLembrete(l.id))}
-                        aria-label={`Apagar lembrete ${l.texto}`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  </div>
+                  <ItemLembrete key={l.id} lembrete={l} agora={agora} />
                 ))}
               </div>
             </>

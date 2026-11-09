@@ -26,6 +26,7 @@ interface Estado {
   concluirLembrete: (id: string) => void
   avancarLembrete: (id: string) => void
   removerLembrete: (id: string) => void
+  atualizarLembrete: (id: string, parcial: Partial<Omit<Lembrete, 'id'>>) => void
 
   configurarGoogle: (m: Partial<Pick<Estado, 'googleClientId' | 'googleConectado' | 'ultimaSync' | 'googleAgendas'>>) => void
   encerrarEvento: (e: Evento) => void
@@ -85,6 +86,7 @@ export const useAgenda = create<Estado>()(
           lembretes: s.lembretes.map((l) => (l.id === id && l.repetir !== 'nunca' ? { ...l, quando: proximaOcorrencia(l) } : l)),
         })),
       removerLembrete: (id) => set((s) => ({ lembretes: s.lembretes.filter((l) => l.id !== id) })),
+      atualizarLembrete: (id, parcial) => set((s) => ({ lembretes: s.lembretes.map((l) => (l.id === id ? { ...l, ...parcial } : l)) })),
 
       configurarGoogle: (m) => set(m),
       encerrarEvento: (e) =>

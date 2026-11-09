@@ -62,14 +62,14 @@ export function buscar(f: Fontes, termo: string, desligados: Aba[] = [], limite 
     if (casa(i.texto))
       r.push({ chave: `ideia:${i.id}`, tipo: 'Ideia', texto: i.texto, detalhe: i.projetoId ? titulo.get(i.projetoId) : undefined, aba: 'projetos', projetoId: i.projetoId ?? undefined, quando: i.criadoEm })
   for (const c of f.capturas)
-    if (casa(c.texto)) r.push({ chave: `captura:${c.id}`, tipo: 'Na Caixa', texto: c.texto, aba: 'caixa', quando: c.criadoEm })
+    if (casa(c.texto)) r.push({ chave: `captura:${c.id}`, tipo: 'Em espera', texto: c.texto, aba: 'caixa', quando: c.criadoEm })
   for (const t of f.transacoes)
     if (casa(t.descricao))
       r.push({ chave: `lancamento:${t.id}`, tipo: 'Lançamento', texto: t.descricao, detalhe: t.data.split('-').reverse().join('/'), aba: 'financas', quando: t.criadoEm })
   for (const e of f.eventos)
     if (casa(e.titulo)) r.push({ chave: `evento:${e.id}`, tipo: 'Compromisso', texto: e.titulo, detalhe: dataCurta(e.inicio), aba: 'agenda', quando: e.inicio })
   for (const l of f.lembretes)
-    if (casa(l.texto)) r.push({ chave: `lembrete:${l.id}`, tipo: 'Lembrete', texto: l.texto, detalhe: dataCurta(l.quando), aba: 'agenda', quando: l.quando })
+    if (casa(l.texto, l.nota)) r.push({ chave: `lembrete:${l.id}`, tipo: 'Lembrete', texto: l.texto, detalhe: dataCurta(l.quando), aba: 'agenda', quando: l.quando })
 
   // Começar com o termo vale mais; depois, o mais recente primeiro.
   const inicio = (x: Resultado) => (normalizar(x.texto).startsWith(palavras[0]) ? 1 : 0)

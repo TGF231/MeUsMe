@@ -188,4 +188,6 @@ export interface Lembrete {
   /** Mensal: o dia do mês pretendido. "Todo dia 31" cai no último dia dos meses curtos e volta ao 31 depois. */
   dia?: number
   concluido?: boolean
+  /** Contexto curto junto do lembrete, como a nota do passo (V10). */
+  nota?: string
 }

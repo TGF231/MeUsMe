@@ -30,7 +30,7 @@ export function paraMarkdown(d: { projetos: Projeto[]; passos: Passo[]; capturas
   }
   const soltas = doProjeto(null)
   if (soltas.length) partes.push(`## Tarefas soltas\n\n${soltas.map(passo).join('\n')}`)
-  if (d.capturas.length) partes.push(`## Caixa\n\n${d.capturas.map((c) => `- ${c.texto || '(recado de voz)'}`).join('\n')}`)
+  if (d.capturas.length) partes.push(`## Em espera\n\n${d.capturas.map((c) => `- ${c.texto || '(recado de voz)'}`).join('\n')}`)
   const ideias = d.ideias.map((i) => `- ${i.texto}${i.projetoId ? ` (${d.projetos.find((p) => p.id === i.projetoId)?.titulo ?? 'projeto apagado'})` : ''}`)
   if (ideias.length) partes.push(`## Ideias\n\n${ideias.join('\n')}`)
   return partes.join('\n\n') + '\n'

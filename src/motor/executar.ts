@@ -99,7 +99,7 @@ const SUGESTOES: Record<string, string> = {
 /** O que o app faria com o texto, numa linha, sem criar nada (o "Experimente" do tutorial). */
 export function descrever(d: Decisao): string {
   if ('criar' in d) return aviso(d.criar, d.origem).join(' · ')
-  return d.sugestao ? `Fica na Caixa, com "parece ${SUGESTOES[d.sugestao]}" na frente` : 'Fica na Caixa'
+  return d.sugestao ? `Fica em espera, com "parece ${SUGESTOES[d.sugestao]}" na frente` : 'Fica em espera'
 }
 
 /**
@@ -141,7 +141,7 @@ export async function guardarVarios(itens: string[]) {
     useStore.getState().capturar(t, 'caixa' in d ? d.sugestao : d.criar.classe)
   }
   const novas = new Set(useStore.getState().capturas.filter((c) => !antes.has(c.id)).map((c) => c.id))
-  useAvisos.getState().mostrar(`${novas.size} itens na Caixa`, 'Cada um com a sugestão do app na frente, para você confirmar.', {
+  useAvisos.getState().mostrar(`${novas.size} itens em espera`, 'Cada um com a sugestão do app na frente, para você confirmar.', {
     acao: { rotulo: 'Desfazer', fazer: () => useStore.setState((s) => ({ capturas: s.capturas.filter((c) => !novas.has(c.id)) })) },
   })
 }

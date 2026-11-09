@@ -42,13 +42,13 @@ export const TUTORIAL: TelaTutorial[] = [
     ],
   },
   {
-    titulo: 'O resto, a Caixa guarda',
-    texto: 'Sem essas marcas, o app tenta entender pelo jeito da frase. Sem certeza, guarda na Caixa, já com o tipo provável na frente.',
-    exemplos: [{ texto: 'ver aquele negócio do carro', resultado: 'Fica na Caixa, ou vira tarefa se o app tiver certeza', espera: null }],
+    titulo: 'O resto fica em espera',
+    texto: 'Sem essas marcas, o app tenta entender pelo jeito da frase. Sem certeza, deixa em espera, já com o tipo provável na frente.',
+    exemplos: [{ texto: 'ver aquele negócio do carro', resultado: 'Fica em espera, ou vira tarefa se o app tiver certeza', espera: null }],
   },
 ]
 
-export const ERROU = 'Errou? Toque em Desfazer: o texto volta para a Caixa.'
+export const ERROU = 'Errou? Toque em Desfazer: o texto volta a ficar em espera.'
 
 /** Um exemplo por regra, para o campo de captura ir lembrando o tutorial. */
 export const EXEMPLOS_DE_CAMPO = TUTORIAL.slice(0, 3).flatMap((t) => t.exemplos.map((e) => e.texto))

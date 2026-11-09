@@ -44,7 +44,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
       <p className="motivo">Cinco minutos para a semana não começar no escuro. Pule o que não fizer sentido.</p>
 
       <div className="etapa">
-        <h3 className="rotulo">1. Caixa</h3>
+        <h3 className="rotulo">1. Em espera</h3>
         {s.capturas.length === 0 ? (
           <p>Vazia.</p>
         ) : (
@@ -52,7 +52,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
             <span>
               {s.capturas.length} {s.capturas.length === 1 ? 'coisa esperando' : 'coisas esperando'} para virar passo, compromisso ou ideia.
             </span>
-            <button onClick={() => ir('caixa')}>Abrir a Caixa</button>
+            <button onClick={() => ir('caixa')}>Abrir Em espera</button>
           </div>
         )}
       </div>
@@ -60,7 +60,7 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
       <div className="etapa">
         <h3 className="rotulo">2. Um projeto para a semana</h3>
         {ativos.length === 0 ? (
-          <p className="motivo">Nenhum projeto ativo. Uma captura da Caixa pode virar um.</p>
+          <p className="motivo">Nenhum projeto ativo. Algo que está em espera pode virar um.</p>
         ) : (
           <div className="chips" role="group" aria-label="Projeto em foco">
             {ativos.map((p) => (

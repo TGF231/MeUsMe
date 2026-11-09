@@ -253,7 +253,7 @@ function GoogleNavegador() {
       <h2 className="titulo">Google Agenda</h2>
       {agenda.googleConectado ? (
         <>
-          <p className="motivo">Conectado. Seus compromissos aparecem na Agenda e na tela Agora, e o que você agenda aqui vai para o Google.</p>
+          <p className="motivo">Conectado. Seus compromissos aparecem na Agenda e em Em ação, e o que você agenda aqui vai para o Google.</p>
           <button onClick={() => (desconectarGoogle(), setMensagem('Desconectado.'))}>Desconectar</button>
           <OutrasAgendas onMensagem={setMensagem} />
         </>
@@ -261,7 +261,7 @@ function GoogleNavegador() {
         <>
           {agenda.googleClientId ? (
             <>
-              <p className="motivo">Traga seus compromissos do Google para a Agenda e a tela Agora. Você autoriza na tela do próprio Google.</p>
+              <p className="motivo">Traga seus compromissos do Google para a Agenda e para Em ação. Você autoriza na tela do próprio Google.</p>
               <Botao variante="acento" onClick={() => conectar(agenda.googleClientId)}>
                 Conectar ao Google
               </Botao>
@@ -332,12 +332,12 @@ function Captura() {
       <p className="motivo">
         {organizarSozinho
           ? 'Hora vira compromisso, "lembrar" vira lembrete e valor com sinal vira lançamento, na hora, com Desfazer. Tudo acontece no aparelho.'
-          : 'Tudo vai para a Caixa, com o tipo provável sugerido.'}
+          : 'Tudo fica em espera, com o tipo provável sugerido.'}
       </p>
       <p className="motivo">
         {aprendidos
-          ? `O app aprendeu com ${aprendidos} ${aprendidos === 1 ? 'captura organizada' : 'capturas organizadas'} por você na Caixa. Isso fica só neste aparelho.`
-          : 'Cada captura que você organiza na Caixa ensina o app a acertar o tipo da próxima. Isso fica só neste aparelho.'}
+          ? `O app aprendeu com ${aprendidos} ${aprendidos === 1 ? 'captura organizada' : 'capturas organizadas'} por você. Isso fica só neste aparelho.`
+          : 'Cada captura que você organiza ensina o app a acertar o tipo da próxima. Isso fica só neste aparelho.'}
       </p>
       <div className="linha">
         <button onClick={() => setTutorial(true)}>Como escrever rápido</button>
@@ -473,7 +473,7 @@ function Secoes() {
         </label>
       ))}
       <p className="motivo">
-        Agora, Caixa e Ajustes ficam sempre. Desligar só tira a seção do menu e da tela Agora: nada é apagado, e ligar de novo traz tudo de volta.
+        Em ação, Em espera e Ajustes ficam sempre. Desligar só tira a seção do menu e de Em ação: nada é apagado, e ligar de novo traz tudo de volta.
       </p>
       <label className="check">
         <input type="checkbox" checked={marcos} onChange={(e) => ajustar({ marcos: e.target.checked })} />
