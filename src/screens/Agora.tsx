@@ -540,6 +540,10 @@ export function Agora() {
 
   return (
     <section className="tela centro agora">
+      {/* Planejar fica no topo, sem moldura: está à mão, mas não disputa com o passo. */}
+      <button className="discreto planejar-dia" onClick={() => setPlanejando(true)}>
+        Planejar o dia{atencoes > 0 && ` · ${atencoes}`}
+      </button>
       {diasLonge >= 3 && (
         <div className="cartao compacto de-volta">
           <p>
@@ -562,96 +566,94 @@ export function Agora() {
         </div>
       )}
 
-      <div className="linha entre agora-topo">
-        <SeletorEnergia valor={energia} onChange={setEnergia} />
-        <button className="discreto" onClick={() => setPlanejando(true)}>
-          Planejar o dia{atencoes > 0 && ` · ${atencoes}`}
-        </button>
-      </div>
+      <SeletorEnergia valor={energia} onChange={setEnergia} />
 
-      {eventoAgora ? (
-        <div className="cartao foco compromisso">
-          <p className="projeto">Compromisso agora{eventoAgora.origem === 'google' && <span className="selo">Google</span>}</p>
-          <p className="passo">{eventoAgora.titulo}</p>
-          <p className="motivo">
-            {hora(eventoAgora.inicio)}–{hora(eventoAgora.fim)} · termina em {duracao((eventoAgora.fim - agora) / 60_000)}
-          </p>
-          <div className="linha">
-            <Botao variante="acento" onClick={() => encerrarEvento(eventoAgora)}>
-              Já terminou
-            </Botao>
-            <button onClick={() => adiar(eventoAgora)}>Ver outra coisa</button>
-          </div>
-        </div>
-      ) : !passoReservado && eventoChegando ? (
-        <div className="cartao foco compromisso chegando">
-          <p className="projeto">Daqui a {duracao((eventoChegando.inicio - agora) / 60_000)}</p>
-          <p className="passo">{eventoChegando.titulo}</p>
-          <p className="motivo">
-            Às {hora(eventoChegando.inicio)}. Comece a fechar o que está fazendo: trocar de atividade leva mais tempo do que parece.
-          </p>
-          <div className="linha">
-            <Botao variante="acento" onClick={() => adiar(eventoChegando)}>
-              Ok, estou de olho
-            </Botao>
-          </div>
-        </div>
-      ) : !escolha ? (
-        <div className="cartao vazio">
-          {pulados.size > 0 ? (
-            <>
-              <p>Você pulou tudo por agora. Tudo bem.</p>
-              <button onClick={() => setPulados(new Set())}>Ver de novo desde o início</button>
-            </>
-          ) : proximaReserva ? (
-            <p>
-              O que está na fila já tem horário: <b>{hora(proximaReserva.inicio)}</b>. Até lá, o tempo é seu.
+      {/* O passo fica no meio da altura que sobra, e não colado no topo com a tela vazia embaixo. */}
+      <div className="agora-meio">
+        {eventoAgora ? (
+          <div className="cartao foco compromisso">
+            <p className="projeto">Compromisso agora{eventoAgora.origem === 'google' && <span className="selo">Google</span>}</p>
+            <p className="passo">{eventoAgora.titulo}</p>
+            <p className="motivo">
+              {hora(eventoAgora.inicio)}–{hora(eventoAgora.fim)} · termina em {duracao((eventoAgora.fim - agora) / 60_000)}
             </p>
-          ) : (
-            <p>
-              Nada na fila. Jogue o que estiver na cabeça no botão <b>+</b> e organize depois, em <b>Em espera</b>.
+            <div className="linha">
+              <Botao variante="acento" onClick={() => encerrarEvento(eventoAgora)}>
+                Já terminou
+              </Botao>
+              <button onClick={() => adiar(eventoAgora)}>Ver outra coisa</button>
+            </div>
+          </div>
+        ) : !passoReservado && eventoChegando ? (
+          <div className="cartao foco compromisso chegando">
+            <p className="projeto">Daqui a {duracao((eventoChegando.inicio - agora) / 60_000)}</p>
+            <p className="passo">{eventoChegando.titulo}</p>
+            <p className="motivo">
+              Às {hora(eventoChegando.inicio)}. Comece a fechar o que está fazendo: trocar de atividade leva mais tempo do que parece.
             </p>
-          )}
-        </div>
-      ) : (
-        <div className="cartao foco">
-          <p className="projeto">{escolha.projeto ? escolha.projeto.titulo : 'Tarefa solta'}</p>
-          <p className="passo">{escolha.passo.texto}</p>
-          <p className="motivo">
-            <PontosEditaveis energia={escolha.passo.energia} onChange={(e) => s.atualizarPasso(escolha.passo.id, { energia: e })} />{' '}
-            {escolha.motivo}
-          </p>
-          {/* A nota fica a um toque: o Agora mostra só o passo, e o contexto aparece quando é pedido. */}
-          {escolha.passo.nota && (
-            <>
-              <button className="discreto" aria-expanded={verNota} onClick={() => setNotaAberta(verNota ? null : escolha.passo.id)}>
-                {verNota ? 'Esconder a nota' : 'Ver nota'}
+            <div className="linha">
+              <Botao variante="acento" onClick={() => adiar(eventoChegando)}>
+                Ok, estou de olho
+              </Botao>
+            </div>
+          </div>
+        ) : !escolha ? (
+          <div className="cartao vazio">
+            {pulados.size > 0 ? (
+              <>
+                <p>Você pulou tudo por agora. Tudo bem.</p>
+                <button onClick={() => setPulados(new Set())}>Ver de novo desde o início</button>
+              </>
+            ) : proximaReserva ? (
+              <p>
+                O que está na fila já tem horário: <b>{hora(proximaReserva.inicio)}</b>. Até lá, o tempo é seu.
+              </p>
+            ) : (
+              <p>
+                Nada na fila. Jogue o que estiver na cabeça no botão <b>+</b> e organize depois, em <b>Em espera</b>.
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="cartao foco">
+            <p className="projeto">{escolha.projeto ? escolha.projeto.titulo : 'Tarefa solta'}</p>
+            <p className="passo">{escolha.passo.texto}</p>
+            <p className="motivo">
+              <PontosEditaveis energia={escolha.passo.energia} onChange={(e) => s.atualizarPasso(escolha.passo.id, { energia: e })} />{' '}
+              {escolha.motivo}
+            </p>
+            {/* A nota fica a um toque: o Agora mostra só o passo, e o contexto aparece quando é pedido. */}
+            {escolha.passo.nota && (
+              <>
+                <button className="discreto" aria-expanded={verNota} onClick={() => setNotaAberta(verNota ? null : escolha.passo.id)}>
+                  {verNota ? 'Esconder a nota' : 'Ver nota'}
+                </button>
+                {verNota && <NotaDoPasso nota={escolha.passo.nota} />}
+              </>
+            )}
+            {escolha.acimaDaEnergia && <p className="dica">Tudo na fila pede mais energia do que você tem agora. Que tal quebrar este em algo menor?</p>}
+            <Botao variante="acento" className="grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
+              Começar
+            </Botao>
+            <p className="motivo centralizado">Combinado: só 5 minutos. Depois você decide se continua.</p>
+            <div className="linha centralizada">
+              <button className="discreto" onClick={() => concluir(escolha.passo.id)}>
+                Já fiz
               </button>
-              {verNota && <NotaDoPasso nota={escolha.passo.nota} />}
-            </>
-          )}
-          {escolha.acimaDaEnergia && <p className="dica">Tudo na fila pede mais energia do que você tem agora. Que tal quebrar este em algo menor?</p>}
-          <Botao variante="acento" className="grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
-            Começar
-          </Botao>
-          <p className="motivo centralizado">Combinado: só 5 minutos. Depois você decide se continua.</p>
-          <div className="linha centralizada">
-            <button className="discreto" onClick={() => concluir(escolha.passo.id)}>
-              Já fiz
-            </button>
-            <button className="discreto" onClick={() => setModo('quebrando')}>
-              Grande demais
-            </button>
-            <button className="discreto" onClick={() => setModo('agendando')}>
-              Agendar
-            </button>
-            <button className="discreto" onClick={() => setPulados(new Set(pulados).add(escolha.passo.id))}>
-              Agora não
-            </button>
+              <button className="discreto" onClick={() => setModo('quebrando')}>
+                Grande demais
+              </button>
+              <button className="discreto" onClick={() => setModo('agendando')}>
+                Agendar
+              </button>
+              <button className="discreto" onClick={() => setPulados(new Set(pulados).add(escolha.passo.id))}>
+                Agora não
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-      {rodape}
+        )}
+        {rodape}
+      </div>
 
       {escolha && modo === 'quebrando' && (
         <Modal titulo="Grande demais" onFechar={() => setModo('normal')}>

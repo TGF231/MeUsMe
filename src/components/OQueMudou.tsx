@@ -46,7 +46,7 @@ export function OQueMudou({ onFechar }: Readonly<{ onFechar: () => void }>) {
             </ul>
           </section>
         ))}
-        <p className="motivo">Tudo continua no mesmo lugar. O que é novo pode ser ignorado.</p>
+        <p className="motivo">Seus dados continuam todos aqui. O que é novo pode ser ignorado.</p>
       </Dialogo>
     </dialog>
   )

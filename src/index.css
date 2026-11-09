@@ -457,7 +457,8 @@ textarea.nota-passo {
 
 .abas button {
   flex: 1;
-  max-width: 110px;
+  max-width: 150px;
+  min-height: 56px;
   min-width: 0;
   border: none;
   background: transparent;
@@ -483,11 +484,14 @@ textarea.nota-passo {
   color: var(--texto);
   background: var(--acento-leve);
   font-weight: var(--peso-forte);
+  font-size: 0.8rem;
 }
 
 /* Item ativo: texto padrão sobre o acento suave; acento no ícone. */
 .abas button.ativo svg {
   color: var(--acento-linha);
+  width: 28px;
+  height: 28px;
 }
 
 .contador {
@@ -507,10 +511,10 @@ textarea.nota-passo {
   z-index: 5;
   right: max(16px, calc(50% - 264px));
   bottom: calc(80px + env(safe-area-inset-bottom));
-  width: 60px;
-  height: 60px;
+  width: 72px;
+  height: 72px;
   border-radius: var(--raio);
-  font-size: 2rem;
+  font-size: 2.5rem;
   line-height: 1;
   padding: 0;
   background: var(--acento);
@@ -642,6 +646,7 @@ input[type='file'] {
 /* Menu de dentro da aba (Em ação: Agenda, Histórico; Em espera: Projetos). Os botões levam a outra tela: a tela
    atual vem em aria-current, com o mesmo desenho do interruptor ligado do MegUI. */
 .menu-aba {
+  justify-content: center;
   margin-bottom: 12px;
 }
 
@@ -690,6 +695,26 @@ input.mini {
   scrollbar-width: none;
   margin: 0 -16px;
   padding: 0 16px 2px;
+}
+
+/* WebView do Android antiga ignora scrollbar-width: a barra aparecia como um traço solto embaixo das abas. */
+.sub-abas::-webkit-scrollbar,
+.dias::-webkit-scrollbar {
+  display: none;
+}
+
+/* Centradas quando cabem; quando não cabem, rolam a partir da primeira (justify-content: center cortaria o começo). */
+.sub-abas > :first-child,
+.dias > :first-child {
+  margin-left: auto;
+}
+.sub-abas > :last-child,
+.dias > :last-child {
+  margin-right: auto;
+}
+
+.sub-abas {
+  margin-bottom: 8px;
 }
 
 .sub-abas button,
@@ -958,20 +983,30 @@ code {
   flex: 1 1 280px;
 }
 
-/* Agora: a energia e o "Planejar o dia" numa linha só, em cima do passo. */
-.agora-topo {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-.agora-topo > .discreto {
+/* Em ação: "Planejar o dia" no topo, sem moldura, e o passo no meio da altura que sobra. */
+.agora > button.planejar-dia {
   align-self: flex-end;
 }
-@media (min-width: 600px) {
-  .agora-topo {
-    flex-direction: row;
-    align-items: center;
-  }
+
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.conteudo > main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.agora {
+  flex: 1;
+}
+.agora-meio {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
 }
 
 /* "Ver nota" fica junto do texto, à esquerda, e não como uma barra no meio do cartão. */
@@ -1166,12 +1201,6 @@ kbd {
 
   .centro {
     margin: 0 auto;
-  }
-
-  /* O menu de dentro da aba acompanha a tela centrada (Em ação), em vez de ficar sozinho na margem. */
-  .menu-aba:has(+ .centro) {
-    max-width: 720px;
-    margin-inline: auto;
   }
 
   .avisos {
