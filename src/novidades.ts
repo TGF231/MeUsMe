@@ -5,6 +5,13 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.1',
+    itens: [
+      'Em ação: "Planejar o dia" fica no topo, e o passo da vez no meio da tela.',
+      'Celular: botão + e aba selecionada maiores, menus centralizados e sem a barra de rolagem embaixo das abas de Finanças.',
+    ],
+  },
+  {
     versao: '0.9.0',
     itens: [
       'Só três abas: Em ação, Em espera e Finanças. Agenda e Histórico ficam no menu de Em ação; Projetos, no de Em espera.',
