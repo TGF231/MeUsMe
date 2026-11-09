@@ -945,25 +945,43 @@ code {
   flex: 1 1 280px;
 }
 
-/* Em telas estreitas, energia e pendências aparecem antes do passo. */
-.agora > .col {
-  display: contents;
+/* Agora: a energia e o "Planejar o dia" numa linha só, em cima do passo. */
+.agora-topo {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
 }
-.agora .energia {
-  order: 1;
+.agora-topo > .discreto {
+  align-self: flex-end;
 }
-.agora .pendencias {
-  order: 2;
+@media (min-width: 600px) {
+  .agora-topo {
+    flex-direction: row;
+    align-items: center;
+  }
 }
-.agora .cartao.foco,
-.agora .cartao.vazio {
-  order: 3;
+
+/* "Ver nota" fica junto do texto, à esquerda, e não como uma barra no meio do cartão. */
+.agora .cartao.foco > .discreto {
+  align-self: flex-start;
 }
-.agora .rodape {
-  order: 4;
+
+/* Dentro de "Planejar o dia", cada bloco é uma seção da janela, separada por uma linha, e não mais um cartão. */
+.planejar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
-.agora .resto-do-dia {
-  order: 5;
+.planejar > .cartao {
+  border: 0;
+  border-top: 1px solid var(--borda);
+  border-radius: 0;
+  background: none;
+  padding: 12px 0 0;
+}
+.planejar > :first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .resto-do-dia {
@@ -1156,11 +1174,6 @@ kbd {
     grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
     gap: 24px;
     align-items: start;
-  }
-
-  .agora > .col {
-    display: flex;
-    gap: 16px;
   }
 
   /* Histórico: lista de dias na coluna principal. */
@@ -1679,6 +1692,22 @@ button.perigo:hover {
 
 :root[data-layout='janela'] .cartao.foco > h2:first-child {
   margin-top: calc(-1 * var(--megui-esp-6) - var(--megui-tipo-corpo-altura) * 0.5em - 1px);
+}
+
+/* Em "Planejar o dia" os blocos são seções da janela, separadas por linha: sem o título na borda. */
+:root[data-layout='janela'] .planejar > .cartao {
+  margin-top: 0;
+  padding: var(--megui-esp-3) 0 0;
+}
+
+:root[data-layout='janela'] .planejar > :first-child {
+  padding-top: 0;
+}
+
+:root[data-layout='janela'] .planejar > .cartao > h2:first-child {
+  margin: 0;
+  padding: 0;
+  background: none;
 }
 
 /* Ação solta na tela tem a largura do rótulo, como na BarraAcoes; a barra de ponta a ponta é do toque. */

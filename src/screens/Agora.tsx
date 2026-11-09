@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { calibracao, diasDesde, marcoDePassos, revisaoPendente, somarDias, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
+import { Modal } from '../components/Modal'
 import { NotaDoPasso } from '../components/NotaDoPasso'
 import { PassoForm } from '../components/PassoForm'
 import { Quebrar } from '../components/Quebrar'
@@ -324,6 +325,10 @@ export function Agora() {
   const [agora, setAgora] = useState(() => Date.now())
   const cfg = useConfig()
   const [revisando, setRevisando] = useState(false)
+  const [planejando, setPlanejando] = useState(false)
+  // A nota aberta é de um passo só: trocar de passo fecha.
+  const [notaAberta, setNotaAberta] = useState<string | null>(null)
+  const atencoes = useAtencoes(agora)
   // Última atividade lida ao abrir a tela: o cartão de boas-vindas não some no meio do primeiro passo.
   const [diasLonge, setDiasLonge] = useState(() => {
     const ultima = ultimaAtividade(useStore.getState())
@@ -530,162 +535,202 @@ export function Agora() {
     )
   }
 
+  const comAgenda = !cfg.modulosDesligados.includes('agenda')
+  const verNota = !!escolha && notaAberta === escolha.passo.id
+
   return (
-    <section className="tela colunas agora">
-      <div className="col">
-        {diasLonge >= 3 && (
-          <div className="cartao compacto de-volta">
-            <p>
-              <b>Que bom te ver de novo.</b> Faz {diasLonge} dias. Nada se perdeu e nada ficou atrasado aqui: escolha uma coisa leve para
-              recomeçar.
-            </p>
-            <div className="linha">
-              <Botao
-                variante="acento"
-                onClick={() => {
-                  setEnergia(1)
-                  setDiasLonge(0)
-                }}
-              >
-                Começar leve
-              </Botao>
-              <button className="discreto" onClick={() => setDiasLonge(0)}>
-                Ok
-              </button>
-            </div>
+    <section className="tela centro agora">
+      {diasLonge >= 3 && (
+        <div className="cartao compacto de-volta">
+          <p>
+            <b>Que bom te ver de novo.</b> Faz {diasLonge} dias. Nada se perdeu e nada ficou atrasado aqui: escolha uma coisa leve para
+            recomeçar.
+          </p>
+          <div className="linha">
+            <button
+              onClick={() => {
+                setEnergia(1)
+                setDiasLonge(0)
+              }}
+            >
+              Começar leve
+            </button>
+            <button className="discreto" onClick={() => setDiasLonge(0)}>
+              Ok
+            </button>
           </div>
-        )}
-        {eventoAgora ? (
-          <div className="cartao foco compromisso">
-            <p className="projeto">Compromisso agora{eventoAgora.origem === 'google' && <span className="selo">Google</span>}</p>
-            <p className="passo">{eventoAgora.titulo}</p>
-            <p className="motivo">
-              {hora(eventoAgora.inicio)}–{hora(eventoAgora.fim)} · termina em {duracao((eventoAgora.fim - agora) / 60_000)}
-            </p>
-            <div className="linha">
-              <Botao variante="acento" onClick={() => encerrarEvento(eventoAgora)}>
-                Já terminou
-              </Botao>
-              <button onClick={() => adiar(eventoAgora)}>Ver outra coisa</button>
-            </div>
-          </div>
-        ) : !passoReservado && eventoChegando ? (
-          <div className="cartao foco compromisso chegando">
-            <p className="projeto">Daqui a {duracao((eventoChegando.inicio - agora) / 60_000)}</p>
-            <p className="passo">{eventoChegando.titulo}</p>
-            <p className="motivo">
-              Às {hora(eventoChegando.inicio)}. Comece a fechar o que está fazendo: trocar de atividade leva mais tempo do que parece.
-            </p>
-            <div className="linha">
-              <Botao variante="acento" onClick={() => adiar(eventoChegando)}>
-                Ok, estou de olho
-              </Botao>
-            </div>
-          </div>
-        ) : !escolha ? (
-          <div className="cartao vazio">
-            {pulados.size > 0 ? (
-              <>
-                <p>Você pulou tudo por agora. Tudo bem.</p>
-                <button onClick={() => setPulados(new Set())}>Ver de novo desde o início</button>
-              </>
-            ) : proximaReserva ? (
-              <p>
-                O que está na fila já tem horário: <b>{hora(proximaReserva.inicio)}</b>. Até lá, o tempo é seu.
-              </p>
-            ) : (
-              <p>
-                Nada na fila. Jogue o que estiver na cabeça no botão <b>+</b> e transforme em passos na <b>Caixa</b>.
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="cartao foco">
-            {escolha.projeto ? <p className="projeto">{escolha.projeto.titulo}</p> : <p className="projeto">Tarefa solta</p>}
-            <p className="passo">{escolha.passo.texto}</p>
-            <NotaDoPasso nota={escolha.passo.nota} />
-            <p className="motivo">
-              <PontosEditaveis energia={escolha.passo.energia} onChange={(e) => s.atualizarPasso(escolha.passo.id, { energia: e })} />{' '}
-              {escolha.motivo}
-            </p>
-            {escolha.projeto && (
-              <>
-                <p className="chegada">
-                  Linha de chegada: <i>{escolha.projeto.chegada}</i>
-                </p>
-                <BarraProgresso passos={s.passos} projetoId={escolha.projeto.id} />
-              </>
-            )}
-            {escolha.acimaDaEnergia && (
-              <p className="dica">Tudo na fila pede mais energia do que você tem agora. Que tal quebrar este em algo menor?</p>
-            )}
-
-            {modo === 'quebrando' ? (
-              <Quebrar passo={escolha.passo} onPronto={() => setModo('normal')} />
-            ) : modo === 'agendando' ? (
-              <>
-                <p className="rotulo">Reservar um horário para este passo. Quando chegar a hora, ele aparece aqui primeiro.</p>
-                <HorariosLivres passo={escolha.passo} agora={agora} onPronto={() => setModo('normal')} />
-                <EventoForm
-                  inicial={{ titulo: escolha.passo.texto, passoId: escolha.passo.id }}
-                  rotulo="Reservar horário"
-                  onPronto={() => setModo('normal')}
-                  onCancelar={() => setModo('normal')}
-                />
-              </>
-            ) : (
-              <>
-                <Botao variante="acento" className="grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
-                  Começar
-                </Botao>
-                <p className="motivo centralizado">Combinado: só 5 minutos. Depois você decide se continua.</p>
-                <div className="linha">
-                  <button onClick={() => concluir(escolha.passo.id)}>Já fiz</button>
-                  <button onClick={() => setModo('quebrando')}>Grande demais</button>
-                  <button onClick={() => setModo('agendando')}>Agendar</button>
-                  <button onClick={() => setPulados(new Set(pulados).add(escolha.passo.id))}>Agora não</button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-        {rodape}
-      </div>
-
-      {/* Em telas estreitas, a ordem visual vem de .agora (index.css). */}
-      <div className="col">
-        {revisando ? (
-          <RevisaoSemana agora={agora} onFechar={() => setRevisando(false)} />
-        ) : (
-          revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) && (
-            <div className="cartao compacto">
-              <div className="linha entre">
-                <span>
-                  <b>Revisão da semana</b>
-                  <br />
-                  <span className="motivo">5 minutos para escolher o foco e olhar a semana.</span>
-                </span>
-                <button onClick={() => setRevisando(true)}>Fazer agora</button>
-              </div>
-            </div>
-          )
-        )}
-        <div className="cartao compacto energia">
-          {!cfg.modulosDesligados.includes('agenda') && <SituacaoAgora />}
-          <label className="rotulo">Sua energia agora</label>
-          <SeletorEnergia valor={energia} onChange={setEnergia} />
         </div>
-        <PendenciasDeHoje agora={agora} />
-        <ParaReagendar />
-        {!cfg.modulosDesligados.includes('agenda') && (
-          <>
-            <RefazerResto agora={agora} />
-            <CapacidadeDoDia agora={agora} />
-            <MontarDia energia={energia} agora={agora} />
-            <RestoDoDia />
-          </>
-        )}
+      )}
+
+      <div className="linha entre agora-topo">
+        <SeletorEnergia valor={energia} onChange={setEnergia} />
+        <button className="discreto" onClick={() => setPlanejando(true)}>
+          Planejar o dia{atencoes > 0 && ` · ${atencoes}`}
+        </button>
       </div>
+
+      {eventoAgora ? (
+        <div className="cartao foco compromisso">
+          <p className="projeto">Compromisso agora{eventoAgora.origem === 'google' && <span className="selo">Google</span>}</p>
+          <p className="passo">{eventoAgora.titulo}</p>
+          <p className="motivo">
+            {hora(eventoAgora.inicio)}–{hora(eventoAgora.fim)} · termina em {duracao((eventoAgora.fim - agora) / 60_000)}
+          </p>
+          <div className="linha">
+            <Botao variante="acento" onClick={() => encerrarEvento(eventoAgora)}>
+              Já terminou
+            </Botao>
+            <button onClick={() => adiar(eventoAgora)}>Ver outra coisa</button>
+          </div>
+        </div>
+      ) : !passoReservado && eventoChegando ? (
+        <div className="cartao foco compromisso chegando">
+          <p className="projeto">Daqui a {duracao((eventoChegando.inicio - agora) / 60_000)}</p>
+          <p className="passo">{eventoChegando.titulo}</p>
+          <p className="motivo">
+            Às {hora(eventoChegando.inicio)}. Comece a fechar o que está fazendo: trocar de atividade leva mais tempo do que parece.
+          </p>
+          <div className="linha">
+            <Botao variante="acento" onClick={() => adiar(eventoChegando)}>
+              Ok, estou de olho
+            </Botao>
+          </div>
+        </div>
+      ) : !escolha ? (
+        <div className="cartao vazio">
+          {pulados.size > 0 ? (
+            <>
+              <p>Você pulou tudo por agora. Tudo bem.</p>
+              <button onClick={() => setPulados(new Set())}>Ver de novo desde o início</button>
+            </>
+          ) : proximaReserva ? (
+            <p>
+              O que está na fila já tem horário: <b>{hora(proximaReserva.inicio)}</b>. Até lá, o tempo é seu.
+            </p>
+          ) : (
+            <p>
+              Nada na fila. Jogue o que estiver na cabeça no botão <b>+</b> e transforme em passos na <b>Caixa</b>.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="cartao foco">
+          <p className="projeto">{escolha.projeto ? escolha.projeto.titulo : 'Tarefa solta'}</p>
+          <p className="passo">{escolha.passo.texto}</p>
+          <p className="motivo">
+            <PontosEditaveis energia={escolha.passo.energia} onChange={(e) => s.atualizarPasso(escolha.passo.id, { energia: e })} />{' '}
+            {escolha.motivo}
+          </p>
+          {/* A nota fica a um toque: o Agora mostra só o passo, e o contexto aparece quando é pedido. */}
+          {escolha.passo.nota && (
+            <>
+              <button className="discreto" aria-expanded={verNota} onClick={() => setNotaAberta(verNota ? null : escolha.passo.id)}>
+                {verNota ? 'Esconder a nota' : 'Ver nota'}
+              </button>
+              {verNota && <NotaDoPasso nota={escolha.passo.nota} />}
+            </>
+          )}
+          {escolha.acimaDaEnergia && <p className="dica">Tudo na fila pede mais energia do que você tem agora. Que tal quebrar este em algo menor?</p>}
+          <Botao variante="acento" className="grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
+            Começar
+          </Botao>
+          <p className="motivo centralizado">Combinado: só 5 minutos. Depois você decide se continua.</p>
+          <div className="linha centralizada">
+            <button className="discreto" onClick={() => concluir(escolha.passo.id)}>
+              Já fiz
+            </button>
+            <button className="discreto" onClick={() => setModo('quebrando')}>
+              Grande demais
+            </button>
+            <button className="discreto" onClick={() => setModo('agendando')}>
+              Agendar
+            </button>
+            <button className="discreto" onClick={() => setPulados(new Set(pulados).add(escolha.passo.id))}>
+              Agora não
+            </button>
+          </div>
+        </div>
+      )}
+      {rodape}
+
+      {escolha && modo === 'quebrando' && (
+        <Modal titulo="Grande demais" onFechar={() => setModo('normal')}>
+          <Quebrar passo={escolha.passo} onPronto={() => setModo('normal')} />
+        </Modal>
+      )}
+      {escolha && modo === 'agendando' && (
+        <Modal titulo="Agendar" onFechar={() => setModo('normal')}>
+          <p className="motivo">Reservar um horário para “{escolha.passo.texto}”. Quando chegar a hora, ele aparece aqui primeiro.</p>
+          <HorariosLivres passo={escolha.passo} agora={agora} onPronto={() => setModo('normal')} />
+          <EventoForm
+            inicial={{ titulo: escolha.passo.texto, passoId: escolha.passo.id }}
+            rotulo="Reservar horário"
+            onPronto={() => setModo('normal')}
+            onCancelar={() => setModo('normal')}
+          />
+        </Modal>
+      )}
+      {planejando && (
+        <Modal titulo={revisando ? 'Revisão da semana' : 'Planejar o dia'} onFechar={() => (setPlanejando(false), setRevisando(false))}>
+          <div className="planejar">
+            {revisando ? (
+              <RevisaoSemana agora={agora} onFechar={() => setRevisando(false)} />
+            ) : (
+              <>
+                {comAgenda && <SituacaoAgora />}
+                {revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) && (
+                  <div className="cartao compacto">
+                    <div className="linha entre">
+                      <span>
+                        <b>Revisão da semana</b>
+                        <br />
+                        <span className="motivo">5 minutos para escolher o foco e olhar a semana.</span>
+                      </span>
+                      <button onClick={() => setRevisando(true)}>Fazer agora</button>
+                    </div>
+                  </div>
+                )}
+                <PendenciasDeHoje agora={agora} />
+                <ParaReagendar />
+                {comAgenda && (
+                  <>
+                    <RefazerResto agora={agora} />
+                    <CapacidadeDoDia agora={agora} />
+                    <MontarDia energia={energia} agora={agora} />
+                    <RestoDoDia />
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </Modal>
+      )}
     </section>
   )
+}
+
+/**
+ * Quantas coisas da janela "Planejar o dia" pedem uma decisão: lembretes e contas vencidos, passos para reagendar,
+ * horários que passaram, o dia que não cabe e a revisão da semana. Aparece no botão, para ninguém precisar abrir para saber.
+ */
+function useAtencoes(agora: number) {
+  const passos = useStore((s) => s.passos)
+  const sessoes = useStore((s) => s.sessoes)
+  const agenda = useAgenda()
+  const fin = useFinancas()
+  const cfg = useConfig()
+  const comAgenda = !cfg.modulosDesligados.includes('agenda')
+  const diaHoje = new Date(agora).getDate()
+  const desde = inicioDoDia(agora)
+  const ate = desde + FIM_DO_DIA_H * 3_600_000
+  const lembretes = comAgenda ? agenda.lembretes.filter((l) => !l.concluido && l.quando <= agora).length : 0
+  const contas = cfg.modulosDesligados.includes('financas')
+    ? 0
+    : fin.fixas.filter((f) => f.tipo === 'gasto' && !fixaPagaNoMes(f, fin.transacoes) && diaDeVencimento(f) <= diaHoje).length
+  const reagendar = vencidos(passos, hoje()).length > 0 ? 1 : 0
+  const refazer = comAgenda && refazerResto(agenda.eventos, passos, agora, ate, desde).passaram > 0 ? 1 : 0
+  const c = capacidadeDoDia(passos, sessoes, agenda.eventos, agora, ate)
+  const naoCabe = comAgenda && !c.cabe && c.passos.length >= 2 ? 1 : 0
+  const revisao = revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) ? 1 : 0
+  return lembretes + contas + reagendar + refazer + naoCabe + revisao
 }

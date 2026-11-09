@@ -36,8 +36,9 @@ import { useStatusSync, type StatusSync } from './sync/motor'
 
 const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = [
   { id: 'agora', nome: 'Agora' },
-  { id: 'agenda', nome: 'Agenda' },
+  // A Caixa vem logo depois do Agora: é onde fica o que ainda não foi organizado.
   { id: 'caixa', nome: 'Caixa' },
+  { id: 'agenda', nome: 'Agenda' },
   { id: 'financas', nome: 'Finanças' },
   { id: 'projetos', nome: 'Projetos' },
   { id: 'historico', nome: 'Histórico' },

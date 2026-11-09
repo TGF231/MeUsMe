@@ -69,7 +69,7 @@ export function buscar(f: Fontes, termo: string, desligados: Aba[] = [], limite 
   for (const e of f.eventos)
     if (casa(e.titulo)) r.push({ chave: `evento:${e.id}`, tipo: 'Compromisso', texto: e.titulo, detalhe: dataCurta(e.inicio), aba: 'agenda', quando: e.inicio })
   for (const l of f.lembretes)
-    if (casa(l.texto)) r.push({ chave: `lembrete:${l.id}`, tipo: 'Lembrete', texto: l.texto, detalhe: dataCurta(l.quando), aba: 'agenda', quando: l.quando })
+    if (casa(l.texto, l.nota)) r.push({ chave: `lembrete:${l.id}`, tipo: 'Lembrete', texto: l.texto, detalhe: dataCurta(l.quando), aba: 'agenda', quando: l.quando })
 
   // Começar com o termo vale mais; depois, o mais recente primeiro.
   const inicio = (x: Resultado) => (normalizar(x.texto).startsWith(palavras[0]) ? 1 : 0)

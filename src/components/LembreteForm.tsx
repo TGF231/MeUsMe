@@ -23,6 +23,7 @@ export function LembreteForm({ inicial = '', onPronto, onCancelar }: Props) {
   const [data, setData] = useState(hoje())
   const [horaTexto, setHoraTexto] = useState(() => horaInput(Math.ceil((Date.now() + 3_600_000) / 1_800_000) * 1_800_000))
   const [repetir, setRepetir] = useState<Lembrete['repetir']>('nunca')
+  const [nota, setNota] = useState('')
 
   return (
     <form
@@ -30,8 +31,9 @@ export function LembreteForm({ inicial = '', onPronto, onCancelar }: Props) {
       onSubmit={(e) => {
         e.preventDefault()
         if (!texto.trim()) return
-        criar({ texto: texto.trim(), quando: juntarDataHora(data, horaTexto), repetir })
+        criar({ texto: texto.trim(), quando: juntarDataHora(data, horaTexto), repetir, nota: nota.trim() || undefined })
         setTexto('')
+        setNota('')
         onPronto?.()
       }}
     >
@@ -40,6 +42,7 @@ export function LembreteForm({ inicial = '', onPronto, onCancelar }: Props) {
         <input required type="date" value={data} onChange={(e) => setData(e.target.value)} aria-label="Dia" className="flex" />
         <input required type="time" value={horaTexto} onChange={(e) => setHoraTexto(e.target.value)} aria-label="Hora" className="flex" />
       </div>
+      <textarea className="nota-passo" rows={2} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Nota (opcional): link, endereço, o que não esquecer" aria-label="Nota do lembrete" />
       <div className="chips" role="group" aria-label="Repetir">
         {(Object.keys(REPETIR) as Lembrete['repetir'][]).map((r) => (
           <BotaoInterruptor key={r} ligado={repetir === r} onClick={() => setRepetir(r)}>
