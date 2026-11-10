@@ -54,7 +54,7 @@ export function buscar(f: Fontes, termo: string, desligados: Aba[] = [], limite 
         tipo: p.feitoEm ? 'Passo feito' : 'Passo',
         texto: p.texto,
         detalhe: p.projetoId ? titulo.get(p.projetoId) : 'tarefa solta',
-        aba: p.feitoEm ? 'historico' : 'projetos',
+        aba: p.feitoEm ? 'historico' : p.projetoId ? 'projetos' : p.repetir ? 'rotinas' : 'tarefas',
         projetoId: p.feitoEm ? undefined : (p.projetoId ?? undefined),
         quando: p.feitoEm ?? p.criadoEm,
       })

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type Aba = 'agora' | 'planejar' | 'agenda' | 'caixa' | 'financas' | 'projetos' | 'historico' | 'ajustes'
+export type Aba = 'agora' | 'planejar' | 'agenda' | 'caixa' | 'tarefas' | 'rotinas' | 'financas' | 'projetos' | 'historico' | 'ajustes'
 
 /** Aba aberta (não persiste: o app sempre abre em Agora). Telas usam `ir` para levar a outra aba. */
 export const useNavegacao = create<{ aba: Aba; projetoAberto: string | null; ir: (aba: Aba, projetoId?: string) => void }>()(
@@ -13,7 +13,7 @@ export const useNavegacao = create<{ aba: Aba; projetoAberto: string | null; ir:
 
 /**
  * As abas de verdade são só três: Em ação, Em espera e Finanças (mais Ajustes). Agenda e Histórico abrem dentro de Em
- * ação, e Projetos dentro de Em espera: o mapa diz de que aba cada tela faz parte, para a faixa acender a certa.
+ * ação, e Tarefas, Rotinas e Projetos dentro de Em espera: o mapa diz de que aba cada tela faz parte, para a faixa acender a certa.
  */
 export const ABA_DA_TELA: Record<Aba, Aba> = {
   agora: 'agora',
@@ -21,6 +21,8 @@ export const ABA_DA_TELA: Record<Aba, Aba> = {
   agenda: 'agora',
   historico: 'agora',
   caixa: 'caixa',
+  tarefas: 'caixa',
+  rotinas: 'caixa',
   projetos: 'caixa',
   financas: 'financas',
   ajustes: 'ajustes',
@@ -30,7 +32,7 @@ export const ABA_DA_TELA: Record<Aba, Aba> = {
 export const OPCIONAIS: { id: Aba; nome: string; descricao: string }[] = [
   { id: 'agenda', nome: 'Agenda', descricao: 'compromissos, lembretes e Google Agenda' },
   { id: 'financas', nome: 'Finanças', descricao: 'gastos, contas fixas e bancos' },
-  { id: 'projetos', nome: 'Projetos', descricao: 'projetos com linha de chegada e tarefas soltas' },
+  { id: 'projetos', nome: 'Projetos', descricao: 'projetos com linha de chegada' },
   { id: 'historico', nome: 'Histórico', descricao: 'o que foi feito, o tempo gasto e o check-in' },
 ]
 

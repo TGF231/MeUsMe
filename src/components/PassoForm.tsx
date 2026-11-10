@@ -24,6 +24,8 @@ interface Props {
   sugerir?: boolean
   /** Oferecer prazo e "só a partir de" (recolhidos; nunca obrigatórios). */
   comDatas?: boolean
+  /** Datas já preenchidas ao abrir e depois de salvar (ex.: Rotinas começa em "todo dia"). */
+  datasIniciais?: Datas
   onSalvar: (texto: string, energia: Energia, datas: Datas) => void
   onCancelar?: () => void
   rotuloCancelar?: string
@@ -37,13 +39,14 @@ export function PassoForm({
   projetoId = null,
   sugerir = true,
   comDatas = true,
+  datasIniciais = {},
   onSalvar,
   onCancelar,
   rotuloCancelar = 'Cancelar',
 }: Props) {
   const [texto, setTexto] = useState(inicial)
   const [energia, setEnergia] = useState<Energia>(energiaInicial)
-  const [datas, setDatas] = useState<Datas>({})
+  const [datas, setDatas] = useState<Datas>(datasIniciais)
   const passos = useStore((s) => s.passos)
   const campo = useRef<HTMLInputElement>(null)
   const idCampo = useId()
@@ -58,7 +61,7 @@ export function PassoForm({
         if (!texto.trim()) return
         onSalvar(texto.trim(), energia, datas)
         setTexto('')
-        setDatas({})
+        setDatas(datasIniciais)
       }}
     >
       <label className="rotulo" htmlFor={idCampo}>
