@@ -5,6 +5,14 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.3',
+    itens: [
+      'Em espera ganhou Tarefas e Rotinas: o que ainda não tem forma fica em Para organizar; o que já foi definido, aqui.',
+      'Rotinas reúne o que se repete, por dia, semana e mês, com quantas vezes foi feito nas últimas 4 semanas.',
+      'Projetos mostra só os projetos: as tarefas fora deles foram para Tarefas.',
+    ],
+  },
+  {
     versao: '0.9.2',
     itens: [
       'Planejar virou tela, ao lado de Próximo passo. O número no botão diz quantas coisas pedem decisão hoje.',
