@@ -5,6 +5,14 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.2',
+    itens: [
+      'Planejar virou tela, ao lado de Próximo passo. O número no botão diz quantas coisas pedem decisão hoje.',
+      'Menus e sub-abas ocupam a largura toda e quebram em linhas quando não cabem: tudo à vista, sem rolar para o lado.',
+      'Celular: a aba aberta sobe para fora da barra de baixo, como um marcador, e o botão + fica mais longe da barra.',
+    ],
+  },
+  {
     versao: '0.9.1',
     itens: [
       'Em ação: "Planejar o dia" fica no topo, e o passo da vez no meio da tela.',
