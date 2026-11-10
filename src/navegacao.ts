@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type Aba = 'agora' | 'agenda' | 'caixa' | 'financas' | 'projetos' | 'historico' | 'ajustes'
+export type Aba = 'agora' | 'planejar' | 'agenda' | 'caixa' | 'financas' | 'projetos' | 'historico' | 'ajustes'
 
 /** Aba aberta (não persiste: o app sempre abre em Agora). Telas usam `ir` para levar a outra aba. */
 export const useNavegacao = create<{ aba: Aba; projetoAberto: string | null; ir: (aba: Aba, projetoId?: string) => void }>()(
@@ -17,6 +17,7 @@ export const useNavegacao = create<{ aba: Aba; projetoAberto: string | null; ir:
  */
 export const ABA_DA_TELA: Record<Aba, Aba> = {
   agora: 'agora',
+  planejar: 'agora',
   agenda: 'agora',
   historico: 'agora',
   caixa: 'caixa',
