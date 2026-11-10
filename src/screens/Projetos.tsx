@@ -58,7 +58,7 @@ function DatasDoPasso({ passo }: { passo: Passo }) {
 const REPETE = { diario: 'todo dia', semanal: 'toda semana', mensal: 'todo mês' }
 
 /** Passo com energia ajustável, texto editável e remoção. `destaque` é o visual do próximo passo. */
-function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: boolean }) {
+export function PassoEditavel({ passo, destaque = false }: { passo: Passo; destaque?: boolean }) {
   const s = useStore()
   const [editando, setEditando] = useState(false)
   const [quebrando, setQuebrando] = useState(false)
@@ -374,7 +374,6 @@ export function Projetos() {
     .filter((p) => !p.concluidoEm)
     .sort((a, b) => (a.id === s.focoId ? -1 : b.id === s.focoId ? 1 : 0))
   const concluidos = s.projetos.filter((p) => p.concluidoEm)
-  const soltas = pendentes(s.passos, null)
 
   return (
     <section className="tela">
@@ -421,18 +420,6 @@ export function Projetos() {
           )
         })}
       </div>
-
-      {soltas.length > 0 && (
-        <>
-          <h2>Tarefas soltas ({soltas.length})</h2>
-          <p className="motivo">Em ação mostra uma de cada vez. Aqui dá para ver todas, corrigir ou tirar da lista.</p>
-          <div className="cartao">
-            {soltas.map((p) => (
-              <PassoEditavel key={p.id} passo={p} />
-            ))}
-          </div>
-        </>
-      )}
 
       {concluidos.length > 0 && (
         <>

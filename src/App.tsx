@@ -24,6 +24,7 @@ import { Caixa } from './screens/Caixa'
 import { Financas } from './screens/Financas'
 import { Historico } from './screens/Historico'
 import { Projetos } from './screens/Projetos'
+import { Rotinas, Tarefas } from './screens/Tarefas'
 import { useStore } from './store'
 import { AVISO_MS, useAvisos, useConfig } from './stores/config'
 import { useSincronizacao } from './sync/motor'
@@ -43,6 +44,8 @@ const NOMES: Record<Aba, string> = {
   financas: 'Finanças',
   agenda: 'Agenda',
   projetos: 'Projetos',
+  tarefas: 'Tarefas',
+  rotinas: 'Rotinas',
   historico: 'Histórico',
   ajustes: 'Ajustes',
 }
@@ -60,12 +63,14 @@ const VISTAS: Partial<Record<Aba, { id: Aba; nome: string }[]>> = {
   ],
   caixa: [
     { id: 'caixa', nome: 'Para organizar' },
+    { id: 'tarefas', nome: 'Tarefas' },
+    { id: 'rotinas', nome: 'Rotinas' },
     { id: 'projetos', nome: 'Projetos' },
   ],
 }
 
 /**
- * Menu de dentro da aba (Em ação: Planejar, Agenda e Histórico; Em espera: Projetos). Some quando as outras telas da aba estão
+ * Menu de dentro da aba (Em ação: Planejar, Agenda e Histórico; Em espera: Tarefas, Rotinas e Projetos). Some quando as outras telas da aba estão
  * desligadas em Ajustes.
  */
 function MenuDaAba({ aba, desligados, contagem }: Readonly<{ aba: Aba; desligados: Aba[]; contagem: number }>) {
@@ -430,6 +435,8 @@ export default function App() {
           {aba === 'agenda' && <Agenda />}
           {aba === 'caixa' && <Caixa />}
           {aba === 'financas' && <Financas />}
+          {aba === 'tarefas' && <Tarefas />}
+          {aba === 'rotinas' && <Rotinas />}
           {aba === 'projetos' && <Projetos />}
           {aba === 'historico' && <Historico />}
           {aba === 'ajustes' && <Ajustes />}
