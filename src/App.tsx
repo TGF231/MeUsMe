@@ -3,7 +3,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useEffect, useRef, useState } from 'react'
 import { proximoTamanho } from './acessibilidade'
 import { useAgendador } from './agendador'
-import { useJanelaModal } from './hooks'
+import { useAgora, useJanelaModal } from './hooks'
 import { Icone } from './components/Icone'
 import { Introducao } from './components/Introducao'
 import { usoDoArmazenamento } from './erros'
@@ -17,7 +17,8 @@ import { manterWidget } from './nativo/widget'
 import { manterBackupAutomatico } from './nativo/backupAutomatico'
 import { ehAndroid, ehDesktop, ehNativo } from './nativo/plataforma'
 import { Agenda } from './screens/Agenda'
-import { Agora } from './screens/Agora'
+import { Agora, Planejar } from './screens/Agora'
+import { useAtencoes } from './atencoes'
 import { Ajustes } from './screens/Ajustes'
 import { Caixa } from './screens/Caixa'
 import { Financas } from './screens/Financas'
@@ -37,6 +38,7 @@ import { useStatusSync, type StatusSync } from './sync/motor'
 /** Nome de cada tela, para o título da janela e o anúncio do leitor de tela. */
 const NOMES: Record<Aba, string> = {
   agora: 'Em ação',
+  planejar: 'Planejar o dia',
   caixa: 'Em espera',
   financas: 'Finanças',
   agenda: 'Agenda',
@@ -46,12 +48,13 @@ const NOMES: Record<Aba, string> = {
 }
 
 // Só três abas: o que está em ação, o que espera ser organizado e o dinheiro, que tem subabas e ajustes próprios.
-const ABAS: { id: Exclude<Aba, 'ajustes'>; nome: string }[] = (['agora', 'caixa', 'financas'] as const).map((id) => ({ id, nome: NOMES[id] }))
+const ABAS: { id: 'agora' | 'caixa' | 'financas'; nome: string }[] = (['agora', 'caixa', 'financas'] as const).map((id) => ({ id, nome: NOMES[id] }))
 
 /** As telas de dentro de cada aba, na ordem do menu da própria aba. */
 const VISTAS: Partial<Record<Aba, { id: Aba; nome: string }[]>> = {
   agora: [
     { id: 'agora', nome: 'Próximo passo' },
+    { id: 'planejar', nome: 'Planejar' },
     { id: 'agenda', nome: 'Agenda' },
     { id: 'historico', nome: 'Histórico' },
   ],
@@ -62,15 +65,17 @@ const VISTAS: Partial<Record<Aba, { id: Aba; nome: string }[]>> = {
 }
 
 /**
- * Menu de dentro da aba (Em ação: Agenda e Histórico; Em espera: Projetos). Some quando as outras telas da aba estão
+ * Menu de dentro da aba (Em ação: Planejar, Agenda e Histórico; Em espera: Projetos). Some quando as outras telas da aba estão
  * desligadas em Ajustes.
  */
 function MenuDaAba({ aba, desligados, contagem }: Readonly<{ aba: Aba; desligados: Aba[]; contagem: number }>) {
   const ir = useNavegacao((s) => s.ir)
+  // Quantas coisas de Planejar pedem decisão: aparece no menu, sem precisar abrir.
+  const atencoes = useAtencoes(useAgora(60_000))
   const vistas = (VISTAS[ABA_DA_TELA[aba]] ?? []).filter((v) => !desligados.includes(v.id))
   if (vistas.length < 2) return null
   return (
-    <nav className="chips menu-aba" aria-label={`Telas de ${NOMES[ABA_DA_TELA[aba]]}`}>
+    <nav className="menu-aba" aria-label={`Telas de ${NOMES[ABA_DA_TELA[aba]]}`}>
       {vistas.map((v) => (
         // Leva a outra tela: o leitor ouve "página atual", não "botão pressionado".
         <BotaoInterruptor
@@ -80,7 +85,7 @@ function MenuDaAba({ aba, desligados, contagem }: Readonly<{ aba: Aba; desligado
           aria-current={v.id === aba ? 'page' : undefined}
           onClick={() => ir(v.id)}
         >
-          {v.id === 'caixa' && contagem > 0 ? `${v.nome} · ${contagem}` : v.nome}
+          {v.id === 'caixa' && contagem > 0 ? `${v.nome} · ${contagem}` : v.id === 'planejar' && atencoes > 0 ? `${v.nome} · ${atencoes}` : v.nome}
         </BotaoInterruptor>
       ))}
     </nav>
@@ -421,6 +426,7 @@ export default function App() {
         <>
           <MenuDaAba aba={aba} desligados={desligados} contagem={naCaixa} />
           {aba === 'agora' && <Agora />}
+          {aba === 'planejar' && <Planejar />}
           {aba === 'agenda' && <Agenda />}
           {aba === 'caixa' && <Caixa />}
           {aba === 'financas' && <Financas />}

@@ -11,6 +11,9 @@ import { RevisaoSemana } from '../components/RevisaoSemana'
 import { PontosEditaveis, SeletorEnergia } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
 import { escolherPasso, type Escolha } from '../escolher'
+import { useAgora } from '../hooks'
+import { useEnergiaEscolhida } from '../stores/energia'
+import { FIM_DO_DIA_H } from '../atencoes'
 import { capacidadeDoDia, duracaoPrevista, horariosLivres, montarDia, refazerResto } from '../montarDia'
 import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
 import { chaveEvento, useAgenda } from '../stores/agenda'
@@ -99,9 +102,6 @@ function ParaReagendar() {
     </div>
   )
 }
-
-/** Os horários sugeridos vão até as 22h: depois disso não se monta mais nada. */
-const FIM_DO_DIA_H = 22
 
 /**
  * "Montar meu dia" (D01 em docs/CONCORRENTES.md): sugere alguns passos com horário nos vãos livres de hoje,
@@ -311,7 +311,9 @@ export function Agora() {
   const s = useStore()
   const eventos = useAgenda((a) => a.eventos)
   const checkIn = s.checkins.find((c) => c.dia === hoje())
-  const [energia, setEnergia] = useState<Energia>(checkIn?.energia ?? 2)
+  // A mesma energia vale em Planejar (montar o dia): por isso fica fora da tela.
+  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 2
+  const setEnergia = useEnergiaEscolhida((e) => e.escolher)
   const [pulados, setPulados] = useState<Set<string>>(new Set())
   const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando'>('normal')
   const [celebrar, setCelebrar] = useState<{ passoId: string; projeto: Projeto | null; restantes: number } | null>(null)
@@ -324,11 +326,8 @@ export function Agora() {
   const [guardada, setGuardada] = useState('')
   const [agora, setAgora] = useState(() => Date.now())
   const cfg = useConfig()
-  const [revisando, setRevisando] = useState(false)
-  const [planejando, setPlanejando] = useState(false)
   // A nota aberta é de um passo só: trocar de passo fecha.
   const [notaAberta, setNotaAberta] = useState<string | null>(null)
-  const atencoes = useAtencoes(agora)
   // Última atividade lida ao abrir a tela: o cartão de boas-vindas não some no meio do primeiro passo.
   const [diasLonge, setDiasLonge] = useState(() => {
     const ultima = ultimaAtividade(useStore.getState())
@@ -535,15 +534,10 @@ export function Agora() {
     )
   }
 
-  const comAgenda = !cfg.modulosDesligados.includes('agenda')
   const verNota = !!escolha && notaAberta === escolha.passo.id
 
   return (
     <section className="tela centro agora">
-      {/* Planejar fica no topo, sem moldura: está à mão, mas não disputa com o passo. */}
-      <button className="discreto planejar-dia" onClick={() => setPlanejando(true)}>
-        Planejar o dia{atencoes > 0 && ` · ${atencoes}`}
-      </button>
       {diasLonge >= 3 && (
         <div className="cartao compacto de-volta">
           <p>
@@ -672,67 +666,55 @@ export function Agora() {
           />
         </Modal>
       )}
-      {planejando && (
-        <Modal titulo={revisando ? 'Revisão da semana' : 'Planejar o dia'} onFechar={() => (setPlanejando(false), setRevisando(false))}>
-          <div className="planejar">
-            {revisando ? (
-              <RevisaoSemana agora={agora} onFechar={() => setRevisando(false)} />
-            ) : (
-              <>
-                {comAgenda && <SituacaoAgora />}
-                {revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) && (
-                  <div className="cartao compacto">
-                    <div className="linha entre">
-                      <span>
-                        <b>Revisão da semana</b>
-                        <br />
-                        <span className="motivo">5 minutos para escolher o foco e olhar a semana.</span>
-                      </span>
-                      <button onClick={() => setRevisando(true)}>Fazer agora</button>
-                    </div>
-                  </div>
-                )}
-                <PendenciasDeHoje agora={agora} />
-                <ParaReagendar />
-                {comAgenda && (
-                  <>
-                    <RefazerResto agora={agora} />
-                    <CapacidadeDoDia agora={agora} />
-                    <MontarDia energia={energia} agora={agora} />
-                    <RestoDoDia />
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        </Modal>
-      )}
     </section>
   )
 }
 
 /**
- * Quantas coisas da janela "Planejar o dia" pedem uma decisão: lembretes e contas vencidos, passos para reagendar,
- * horários que passaram, o dia que não cabe e a revisão da semana. Aparece no botão, para ninguém precisar abrir para saber.
+ * Planejar o dia, ao lado do Próximo passo no menu de Em ação: o que pede decisão hoje, o que reagendar, montar e
+ * refazer o dia, e a revisão da semana quando for o dia dela. Cada bloco é uma seção, separada por uma linha.
  */
-function useAtencoes(agora: number) {
-  const passos = useStore((s) => s.passos)
-  const sessoes = useStore((s) => s.sessoes)
-  const agenda = useAgenda()
-  const fin = useFinancas()
+export function Planejar() {
+  const agora = useAgora(30_000)
   const cfg = useConfig()
+  const checkIn = useStore((s) => s.checkins.find((c) => c.dia === hoje()))
+  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 2
+  const [revisando, setRevisando] = useState(false)
   const comAgenda = !cfg.modulosDesligados.includes('agenda')
-  const diaHoje = new Date(agora).getDate()
-  const desde = inicioDoDia(agora)
-  const ate = desde + FIM_DO_DIA_H * 3_600_000
-  const lembretes = comAgenda ? agenda.lembretes.filter((l) => !l.concluido && l.quando <= agora).length : 0
-  const contas = cfg.modulosDesligados.includes('financas')
-    ? 0
-    : fin.fixas.filter((f) => f.tipo === 'gasto' && !fixaPagaNoMes(f, fin.transacoes) && diaDeVencimento(f) <= diaHoje).length
-  const reagendar = vencidos(passos, hoje()).length > 0 ? 1 : 0
-  const refazer = comAgenda && refazerResto(agenda.eventos, passos, agora, ate, desde).passaram > 0 ? 1 : 0
-  const c = capacidadeDoDia(passos, sessoes, agenda.eventos, agora, ate)
-  const naoCabe = comAgenda && !c.cabe && c.passos.length >= 2 ? 1 : 0
-  const revisao = revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) ? 1 : 0
-  return lembretes + contas + reagendar + refazer + naoCabe + revisao
+
+  if (revisando)
+    return (
+      <section className="tela centro planejar">
+        <RevisaoSemana agora={agora} onFechar={() => setRevisando(false)} />
+      </section>
+    )
+
+  return (
+    <section className="tela centro planejar">
+      {comAgenda && <SituacaoAgora />}
+      {revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) && (
+        <div className="cartao compacto">
+          <div className="linha entre">
+            <span>
+              <b>Revisão da semana</b>
+              <br />
+              <span className="motivo">5 minutos para escolher o foco e olhar a semana.</span>
+            </span>
+            <button onClick={() => setRevisando(true)}>Fazer agora</button>
+          </div>
+        </div>
+      )}
+      <PendenciasDeHoje agora={agora} />
+      <ParaReagendar />
+      {comAgenda && (
+        <>
+          <RefazerResto agora={agora} />
+          <CapacidadeDoDia agora={agora} />
+          <MontarDia energia={energia} agora={agora} />
+          <RestoDoDia />
+        </>
+      )}
+    </section>
+  )
 }
+

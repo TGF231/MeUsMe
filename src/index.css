@@ -176,14 +176,14 @@ button.discreto {
 html {
   /* Ajustes → Tamanho do texto multiplica a base (aplicar.ts); tudo no app é em rem e cresce junto. */
   font-size: calc(var(--escala-texto, 1) * 100%);
-  scroll-padding-bottom: calc(150px + env(safe-area-inset-bottom));
+  scroll-padding-bottom: calc(190px + env(safe-area-inset-bottom));
 }
 
 .conteudo {
   max-width: 640px;
   margin: 0 auto;
   /* Edge-to-edge no Android: respeita a área da barra de status. O fim passa do botão +, para o último item não ficar por baixo dele. */
-  padding: env(safe-area-inset-top) 16px calc(150px + env(safe-area-inset-bottom));
+  padding: env(safe-area-inset-top) 16px calc(190px + env(safe-area-inset-bottom));
 }
 
 .topo {
@@ -458,7 +458,7 @@ textarea.nota-passo {
 .abas button {
   flex: 1;
   max-width: 150px;
-  min-height: 56px;
+  min-height: 50px;
   min-width: 0;
   border: none;
   background: transparent;
@@ -480,18 +480,24 @@ textarea.nota-passo {
   white-space: nowrap;
 }
 
+/*
+ * Aba aberta como marcador de livro: sobe para fora da barra, com a borda do acento em cima e dos lados e aberta
+ * embaixo, emendada na barra. A barra não engrossa; só a aba aberta passa da linha de cima.
+ */
 .abas button.ativo {
   color: var(--texto);
   background: var(--acento-leve);
   font-weight: var(--peso-forte);
-  font-size: 0.8rem;
+  margin-top: -18px;
+  border: 1px solid var(--acento-linha);
+  border-top-width: 2px;
+  border-bottom: 0;
+  border-radius: var(--raio) var(--raio) 0 0;
 }
 
 /* Item ativo: texto padrão sobre o acento suave; acento no ícone. */
 .abas button.ativo svg {
   color: var(--acento-linha);
-  width: 28px;
-  height: 28px;
 }
 
 .contador {
@@ -510,7 +516,7 @@ textarea.nota-passo {
   position: fixed;
   z-index: 5;
   right: max(16px, calc(50% - 264px));
-  bottom: calc(80px + env(safe-area-inset-bottom));
+  bottom: calc(100px + env(safe-area-inset-bottom));
   width: 72px;
   height: 72px;
   border-radius: var(--raio);
@@ -643,20 +649,6 @@ input[type='file'] {
   gap: 6px;
 }
 
-/* Menu de dentro da aba (Em ação: Agenda, Histórico; Em espera: Projetos). Os botões levam a outra tela: a tela
-   atual vem em aria-current, com o mesmo desenho do interruptor ligado do MegUI. */
-.menu-aba {
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-.menu-aba .mg-interruptor[aria-current='page'] {
-  background: var(--surface-selected);
-  color: var(--text-body);
-  border-color: var(--action-line);
-  font-weight: var(--megui-peso-forte);
-}
-
 .chips button {
   padding: 6px 12px;
   min-height: var(--alvo);
@@ -687,44 +679,67 @@ input.mini {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Faixas de navegação no topo das telas (menu de Em ação e de Em espera, sub-abas de Finanças, dias da Agenda): uma
+ * faixa só, de ponta a ponta, em vez de botões soltos. Quando não cabe numa linha, quebra em outra e cada linha
+ * ocupa a largura toda: tudo fica à vista, sem rolagem escondida. A linha de 1px entre os botões é o fundo da faixa
+ * aparecendo pelo vão.
+ */
+.menu-aba,
 .sub-abas,
 .dias {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin: 0 -16px;
-  padding: 0 16px 2px;
+  flex-wrap: wrap;
+  gap: 1px;
+  background: var(--borda);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+  margin-bottom: 12px;
 }
 
-/* WebView do Android antiga ignora scrollbar-width: a barra aparecia como um traço solto embaixo das abas. */
-.sub-abas::-webkit-scrollbar,
-.dias::-webkit-scrollbar {
-  display: none;
-}
-
-/* Centradas quando cabem; quando não cabem, rolam a partir da primeira (justify-content: center cortaria o começo). */
-.sub-abas > :first-child,
-.dias > :first-child {
-  margin-left: auto;
-}
-.sub-abas > :last-child,
-.dias > :last-child {
-  margin-right: auto;
-}
-
-.sub-abas {
-  margin-bottom: 8px;
-}
-
-.sub-abas button,
-.dias button {
-  flex-shrink: 0;
-  border-radius: var(--raio-controle);
-  padding: 6px 14px;
+.menu-aba > *,
+.sub-abas > *,
+.dias > * {
+  flex: 1 1 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: var(--alvo);
+  margin: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: var(--superficie-2);
+  color: var(--suave);
   font-size: 0.9rem;
-  white-space: nowrap;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+}
+
+/* Os quatro do menu de Em ação cabem numa linha no celular. */
+.menu-aba > * {
+  flex-basis: 72px;
+}
+
+.sub-abas > * {
+  flex-basis: 110px;
+}
+
+.dias > * {
+  flex-basis: 76px;
+}
+
+/* A tela aberta: fundo de selecionado e a marca de 2px do acento embaixo, como uma aba. */
+.menu-aba > [aria-current='page'],
+.sub-abas > [aria-selected='true'],
+.dias > [aria-pressed='true'] {
+  background: var(--acento-leve);
+  color: var(--texto);
+  border-bottom-color: var(--acento-linha);
+  font-weight: var(--peso-forte);
 }
 
 .situacao {
@@ -983,11 +998,7 @@ code {
   flex: 1 1 280px;
 }
 
-/* Em ação: "Planejar o dia" no topo, sem moldura, e o passo no meio da altura que sobra. */
-.agora > button.planejar-dia {
-  align-self: flex-end;
-}
-
+/* Em ação: o passo fica no meio da altura que sobra, e não colado no topo com a tela vazia embaixo. */
 .conteudo {
   display: flex;
   flex-direction: column;
@@ -1079,6 +1090,13 @@ kbd {
     overflow-y: auto;
     /* Oculta a barra de rolagem; o conteúdo continua rolável. */
     scrollbar-width: none;
+  }
+
+  /* Ao lado não há linha de cima para a aba aberta passar: ela volta a ser só o item aceso. */
+  .abas button.ativo {
+    margin-top: 0;
+    border: 0;
+    border-radius: var(--raio);
   }
 
   .abas .nav-ajustes {
