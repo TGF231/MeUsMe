@@ -22,5 +22,5 @@ export function textoDoWidget(
   const reservados = new Set(eventos.filter((e) => e.passoId && e.inicio > agora).map((e) => e.passoId!))
   const escolha = escolherPasso(d.projetos, d.passos, d.focoId, energia, new Set(), reservados, dia)
   if (!escolha) return { rotulo: 'Próximo passo', passo: WIDGET_VAZIO }
-  return { rotulo: `Próximo passo · ${escolha.projeto?.titulo ?? 'Tarefa solta'}`, passo: escolha.passo.texto }
+  return { rotulo: `Próximo passo · ${escolha.projeto?.titulo ?? 'Tarefa'}`, passo: escolha.passo.texto }
 }

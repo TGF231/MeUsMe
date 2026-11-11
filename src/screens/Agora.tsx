@@ -610,7 +610,7 @@ export function Agora() {
           </div>
         ) : (
           <div className="cartao foco">
-            <p className="projeto">{escolha.projeto ? escolha.projeto.titulo : 'Tarefa solta'}</p>
+            <p className="projeto">{escolha.projeto ? escolha.projeto.titulo : 'Tarefa'}</p>
             <p className="passo">{escolha.passo.texto}</p>
             <p className="motivo">
               <PontosEditaveis energia={escolha.passo.energia} onChange={(e) => s.atualizarPasso(escolha.passo.id, { energia: e })} />{' '}

@@ -51,7 +51,8 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
   gap: var(--megui-esp-2);
   min-height: var(--megui-normal-controle);
   padding: 5px 13px;
-  background: var(--surface-panel); color: var(--text-muted);
+  /* secundário = só contorno; o preenchimento é da ação primária */
+  background: transparent; color: var(--text-muted);
   border: 1px solid var(--line-control); border-radius: var(--megui-raio);
   font-family: var(--megui-fonte-ui); font-size: var(--megui-tipo-corpo); font-weight: var(--megui-peso-normal);
   line-height: 1.2; cursor: pointer;
@@ -66,7 +67,7 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
 .mg-botao--perigo { background: transparent; color: var(--status-bad); border-color: var(--status-bad); }
 /* #FFFFFF literal herdado do kit: 2,27:1 sobre status-bad no escuro (sinalizado). */
 .mg-botao--perigo:hover:not(:disabled), .mg-botao--perigo:active:not(:disabled) { background: var(--status-bad); color: #FFFFFF; }
-.mg-botao:disabled { background: var(--surface-window); color: var(--text-hint); border-color: var(--line-grid); cursor: default; }
+.mg-botao:disabled { background: transparent; color: var(--text-hint); border-color: var(--line-grid); cursor: default; }
 .mg-botao--acento:disabled { background: var(--line-control); color: var(--surface-window); border-color: var(--line-control); }
 
 /* Rotulo */
@@ -89,8 +90,10 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
 /* BotaoJanela */
 .mg-botao-janela {
   display: inline-flex; align-items: center; justify-content: center;
-  width: var(--megui-esp-6); height: var(--megui-barra-titulo); padding: 0;
-  border: none; border-radius: 0; background: transparent; color: var(--text-muted);
+  /* o fundo do hover é recuado e arredondado, como nos botões de ação */
+  width: var(--megui-esp-6); height: calc(var(--megui-barra-titulo) - 2 * var(--megui-esp-1)); padding: 0;
+  margin: 0 var(--megui-esp-meio);
+  border: none; border-radius: var(--megui-raio); background: transparent; color: var(--text-muted);
   font-size: 11px; cursor: pointer;
   transition: background var(--megui-mov-feedback) var(--megui-mov-easing);
 }
@@ -100,32 +103,43 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
 
 /* ───────── Formulários ───────── */
 
-/* Campo */
+/* Campo — preenchimento sem contorno em repouso; o contorno aparece no
+   hover e o de foco, no foco. Desabilitado é o inverso: só contorno fraco. */
 .mg-campo {
   min-height: var(--megui-normal-controle); padding: 4px 7px;
-  background: var(--surface-field); color: var(--text-body);
-  border: 1px solid var(--line-control); border-radius: var(--megui-raio); outline: none;
+  background: var(--surface-strip); color: var(--text-body);
+  border: 1px solid transparent; border-radius: var(--megui-raio); outline: none;
   font-family: var(--megui-fonte-ui); font-size: var(--megui-tipo-corpo);
 }
 .mg-campo--compacta { min-height: var(--megui-compacta-controle); padding: 3px 5px; }
 .mg-campo--mono { font-family: var(--megui-fonte-mono); }
 .mg-campo:read-only, .mg-campo--somente-leitura { background: var(--surface-readonly); }
+.mg-campo:hover:not(:disabled) { border-color: var(--line-control); }
 .mg-campo:focus { border-color: var(--line-focus); }
-.mg-campo:disabled { background: var(--surface-window); color: var(--text-hint); border-color: var(--line-grid); }
+.mg-campo:disabled { background: transparent; color: var(--text-hint); border-color: var(--line-grid); }
+/* várias linhas: mantém o contorno, senão não se vê onde o campo começa */
+textarea.mg-campo { background: var(--surface-field); border-color: var(--line-control); }
 .mg-campo--invalido, .mg-campo[aria-invalid="true"] { border-color: var(--status-bad); }
 
-/* Selecao — a seta usa megui-ink-3 do claro (#5B6974) gravada no SVG, como no kit */
+/* Selecao — o SVG de fundo não herda a tinta: há uma seta por tema, com o
+   megui-ink-3 de cada um gravado (#5B6974 no claro, #8796A9 no escuro). */
+:root, [data-theme="claro"], [data-tema="claro"] { --mg-seta: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235B6974' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+[data-theme="escuro"], [data-tema="escuro"] { --mg-seta: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238796A9' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]):not([data-tema]) { --mg-seta: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238796A9' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+}
 .mg-selecao {
   min-height: var(--megui-normal-controle); padding: 4px 26px 4px 7px;
-  background: var(--surface-panel) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235B6974' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 6px center;
+  background: var(--surface-strip) var(--mg-seta) no-repeat right 6px center;
   color: var(--text-body);
-  border: 1px solid var(--line-control); border-radius: var(--megui-raio); outline: none;
+  border: 1px solid transparent; border-radius: var(--megui-raio); outline: none;
   appearance: none; -webkit-appearance: none;
   font-family: var(--megui-fonte-ui); font-size: var(--megui-tipo-corpo); cursor: pointer;
 }
 .mg-selecao--compacta { min-height: var(--megui-compacta-controle); padding: 3px 24px 3px 5px; }
+.mg-selecao:hover:not(:disabled) { border-color: var(--line-control); }
 .mg-selecao:focus { border-color: var(--line-focus); }
-.mg-selecao:disabled { background-color: var(--surface-window); color: var(--text-hint); border-color: var(--line-grid); cursor: default; }
+.mg-selecao:disabled { background-color: transparent; color: var(--text-hint); border-color: var(--line-grid); cursor: default; }
 
 /* Caixa e Opcao — o input nativo fica por cima, invisível, e a marca é desenhada */
 .mg-caixa, .mg-opcao {
@@ -230,7 +244,7 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
   border: 1px solid var(--line-grid); border-top: none; border-radius: 0 0 var(--megui-raio) var(--megui-raio);
   font-family: var(--megui-fonte-ui); font-size: var(--megui-tipo-corpo); white-space: nowrap; cursor: pointer;
 }
-.mg-abas-planilha__aba[aria-selected="true"] { background: var(--surface-panel); color: var(--text-body); font-weight: var(--megui-peso-forte); border-bottom: var(--megui-marca) solid var(--action-line); }
+.mg-abas-planilha__aba[aria-selected="true"] { background: var(--line-grid); color: var(--text-body); font-weight: var(--megui-peso-forte); }
 .mg-abas-planilha__aba:disabled { color: var(--text-hint); cursor: default; }
 .mg-abas-planilha__contagem { font-family: var(--megui-fonte-mono); font-size: var(--megui-tipo-dica); color: var(--text-hint); }
 
@@ -252,6 +266,18 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
   height: var(--megui-barra-titulo); display: flex; align-items: center; gap: var(--megui-esp-3); padding: 0 var(--megui-esp-2);
   background: var(--surface-strip); border-bottom: 1px solid var(--line-grid); font-family: var(--megui-fonte-ui); font-size: var(--megui-tipo-corpo);
 }
+/* com a faixa de abas ou a barra de ações logo abaixo, no mesmo fundo, o
+   cabeçalho é um bloco só: a divisória fica embaixo da faixa seguinte */
+.mg-barra-titulo:has(+ .mg-faixa-abas), .mg-barra-titulo:has(+ .mg-barra-acoes) { border-bottom-color: transparent; }
+/* contexto em segmentos: período, leiaute e afins como marca de fundo */
+.mg-barra-titulo__marca {
+  padding: var(--megui-esp-meio) var(--megui-esp-2); border-radius: var(--megui-raio);
+  background: var(--line-grid); color: var(--text-body); font-size: var(--megui-tipo-dica); white-space: nowrap;
+}
+.mg-barra-titulo__marca--aviso {
+  padding: 1px var(--megui-esp-2); background: transparent; color: var(--status-warn);
+  border: 1px solid var(--status-warn); font-weight: var(--megui-peso-forte);
+}
 .mg-barra-titulo__app { font-weight: var(--megui-peso-forte); color: var(--text-body); white-space: nowrap; }
 .mg-barra-titulo__contexto { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mg-barra-titulo__informacao { font-family: var(--megui-fonte-mono); font-size: var(--megui-tipo-dica); color: var(--text-hint); white-space: nowrap; }
@@ -260,8 +286,9 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
 /* BuscaModular */
 .mg-busca {
   display: flex; align-items: center; gap: 4px; width: 180px; padding: 2px 6px;
-  background: var(--surface-field); border: 1px solid var(--line-control); border-radius: var(--megui-raio);
+  background: var(--surface-panel); border: 1px solid transparent; border-radius: var(--megui-raio);
 }
+.mg-busca:hover { border-color: var(--line-control); }
 .mg-busca:focus-within { border-color: var(--line-focus); }
 .mg-busca > svg { flex: 0 0 14px; color: var(--text-hint); }
 .mg-busca > input {
@@ -272,16 +299,20 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
 /* FaixaAbas */
 .mg-faixa-abas {
   height: var(--megui-faixa-abas); background: var(--surface-strip); border-bottom: 1px solid var(--line-grid);
-  display: flex; align-items: flex-end; gap: 2px; padding: 0 var(--megui-esp-2);
+  display: flex; align-items: center; gap: 2px; padding: 0 var(--megui-esp-2);
 }
+/* aba = rótulo solto; a ativa é uma marca de fundo (line-grid + peso forte),
+   sem caixa nem linha de acento */
 .mg-aba {
   display: flex; align-items: center; justify-content: space-between; gap: var(--megui-esp-2);
-  min-width: var(--megui-aba-min); max-width: var(--megui-aba-max); padding: 5px 12px;
-  background: var(--surface-field); color: var(--text-hint); font-weight: var(--megui-peso-normal);
-  border: 1px solid var(--line-grid); border-bottom: none; border-radius: var(--megui-raio) var(--megui-raio) 0 0;
+  min-width: var(--megui-aba-min); max-width: var(--megui-aba-max); padding: 4px 12px;
+  background: transparent; color: var(--text-muted); font-weight: var(--megui-peso-normal);
+  border: 1px solid transparent; border-radius: var(--megui-raio);
   font-family: var(--megui-fonte-ui); font-size: var(--megui-tipo-corpo); cursor: pointer;
 }
-.mg-aba[aria-selected="true"] { padding: 4px 12px 5px; background: var(--surface-panel); color: var(--text-body); font-weight: var(--megui-peso-forte); border-top: var(--megui-marca) solid var(--action-line); }
+.mg-aba:hover { color: var(--text-body); }
+.mg-aba:focus-visible { outline: none; border-color: var(--line-focus); }
+.mg-aba[aria-selected="true"] { background: var(--line-grid); color: var(--text-body); font-weight: var(--megui-peso-forte); }
 .mg-aba__rotulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mg-aba__fechar { flex: 0 0 var(--megui-aba-fechar); text-align: right; color: var(--text-hint); }
 .mg-faixa-abas__nova { display: flex; align-items: center; padding: 5px 8px; background: transparent; border: none; color: var(--text-hint); cursor: pointer; }
@@ -372,9 +403,9 @@ code, kbd, samp, .megui-mono, .mg-mono { font-family: var(--megui-fonte-mono); }
 /* Itens que podem ser link (<a>) no HTML puro e no Django — sem o sublinhado de link */
 a.mg-aba, a.mg-aba:hover, a.mg-faixa-abas__nova, a.mg-faixa-abas__nova:hover,
 a.mg-menu__item, a.mg-menu__item:hover, a.mg-faixa-nivel__item, a.mg-faixa-nivel__item:hover { border-bottom-width: 0; text-decoration: none; }
-a.mg-aba, a.mg-aba:hover, a.mg-faixa-abas__nova, a.mg-faixa-abas__nova:hover { color: var(--text-hint); }
+a.mg-aba, a.mg-faixa-abas__nova, a.mg-faixa-abas__nova:hover { color: var(--text-muted); }
+a.mg-aba:hover { color: var(--text-body); }
 a.mg-aba[aria-selected="true"], a.mg-aba[aria-selected="true"]:hover, a.mg-menu__item, a.mg-menu__item:hover, a.mg-faixa-nivel__item--ativo:hover { color: var(--text-body); }
-a.mg-aba[aria-selected="true"] { border-top: var(--megui-marca) solid var(--action-line); }
 a.mg-faixa-nivel__item:hover { color: var(--text-muted); }
 a.mg-faixa-nivel__item--ativo { border: 1px solid var(--action-line); }
 [data-href] { cursor: pointer; }

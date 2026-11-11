@@ -1,9 +1,9 @@
 import { registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import { useStore } from '../store'
 import { useAvisos } from '../stores/config'
-import { sugerirCategoria, useFinancas } from '../stores/financas'
+import { sugerirCategoria, TRANSFERENCIA, useFinancas } from '../stores/financas'
 import { dataISO, reais } from '../util'
-import { BANCOS, lerNotificacao } from './bancos'
+import { BANCOS, dividirResgate, lerNotificacao } from './bancos'
 import { ehAndroid } from './plataforma'
 
 interface CapturaNativa {
@@ -40,7 +40,19 @@ function contaPara(banco: string, cartao: boolean) {
   return (doBanco.find((c) => ehCartao(c.nome) === cartao) ?? doBanco[0] ?? contas[0])?.id
 }
 
-/** Converte a fila nativa em lançamentos provisórios; o que não for reconhecido vai para a Caixa. */
+/** O que as notificações deste app já registraram como guardado em cofrinho e ainda não voltou, em centavos. */
+function guardadoEm(pacote: string) {
+  const prefixo = `notificacao:${pacote}:reserva:`
+  return -useFinancas
+    .getState()
+    .transacoes.filter((t) => t.chaveImport?.startsWith(prefixo))
+    .reduce((soma, t) => soma + t.valor, 0)
+}
+
+/**
+ * Converte a fila nativa em lançamentos provisórios. Propaganda, compra recusada e avisos de limite ou saldo são
+ * descartados; o que tem valor mas não deu para entender vai para Em espera.
+ */
 export async function processarCapturas() {
   if (!ehAndroid()) return
   const { capturas } = await Captura.pegarCapturas()
@@ -52,10 +64,41 @@ export async function processarCapturas() {
   for (const c of capturas) {
     const banco = nomeDoApp(c.pacote)
     const lido = lerNotificacao(c.titulo, c.texto)
-    const contaId = lido && contaPara(banco, lido.cartao)
+    if (lido?.tipo === 'ignorar') continue
+    const contaId = lido && contaPara(banco, lido.tipo === 'movimento' && lido.cartao)
     if (!lido || !contaId) {
       useStore.getState().capturar(`${banco}: ${c.titulo} — ${c.texto}`)
       paraRevisar++
+      continue
+    }
+    if (lido.tipo === 'reserva') {
+      // Cofrinho: o dinheiro muda de lugar, sem contar como gasto nem receita. No resgate, o que passa do guardado é
+      // rendimento. Com Open Finance na conta o lançamento oficial vem inteiro, então não se divide (senão não casa).
+      const conta = useFinancas.getState().contas.find((x) => x.id === contaId)
+      const { principal, rendimento } =
+        lido.valor > 0 && !conta?.pluggyId ? dividirResgate(guardadoEm(c.pacote), lido.valor) : { principal: lido.valor, rendimento: 0 }
+      const base = { contaId, data: dataISO(c.quando), provisoria: true }
+      registrados += fin.importar([
+        { ...base, valor: principal, descricao: lido.descricao, categoriaId: TRANSFERENCIA, chaveImport: `notificacao:${c.pacote}:reserva:${c.quando}:${lido.valor}` },
+        ...(rendimento
+          ? [
+              {
+                ...base,
+                valor: rendimento,
+                descricao: `Rendimento · ${lido.descricao}`.slice(0, 60),
+                categoriaId: fin.categorias.find((x) => x.id === 'cat-outras-receitas')?.id ?? null,
+                chaveImport: `notificacao:${c.pacote}:rendimento:${c.quando}:${rendimento}`,
+              },
+            ]
+          : []),
+      ])
+      if (capturas.length === 1)
+        useAvisos
+          .getState()
+          .mostrar(
+            lido.valor < 0 ? 'Dinheiro guardado' : 'Resgate registrado',
+            `${reais(Math.abs(lido.valor))} · ${lido.descricao} (${banco})${rendimento ? ` · rendeu ${reais(rendimento)}` : ''}`,
+          )
       continue
     }
     registrados += fin.importar([

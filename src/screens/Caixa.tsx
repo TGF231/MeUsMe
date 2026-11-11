@@ -152,7 +152,7 @@ function AcoesDaCaptura({ ctx }: Readonly<{ ctx: Contexto }>) {
   const SUGESTOES: Partial<Record<Classe, [string, () => void]>> = {
     lembrete: ['Parece um lembrete', () => setModo({ tipo: 'lembrete' })],
     compromisso: ['Parece um compromisso', () => setModo({ tipo: 'evento' })],
-    passo: ['Parece uma tarefa solta', tarefa],
+    passo: ['Parece uma tarefa', tarefa],
     ...(!captura.audio && { ideia: ['Parece uma ideia', ideia], compra: ['Parece vontade de comprar', comprar] }),
     ...(!dinheiro && {
       despesa: ['Parece um gasto', () => setModo({ tipo: 'gasto', receita: false })],
@@ -186,7 +186,7 @@ function AcoesDaCaptura({ ctx }: Readonly<{ ctx: Contexto }>) {
             Registrar {dinheiro.direcao === 'entrada' ? 'entrada' : 'gasto'} de {reais(dinheiro.valor)}
           </Botao>
         )}
-        {sugestao !== 'passo' && <button onClick={tarefa}>Tarefa solta</button>}
+        {sugestao !== 'passo' && <button onClick={tarefa}>Tarefa</button>}
         {ativos.length > 0 && (
           <select aria-label="Passo de projeto" value="" onChange={(e) => e.target.value && setModo({ tipo: 'passo', projetoId: e.target.value })}>
             <option value="">Passo de projeto…</option>
@@ -379,7 +379,7 @@ export function Caixa() {
                   ))}
                 </>
               )}
-              {recentes.length > 0 && <h2>Para processar ({recentes.length})</h2>}
+              {recentes.length > 0 && <h2>Para organizar ({recentes.length})</h2>}
               {recentes.map((c) => (
                 <div key={c.id} className="cartao">
                   <p className="passo pequeno">{c.texto}</p>
