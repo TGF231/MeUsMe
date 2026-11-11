@@ -5,6 +5,15 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.4',
+    itens: [
+      'Visual mais limpo: campos preenchidos sem contorno, botões secundários só com contorno e a tela aberta marcada por um fundo, sem linha vermelha.',
+      'Notificações do banco: propaganda com valor, compra recusada e avisos de limite ou saldo não viram mais gasto.',
+      'Cofrinho, caixinha e porquinho: guardar e resgatar entram como transferência; o que voltar a mais que o guardado entra como rendimento.',
+      'Rotinas sempre se repetem, e as de projetos concluídos saem da lista.',
+    ],
+  },
+  {
     versao: '0.9.3',
     itens: [
       'Em espera ganhou Tarefas e Rotinas: o que ainda não tem forma fica em Para organizar; o que já foi definido, aqui.',
