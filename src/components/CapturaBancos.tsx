@@ -48,6 +48,10 @@ export function CapturaBancos() {
         Quando o banco avisa “Compra de R$ 35,90 aprovada em iFood”, o MeUsMe registra o gasto na hora, mesmo fechado. Quando o Open Finance
         trouxer o lançamento oficial, ele substitui este automaticamente.
       </p>
+      <p className="motivo">
+        Propaganda com valor, compra recusada e avisos de limite ou saldo são descartados. Dinheiro guardado ou resgatado de cofrinho, caixinha
+        ou porquinho entra como transferência, sem contar como gasto; no resgate, o que vier a mais que o guardado entra como rendimento.
+      </p>
       {permitido ? (
         <p className="motivo">Acesso liberado.</p>
       ) : (

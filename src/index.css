@@ -122,15 +122,35 @@ textarea {
   color: inherit;
 }
 
+/*
+ * Forma dos controles do MegUI (megui-componentes.css): o campo de uma linha e a seleção são preenchimento sem
+ * contorno em repouso; o contorno aparece ao passar o ponteiro e o anel, no foco. O de várias linhas mantém o
+ * contorno, senão não se vê onde começa. Desabilitado é o inverso: sem preenchimento, contorno fraco.
+ */
 input,
 select,
 textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid var(--borda-2);
+  border: 1px solid transparent;
   border-radius: var(--raio-controle);
-  background: var(--rebaixado);
+  background: var(--superficie-2);
   min-height: var(--alvo);
+}
+
+:is(input, select):hover:not(:disabled) {
+  border-color: var(--borda-2);
+}
+
+textarea {
+  background: var(--rebaixado);
+  border-color: var(--borda-2);
+}
+
+:is(input, select, textarea):disabled {
+  background: transparent;
+  color: var(--apagado);
+  border-color: var(--borda);
 }
 
 input:focus,
@@ -146,7 +166,8 @@ button {
   min-height: var(--alvo);
   border-radius: var(--raio-controle);
   border: 1px solid var(--borda-2);
-  background: var(--superficie);
+  /* Secundário é só contorno: o preenchimento fica para a ação primária. */
+  background: transparent;
 }
 
 button:hover {
@@ -196,6 +217,10 @@ html {
   padding: 8px;
   min-height: var(--alvo);
   min-width: var(--alvo);
+}
+
+.icone-botao:hover {
+  background: var(--borda);
 }
 
 .icone-botao.ativo {
@@ -402,6 +427,23 @@ h2.titulo {
   border-bottom: 1px solid var(--borda);
 }
 
+/* O último item do cartão não repete a borda de baixo do próprio cartão. */
+.cartao > .item:last-child,
+.rotina > .item {
+  border-bottom: 0;
+}
+
+/* Rotinas: a contagem fica junto do passo, e a linha separa uma rotina da outra. */
+.rotina {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--borda);
+}
+
+.rotina:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
 /* Passo com três ações: no celular o texto fica com a largura e as ações descem para a linha de baixo. */
 .linha.entre.passo-item {
   flex-wrap: wrap;
@@ -481,23 +523,16 @@ textarea.nota-passo {
 }
 
 /*
- * Aba aberta como marcador de livro: sobe para fora da barra, com a borda do acento em cima e dos lados e aberta
- * embaixo, emendada na barra. A barra não engrossa; só a aba aberta passa da linha de cima.
+ * Aba aberta como marcador de livro: sobe para fora da barra, emendada nela por baixo. A barra não engrossa; só a
+ * aba aberta passa da linha de cima. A cor é a da marca de fundo da aba ativa do MegUI (a mesma da linha de cima da
+ * barra) com peso forte: o acento fica só na ação primária.
  */
 .abas button.ativo {
   color: var(--texto);
-  background: var(--acento-leve);
+  background: var(--borda);
   font-weight: var(--peso-forte);
   margin-top: -18px;
-  border: 1px solid var(--acento-linha);
-  border-top-width: 2px;
-  border-bottom: 0;
   border-radius: var(--raio) var(--raio) 0 0;
-}
-
-/* Item ativo: texto padrão sobre o acento suave; acento no ícone. */
-.abas button.ativo svg {
-  color: var(--acento-linha);
 }
 
 .contador {
@@ -690,14 +725,15 @@ input.mini {
 .dias {
   display: flex;
   flex-wrap: wrap;
-  gap: 1px;
-  background: var(--borda);
+  gap: var(--megui-esp-meio);
+  padding: var(--megui-esp-meio);
+  background: var(--superficie-2);
   border: 1px solid var(--borda);
   border-radius: var(--raio);
-  overflow: hidden;
   margin-bottom: 12px;
 }
 
+/* Cada item é um rótulo solto, sem caixa. */
 .menu-aba > *,
 .sub-abas > *,
 .dias > * {
@@ -708,15 +744,19 @@ input.mini {
   min-height: var(--alvo);
   margin: 0;
   padding: 6px 8px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  background: var(--superficie-2);
+  border: 1px solid transparent;
+  border-radius: var(--raio);
+  background: transparent;
   color: var(--suave);
   font-size: 0.9rem;
   line-height: 1.25;
   text-align: center;
   white-space: normal;
+}
+
+:is(.menu-aba, .sub-abas, .dias) > :hover {
+  background: transparent;
+  color: var(--texto);
 }
 
 /* Os quatro do menu de Em ação cabem numa linha no celular. */
@@ -732,13 +772,12 @@ input.mini {
   flex-basis: 76px;
 }
 
-/* A tela aberta: fundo de selecionado e a marca de 2px do acento embaixo, como uma aba. */
+/* A tela aberta é uma marca de fundo com peso forte, como a aba ativa do MegUI: sem caixa e sem linha de acento. */
 .menu-aba > [aria-current='page'],
 .sub-abas > [aria-selected='true'],
 .dias > [aria-pressed='true'] {
-  background: var(--acento-leve);
+  background: var(--borda);
   color: var(--texto);
-  border-bottom-color: var(--acento-linha);
   font-weight: var(--peso-forte);
 }
 

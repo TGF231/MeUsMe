@@ -26,6 +26,8 @@ interface Props {
   comDatas?: boolean
   /** Datas já preenchidas ao abrir e depois de salvar (ex.: Rotinas começa em "todo dia"). */
   datasIniciais?: Datas
+  /** Rotinas: o passo sempre se repete, então "Não repetir" não é oferecido. */
+  sempreRepete?: boolean
   onSalvar: (texto: string, energia: Energia, datas: Datas) => void
   onCancelar?: () => void
   rotuloCancelar?: string
@@ -40,6 +42,7 @@ export function PassoForm({
   sugerir = true,
   comDatas = true,
   datasIniciais = {},
+  sempreRepete = false,
   onSalvar,
   onCancelar,
   rotuloCancelar = 'Cancelar',
@@ -119,7 +122,7 @@ export function PassoForm({
       )}
       <label className="rotulo">Quanta energia isso pede?</label>
       <SeletorEnergia valor={energia} onChange={setEnergia} />
-      {comDatas && <CamposDeData datas={datas} onChange={setDatas} />}
+      {comDatas && <CamposDeData datas={datas} onChange={setDatas} sempreRepete={sempreRepete} />}
       <div className="linha">
         <Botao variante="acento" type="submit">
           {rotuloBotao}
@@ -135,7 +138,17 @@ export function PassoForm({
 }
 
 /** Prazo, "só a partir de" e repetição, recolhidos: a maioria dos passos não precisa disso. */
-export function CamposDeData({ datas, onChange, aberto = false }: { datas: Datas; onChange: (d: Datas) => void; aberto?: boolean }) {
+export function CamposDeData({
+  datas,
+  onChange,
+  aberto = false,
+  sempreRepete = false,
+}: {
+  datas: Datas
+  onChange: (d: Datas) => void
+  aberto?: boolean
+  sempreRepete?: boolean
+}) {
   const idPrazo = useId()
   const idInicio = useId()
   const idRepetir = useId()
@@ -169,14 +182,14 @@ export function CamposDeData({ datas, onChange, aberto = false }: { datas: Datas
         value={datas.repetir ?? ''}
         onChange={(e) => onChange({ ...datas, repetir: (e.target.value || undefined) as Datas['repetir'] })}
       >
-        <option value="">Não repetir</option>
+        {!sempreRepete && <option value="">Não repetir</option>}
         <option value="diario">Todo dia</option>
         <option value="semanal">Toda semana</option>
         <option value="mensal">Todo mês</option>
       </select>
       <p className="motivo">
-        O prazo ajuda o Agora a escolher; se passar, o app sugere uma nova data, sem cobrança. Um passo que se repete volta sozinho depois de feito,
-        e só aparece no Agora na data seguinte.
+        O prazo ajuda Em ação a escolher; se passar, o app sugere uma nova data, sem cobrança. Um passo que se repete volta sozinho depois de feito,
+        e só aparece em Em ação na data seguinte.
       </p>
     </details>
   )

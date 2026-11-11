@@ -40,7 +40,7 @@ import { useStatusSync, type StatusSync } from './sync/motor'
 const NOMES: Record<Aba, string> = {
   agora: 'Em ação',
   planejar: 'Planejar o dia',
-  caixa: 'Em espera',
+  caixa: 'Para organizar',
   financas: 'Finanças',
   agenda: 'Agenda',
   projetos: 'Projetos',
@@ -51,7 +51,11 @@ const NOMES: Record<Aba, string> = {
 }
 
 // Só três abas: o que está em ação, o que espera ser organizado e o dinheiro, que tem subabas e ajustes próprios.
-const ABAS: { id: 'agora' | 'caixa' | 'financas'; nome: string }[] = (['agora', 'caixa', 'financas'] as const).map((id) => ({ id, nome: NOMES[id] }))
+const ABAS: { id: 'agora' | 'caixa' | 'financas'; nome: string }[] = [
+  { id: 'agora', nome: 'Em ação' },
+  { id: 'caixa', nome: 'Em espera' },
+  { id: 'financas', nome: 'Finanças' },
+]
 
 /** As telas de dentro de cada aba, na ordem do menu da própria aba. */
 const VISTAS: Partial<Record<Aba, { id: Aba; nome: string }[]>> = {
@@ -80,7 +84,7 @@ function MenuDaAba({ aba, desligados, contagem }: Readonly<{ aba: Aba; desligado
   const vistas = (VISTAS[ABA_DA_TELA[aba]] ?? []).filter((v) => !desligados.includes(v.id))
   if (vistas.length < 2) return null
   return (
-    <nav className="menu-aba" aria-label={`Telas de ${NOMES[ABA_DA_TELA[aba]]}`}>
+    <nav className="menu-aba" aria-label={`Telas de ${ABAS.find((a) => a.id === ABA_DA_TELA[aba])?.nome ?? ''}`}>
       {vistas.map((v) => (
         // Leva a outra tela: o leitor ouve "página atual", não "botão pressionado".
         <BotaoInterruptor
@@ -90,7 +94,8 @@ function MenuDaAba({ aba, desligados, contagem }: Readonly<{ aba: Aba; desligado
           aria-current={v.id === aba ? 'page' : undefined}
           onClick={() => ir(v.id)}
         >
-          {v.id === 'caixa' && contagem > 0 ? `${v.nome} · ${contagem}` : v.id === 'planejar' && atencoes > 0 ? `${v.nome} · ${atencoes}` : v.nome}
+          {/* Espaços que não quebram: o número fica na linha da última palavra, e não sozinho embaixo. */}
+          {v.id === 'caixa' && contagem > 0 ? `${v.nome} · ${contagem}` : v.id === 'planejar' && atencoes > 0 ? `${v.nome} · ${atencoes}` : v.nome}
         </BotaoInterruptor>
       ))}
     </nav>
