@@ -179,33 +179,51 @@ function em24h(padrao: number, h: number, periodo: string) {
   return h
 }
 
+/** A hora que o padrão `i` acha no texto, ou null. */
+function horaDoPadrao(texto: string, i: number): Hora | null {
+  const m = primeiro(texto, HORAS[i])
+  if (!m) return null
+  if (i === 0) return { ...trechoDe(m), h: /meio/i.test(m[1]) ? 12 : 0, m: minutos(m[2]) }
+  const h = i === 4 ? HORAS_POR_EXTENSO.indexOf(semAcento(m[1])) + 1 : Number(m[1])
+  const periodo = m[3]?.toLowerCase() ?? ''
+  if (ehDuracao(i, m, h, periodo)) return null
+  return { ...trechoDe(m), h: em24h(i, h, periodo), m: minutos(m[2]) }
+}
+
 /** Lê uma hora: "13:00", "13h30", "às 3 da tarde", "meio-dia". */
 export function lerHora(texto: string): Hora | null {
-  for (const [i, re] of HORAS.entries()) {
-    const m = primeiro(texto, re)
-    if (!m) continue
-    if (i === 0) return { ...trechoDe(m), h: /meio/i.test(m[1]) ? 12 : 0, m: minutos(m[2]) }
-    const h = i === 4 ? HORAS_POR_EXTENSO.indexOf(semAcento(m[1])) + 1 : Number(m[1])
-    const periodo = m[3]?.toLowerCase() ?? ''
-    if (ehDuracao(i, m, h, periodo)) continue
-    return { ...trechoDe(m), h: em24h(i, h, periodo), m: minutos(m[2]) }
+  for (const i of HORAS.keys()) {
+    const hora = horaDoPadrao(texto, i)
+    if (hora) return hora
   }
   return null
 }
 
+/** Como lerHora, mas fica com a hora que aparece primeiro no texto, seja qual for o formato. */
+function primeiraHora(texto: string): Hora | null {
+  let melhor: Hora | null = null
+  for (const i of HORAS.keys()) {
+    const hora = horaDoPadrao(texto, i)
+    if (hora && (!melhor || hora.inicio < melhor.inicio)) melhor = hora
+  }
+  return melhor
+}
+
 const LIGA_HORAS = /^\s*(?:às|as|a|até|ate|-|–)\s*/i
 
-/** "das 14h às 16h", "15h-17h", "15:00 até 16:30": a hora de início e a de fim. */
+/** "das 14h às 16h", "15h-17h", "15:00 até 16:30", "das 14h às 16:30": a hora de início e a de fim. */
 export function lerIntervalo(texto: string): { inicio: Hora; fim: Hora; trecho: Trecho } | null {
-  const inicio = lerHora(texto)
+  // Cada ponta pode vir num formato diferente: vale a primeira hora do texto, não o primeiro padrão que achar.
+  const inicio = primeiraHora(texto)
   if (!inicio) return null
   const resto = texto.slice(inicio.fim)
   const liga = resto.match(LIGA_HORAS)
   if (!liga) return null
   const depois = resto.slice(liga[0].length)
   // "15h às 17" também vale: sem "h", o número só é hora com "às" na frente.
-  const fim = lerHora(depois) ?? lerHora(`às ${depois}`)
-  const deslocamento = lerHora(depois) ? 0 : -3
+  const direto = primeiraHora(depois)
+  const fim = direto ?? primeiraHora(`às ${depois}`)
+  const deslocamento = fim === direto ? 0 : -3
   if (!fim || fim.inicio !== 0) return null
   const fimAbsoluto = inicio.fim + liga[0].length + fim.fim + deslocamento
   return {
