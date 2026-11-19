@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { escolherPasso } from '../src/escolher.ts'
+import { anotadosFora, escolherPasso } from '../src/escolher.ts'
 import type { Passo, Projeto } from '../src/types.ts'
 
 const projeto: Projeto = { id: 'festa', titulo: 'Festa', chegada: 'Festa feita', criadoEm: 0 }
@@ -69,4 +69,33 @@ test('pedaços de uma tarefa solta com o mesmo prazo vêm antes do original', ()
     passo('pedaco2', 0.75, { projetoId: null, prazo: '2026-11-01' }),
   ].map((p) => ({ ...p, criadoEm: 0 }))
   assert.equal(escolherPasso([], lista, null, 2, new Set(), new Set(), '2026-11-01')?.passo.id, 'pedaco1')
+})
+
+test('passo com 3 "Agora não" passa na frente de uma tarefa solta igual', () => {
+  const soltas = [passo('a', 1, { projetoId: null }), passo('b', 2, { projetoId: null, adiamentos: 3 })]
+  assert.equal(escolherPasso([], soltas, null, 2, new Set())?.passo.id, 'b')
+  // Com 2, ainda não: a ordem de antes vale.
+  const duas = [passo('a', 1, { projetoId: null }), passo('b', 2, { projetoId: null, adiamentos: 2 })]
+  assert.equal(escolherPasso([], duas, null, 2, new Set())?.passo.id, 'a')
+})
+
+test('no trabalho, passo marcado para casa dá lugar ao seguinte; sem lugar vale nos dois', () => {
+  const comLugar = [passo('lista', 1, { contexto: 'casa' }), passo('convite', 2)]
+  const no = (lugar: 'trabalho' | 'casa' | null) =>
+    escolherPasso([projeto], comLugar, 'festa', 2, new Set(), new Set(), undefined, lugar)?.passo.id
+  assert.equal(no('trabalho'), 'convite')
+  assert.equal(no('casa'), 'lista')
+  assert.equal(no(null), 'lista')
+})
+
+test('chegada: mostra só o que foi anotado para o lugar enquanto você estava fora', () => {
+  const lista = [
+    passo('antes', 1, { contexto: 'trabalho', criadoEm: 100 }),
+    passo('fora', 2, { contexto: 'trabalho', criadoEm: 200 }),
+    passo('casa', 3, { contexto: 'casa', criadoEm: 210 }),
+    passo('feito', 4, { contexto: 'trabalho', criadoEm: 220, feitoEm: 230 }),
+    passo('depois', 5, { contexto: 'trabalho', criadoEm: 400 }),
+  ]
+  assert.deepEqual(anotadosFora(lista, 'trabalho', 150, 300).map((p) => p.id), ['fora'])
+  assert.deepEqual(anotadosFora(lista, 'trabalho', undefined, 300), [])
 })

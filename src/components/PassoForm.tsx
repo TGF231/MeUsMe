@@ -152,9 +152,10 @@ export function CamposDeData({
   const idPrazo = useId()
   const idInicio = useId()
   const idRepetir = useId()
+  const idLugar = useId()
   return (
-    <details className="datas-do-passo" open={aberto || Boolean(datas.prazo || datas.aPartirDe || datas.repetir)}>
-      <summary>Datas e repetição (opcional)</summary>
+    <details className="datas-do-passo" open={aberto || Boolean(datas.prazo || datas.aPartirDe || datas.repetir || datas.contexto)}>
+      <summary>Datas, repetição e lugar (opcional)</summary>
       <div className="linha">
         <span>
           <label className="rotulo" htmlFor={idPrazo}>
@@ -187,9 +188,21 @@ export function CamposDeData({
         <option value="semanal">Toda semana</option>
         <option value="mensal">Todo mês</option>
       </select>
+      <label className="rotulo" htmlFor={idLugar}>
+        Onde se resolve
+      </label>
+      <select
+        id={idLugar}
+        value={datas.contexto ?? ''}
+        onChange={(e) => onChange({ ...datas, contexto: (e.target.value || undefined) as Datas['contexto'] })}
+      >
+        <option value="">Em qualquer lugar</option>
+        <option value="trabalho">No trabalho</option>
+        <option value="casa">Em casa</option>
+      </select>
       <p className="motivo">
         O prazo ajuda Em ação a escolher; se passar, o app sugere uma nova data, sem cobrança. Um passo que se repete volta sozinho depois de feito,
-        e só aparece em Em ação na data seguinte.
+        e só aparece em Em ação na data seguinte. Com lugar, o passo espera você dizer em Em ação que está lá.
       </p>
     </details>
   )

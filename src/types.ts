@@ -21,6 +21,11 @@ export interface Projeto {
   chegada: string
   criadoEm: number
   concluidoEm?: number
+  /**
+   * Encerrado antes da linha de chegada, com o que ele já deu (uma frase). Conta como fechado, não como abandonado:
+   * às vezes o que se queria de um projeto era aprender ou testar um jeito, e isso já aconteceu.
+   */
+  aprendizado?: string
 }
 
 export interface Passo {
@@ -46,10 +51,19 @@ export interface Passo {
   repeteDe?: string
   /** Contexto curto junto do passo (V10): link, endereço, o que não esquecer. Só texto; anexos esperam o IndexedDB. */
   nota?: string
+  /** Onde o passo se resolve. Sem lugar, vale nos dois. */
+  contexto?: Contexto
+  /** Quantas vezes o passo levou "Agora não". A partir de 3, o Agora sugere uma versão menor; diminuir zera. */
+  adiamentos?: number
+  /** O texto de antes, quando o passo foi diminuído: na revisão, ele aparece como "encolheu", nunca como falha. */
+  reduzidoDe?: string
 }
 
-/** Datas opcionais de um passo, em AAAA-MM-DD. */
-export type Datas = Pick<Passo, 'prazo' | 'aPartirDe' | 'repetir'>
+/** Onde um passo se resolve: lembrança anotada no lugar errado espera o lugar certo. */
+export type Contexto = 'trabalho' | 'casa'
+
+/** Datas opcionais de um passo, em AAAA-MM-DD, e o lugar onde ele se resolve. */
+export type Datas = Pick<Passo, 'prazo' | 'aPartirDe' | 'repetir' | 'contexto'>
 
 /** Projeto reaproveitável: nome, chegada e passos, criados de uma vez com um toque. */
 export interface Modelo {

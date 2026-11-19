@@ -10,20 +10,21 @@ import { AnelDoBloco, Palpite } from '../components/RelogioDeFoco'
 import { RevisaoSemana } from '../components/RevisaoSemana'
 import { PontosEditaveis, SeletorEnergia } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
-import { escolherPasso, type Escolha } from '../escolher'
+import { ADIAMENTOS_PARA_DIMINUIR, anotadosFora, escolherPasso, type Escolha } from '../escolher'
 import { useAgora } from '../hooks'
 import { useEnergiaEscolhida } from '../stores/energia'
+import { useContexto } from '../stores/contexto'
 import { FIM_DO_DIA_H } from '../atencoes'
 import { capacidadeDoDia, duracaoPrevista, horariosLivres, montarDia, refazerResto } from '../montarDia'
 import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
 import { chaveEvento, useAgenda } from '../stores/agenda'
 import { useAvisos, useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
-import type { Energia, Evento, Passo, Projeto } from '../types'
+import type { Contexto, Energia, Evento, Passo, Projeto } from '../types'
 import { duracao, hora, inicioDoDia, nomeDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 import { Simbolo } from '../components/Icone'
-import { Botao } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const relogio = (ms: number) => {
   const s = Math.floor(ms / 1000)
@@ -307,6 +308,51 @@ function RefazerResto({ agora }: Readonly<{ agora: number }>) {
   )
 }
 
+const LUGARES: [Contexto, string][] = [
+  ['trabalho', 'No trabalho'],
+  ['casa', 'Em casa'],
+]
+
+/** Trabalho ou casa. Só aparece quando algum passo pendente tem lugar: quem não usa não ganha mais um controle. */
+function SeletorLugar() {
+  const { atual, ir } = useContexto()
+  const temLugar = useStore((s) => s.passos.some((p) => p.contexto && !p.feitoEm))
+  if (!atual && !temLugar) return null
+  return (
+    <div className="chips" role="group" aria-label="Onde você está">
+      {LUGARES.map(([c, rotulo]) => (
+        <BotaoInterruptor key={c} ligado={atual === c} onClick={() => ir(atual === c ? null : c)}>
+          {rotulo}
+        </BotaoInterruptor>
+      ))}
+    </div>
+  )
+}
+
+/** Ao chegar a um lugar, o que foi anotado para ele enquanto você estava no outro: não depende de lembrar na troca. */
+function Chegada() {
+  const { atual, saiuEm, chegouEm, chegadaVista, verChegada } = useContexto()
+  const passos = useStore((s) => s.passos)
+  if (!atual || chegadaVista) return null
+  const lista = anotadosFora(passos, atual, saiuEm[atual], chegouEm)
+  if (lista.length === 0) return null
+  return (
+    <div className="cartao compacto">
+      <p>
+        <b>Anotado para {atual === 'trabalho' ? 'o trabalho' : 'casa'} enquanto você estava fora:</b>
+      </p>
+      <ul className="lista-simples">
+        {lista.map((p) => (
+          <li key={p.id}>{p.texto}</li>
+        ))}
+      </ul>
+      <button className="discreto" onClick={verChegada}>
+        Ok, visto
+      </button>
+    </div>
+  )
+}
+
 export function Agora() {
   const s = useStore()
   const eventos = useAgenda((a) => a.eventos)
@@ -315,7 +361,8 @@ export function Agora() {
   const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 2
   const setEnergia = useEnergiaEscolhida((e) => e.escolher)
   const [pulados, setPulados] = useState<Set<string>>(new Set())
-  const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando'>('normal')
+  const lugar = useContexto()
+  const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando' | 'diminuindo'>('normal')
   const [celebrar, setCelebrar] = useState<{ passoId: string; projeto: Projeto | null; restantes: number } | null>(null)
   const encerrados = useAgenda((a) => a.encerrados)
   const encerrarEvento = useAgenda((a) => a.encerrarEvento)
@@ -346,8 +393,8 @@ export function Agora() {
   const sugerida = useMemo(() => {
     // Passos com reserva futura ficam fora da sugestão até o horário (o resto do projeto continua).
     const reservados = new Set(eventos.filter((e) => e.passoId && e.inicio > agora).map((e) => e.passoId!))
-    return escolherPasso(s.projetos, s.passos, s.focoId, energia, pulados, reservados)
-  }, [s.projetos, s.passos, s.focoId, energia, pulados, eventos, agora])
+    return escolherPasso(s.projetos, s.passos, s.focoId, energia, pulados, reservados, undefined, lugar.atual)
+  }, [s.projetos, s.passos, s.focoId, energia, pulados, eventos, agora, lugar.atual])
 
   const proximaReserva = eventos
     .filter((e) => e.passoId && e.inicio > agora && s.passos.some((p) => p.id === e.passoId && !p.feitoEm))
@@ -390,6 +437,12 @@ export function Agora() {
     const restantes = projeto ? pendentes(useStore.getState().passos, projeto.id).length : 0
     setCelebrar({ passoId, projeto, restantes })
     setModo('normal')
+  }
+
+  // "Agora não" tira o passo da vez e conta: depois de alguns, o Agora oferece uma versão menor em vez de cobrar.
+  const agoraNao = (passo: Passo) => {
+    setPulados(new Set(pulados).add(passo.id))
+    s.atualizarPasso(passo.id, { adiamentos: (passo.adiamentos ?? 0) + 1 })
   }
 
   const estacionar = (projetoId: string | null) => {
@@ -561,6 +614,8 @@ export function Agora() {
       )}
 
       <SeletorEnergia valor={energia} onChange={setEnergia} />
+      <SeletorLugar />
+      <Chegada />
 
       {/* O passo fica no meio da altura que sobra, e não colado no topo com a tela vazia embaixo. */}
       <div className="agora-meio">
@@ -625,6 +680,14 @@ export function Agora() {
                 {verNota && <NotaDoPasso nota={escolha.passo.nota} />}
               </>
             )}
+            {(escolha.passo.adiamentos ?? 0) >= ADIAMENTOS_PARA_DIMINUIR && (
+              <p className="dica">
+                Este passo já ficou para depois {escolha.passo.adiamentos} vezes. Tudo bem: uma versão menor também conta.{' '}
+                <button className="discreto" onClick={() => setModo('diminuindo')}>
+                  Diminuir
+                </button>
+              </p>
+            )}
             {escolha.acimaDaEnergia && <p className="dica">Tudo na fila pede mais energia do que você tem agora. Que tal quebrar este em algo menor?</p>}
             <Botao variante="acento" className="grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
               Começar
@@ -640,7 +703,7 @@ export function Agora() {
               <button className="discreto" onClick={() => setModo('agendando')}>
                 Agendar
               </button>
-              <button className="discreto" onClick={() => setPulados(new Set(pulados).add(escolha.passo.id))}>
+              <button className="discreto" onClick={() => agoraNao(escolha.passo)}>
                 Agora não
               </button>
             </div>
@@ -652,6 +715,25 @@ export function Agora() {
       {escolha && modo === 'quebrando' && (
         <Modal titulo="Grande demais" onFechar={() => setModo('normal')}>
           <Quebrar passo={escolha.passo} onPronto={() => setModo('normal')} />
+        </Modal>
+      )}
+      {escolha && modo === 'diminuindo' && (
+        <Modal titulo="Versão menor" onFechar={() => setModo('normal')}>
+          <p className="motivo">O que, menor do que “{escolha.passo.texto}”, já contaria como feito? Se forem vários pedaços, use Grande demais.</p>
+          <PassoForm
+            inicial={escolha.passo.texto}
+            pergunta="A versão menor"
+            rotuloBotao="Trocar por esta"
+            sugerir={false}
+            comDatas={false}
+            energiaInicial={1}
+            onSalvar={(texto, energia) => {
+              const p = escolha.passo
+              s.atualizarPasso(p.id, { texto, energia, adiamentos: 0, reduzidoDe: p.reduzidoDe ?? p.texto })
+              setModo('normal')
+            }}
+            onCancelar={() => setModo('normal')}
+          />
         </Modal>
       )}
       {escolha && modo === 'agendando' && (

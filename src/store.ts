@@ -31,7 +31,8 @@ interface Estado {
   adiarIdeia: (id: string) => void
 
   criarProjeto: (titulo: string, chegada: string) => string
-  concluirProjeto: (id: string) => void
+  /** Com `aprendizado`, o projeto fecha antes da linha de chegada com o que ele já deu. */
+  concluirProjeto: (id: string, aprendizado?: string) => void
   reabrirProjeto: (id: string) => void
   atualizarProjeto: (id: string, mudancas: Partial<Pick<Projeto, 'titulo' | 'chegada'>>) => void
   /** Apaga o projeto e os passos pendentes. Passos feitos ficam no Histórico; ideias voltam para a Caixa. */
@@ -96,16 +97,16 @@ export const useStore = create<Estado>()(
         set((s) => ({ projetos: [...s.projetos, { id: pid, titulo, chegada, criadoEm: Date.now() }] }))
         return pid
       },
-      concluirProjeto: (pid) =>
+      concluirProjeto: (pid, aprendizado) =>
         set((s) => ({
-          projetos: s.projetos.map((p) => (p.id === pid ? { ...p, concluidoEm: Date.now() } : p)),
+          projetos: s.projetos.map((p) => (p.id === pid ? { ...p, concluidoEm: Date.now(), ...(aprendizado && { aprendizado }) } : p)),
           focoId: s.focoId === pid ? null : s.focoId,
         })),
       reabrirProjeto: (pid) =>
         set((s) => ({
           projetos: s.projetos.map((p) => {
             if (p.id !== pid) return p
-            const { concluidoEm: _, ...aberto } = p
+            const { concluidoEm: _, aprendizado: __, ...aberto } = p
             return aberto
           }),
         })),
