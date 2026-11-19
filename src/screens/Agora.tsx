@@ -21,7 +21,7 @@ import { chaveEvento, useAgenda } from '../stores/agenda'
 import { useAvisos, useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
 import type { Contexto, Energia, Evento, Passo, Projeto } from '../types'
-import { dataISO, duracao, hora, inicioDoDia, nomeDoDia, reais } from '../util'
+import { dataISO, duracao, hora, horaInput, inicioDoDia, nomeDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 import { Simbolo } from '../components/Icone'
 import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
@@ -228,6 +228,14 @@ function CapacidadeDoDia({ agora }: Readonly<{ agora: number }>) {
  * "Agora não" com hora marcada: tudo bem deixar para depois, desde que o depois tenha dia e hora. Os horários livres
  * reservam com um toque; o formulário aceita qualquer dia e hora no futuro. Sem escolher, o passo continua na tela.
  */
+/** Atalhos de "daqui a": minutos e rótulo. */
+const DAQUI_A: [number, string][] = [
+  [30, '30 min'],
+  [60, '1 hora'],
+  [120, '2 horas'],
+  [240, '4 horas'],
+]
+
 function RetomarEm({ passo, agora, onPronto, onCancelar }: Readonly<{ passo: Passo; agora: number; onPronto: () => void; onCancelar: () => void }>) {
   const s = useStore()
   const agenda = useAgenda()
@@ -237,6 +245,14 @@ function RetomarEm({ passo, agora, onPronto, onCancelar }: Readonly<{ passo: Pas
   const inicio = new Date(`${dia}T${horario}`).getTime()
   const valido = Number.isFinite(inicio) && inicio > agora
   const minutos = duracaoPrevista(passo, Math.min(2, Math.max(0.5, calibracao(s.passos, s.sessoes)?.fator ?? 1)))
+  // "Daqui a X tempo" só preenche dia e hora: você vê quando vai ser antes de combinar.
+  const [quantos, setQuantos] = useState('')
+  const [unidade, setUnidade] = useState(60)
+  const daqui = (min: number) => {
+    const quando = Date.now() + min * 60_000
+    setDia(dataISO(quando))
+    setHorario(horaInput(quando))
+  }
 
   return (
     <>
@@ -252,6 +268,44 @@ function RetomarEm({ passo, agora, onPronto, onCancelar }: Readonly<{ passo: Pas
           onPronto()
         }}
       >
+        <span className="rotulo">Ou daqui a</span>
+        <div className="chips" role="group" aria-label="Daqui a quanto tempo">
+          {DAQUI_A.map(([min, rotulo]) => (
+            <button key={min} type="button" onClick={() => daqui(min)}>
+              {rotulo}
+            </button>
+          ))}
+        </div>
+        <div className="linha">
+          <span>
+            <input
+              type="number"
+              min={1}
+              inputMode="numeric"
+              aria-label="Quanto tempo"
+              placeholder="Outro: quanto?"
+              value={quantos}
+              onChange={(e) => {
+                setQuantos(e.target.value)
+                if (Number(e.target.value) > 0) daqui(Number(e.target.value) * unidade)
+              }}
+            />
+          </span>
+          <span>
+            <select
+              aria-label="Unidade"
+              value={unidade}
+              onChange={(e) => {
+                setUnidade(Number(e.target.value))
+                if (Number(quantos) > 0) daqui(Number(quantos) * Number(e.target.value))
+              }}
+            >
+              <option value={1}>minutos</option>
+              <option value={60}>horas</option>
+              <option value={1440}>dias</option>
+            </select>
+          </span>
+        </div>
         <div className="linha">
           <span>
             <label className="rotulo" htmlFor="retomar-dia">
