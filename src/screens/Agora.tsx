@@ -249,7 +249,8 @@ function RetomarEm({ passo, agora, onPronto, onCancelar }: Readonly<{ passo: Pas
   const [quantos, setQuantos] = useState('')
   const [unidade, setUnidade] = useState(60)
   const daqui = (min: number) => {
-    const quando = Date.now() + min * 60_000
+    // `agora` atualiza a cada 30 s: o horário pode sair até meio minuto antes, o que não muda o combinado.
+    const quando = agora + min * 60_000
     setDia(dataISO(quando))
     setHorario(horaInput(quando))
   }
