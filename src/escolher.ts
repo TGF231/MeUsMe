@@ -42,7 +42,7 @@ const pesoDoAdiamento = (passo: Passo) => ((passo.adiamentos ?? 0) >= ADIAMENTOS
  * 4. Projetos com menos passos restantes vêm antes.
  * 5. Passos acima da energia informada são descartados, salvo se não houver alternativa.
  *
- * `pulados` ("Agora não") tira o projeto da vez; `reservados` (horário marcado mais tarde) e passos com
+ * `pulados` tira o projeto da vez. `reservados` (horário marcado mais tarde, inclusive o do "Agora não") e passos com
  * "só a partir de" no futuro tiram só aquele passo, e o seguinte do mesmo projeto concorre no lugar. Com `contexto`
  * (trabalho ou casa), passos marcados para o outro lugar saem do mesmo jeito; passos sem lugar valem nos dois.
  */
