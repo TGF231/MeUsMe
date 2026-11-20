@@ -1,0 +1,85 @@
+/*
+ * Camada de vidro sobre o MegUI. O MegUI continua sendo a estrutura (cores, tipos, espaços, componentes); esta camada
+ * só muda o acabamento, com a ideia geral do site (megstation.com): cantos mais redondos, cartões e barras translúcidos
+ * com desfoque, um fundo levemente tingido pelo acento e um brilho na ação principal.
+ * Os valores próprios desta camada ficam todos nas variáveis abaixo. O acento é sempre o configurado em Ajustes
+ * (src/tema/aplicar.ts), então o brilho acompanha a cor escolhida; o padrão é #7D0E0E.
+ * Carregada por último (src/main.tsx). Para voltar ao MegUI plano, basta não importar este arquivo.
+ */
+:root {
+  --vidro-raio: 14px;
+  --vidro-raio-controle: 10px;
+  --vidro-opacidade: 74%;
+  --vidro-desfoque: blur(14px) saturate(1.2);
+  --vidro-borda: color-mix(in srgb, var(--borda-2) 70%, transparent);
+  --vidro-sombra: 0 12px 32px -18px color-mix(in srgb, var(--megui-ink) 30%, transparent);
+  --vidro-brilho-interno: inset 0 1px 0 color-mix(in srgb, var(--megui-surface) 60%, transparent);
+  --vidro-tinta-1: color-mix(in srgb, var(--acento) 34%, transparent);
+  --vidro-tinta-2: color-mix(in srgb, var(--megui-info) 12%, transparent);
+  --vidro-brilho-acento: 0 10px 26px -10px color-mix(in srgb, var(--acento) 70%, transparent);
+
+  /* Os raios do app e dos componentes MegUI passam a ser os desta camada. */
+  --raio: var(--vidro-raio);
+  --raio-controle: var(--vidro-raio-controle);
+  --megui-raio: var(--vidro-raio-controle);
+}
+
+/* Fundo: a cor do MegUI com duas manchas suaves, presas à tela (não rolam com o conteúdo). */
+body {
+  background:
+    radial-gradient(60vmax 60vmax at 0% 0%, var(--vidro-tinta-1), transparent 60%),
+    radial-gradient(55vmax 55vmax at 100% 100%, var(--vidro-tinta-2), transparent 60%),
+    var(--fundo);
+  background-attachment: fixed;
+}
+
+/* Superfícies em vidro: cartões, menus de aba, modais e o Dialogo do MegUI. */
+.cartao,
+.menu-aba,
+.sub-abas,
+.dias,
+.modal,
+.mg-dialogo.modal-megui {
+  background: color-mix(in srgb, var(--superficie) var(--vidro-opacidade), transparent);
+  -webkit-backdrop-filter: var(--vidro-desfoque);
+  backdrop-filter: var(--vidro-desfoque);
+  border-color: var(--vidro-borda);
+  box-shadow: var(--vidro-sombra), var(--vidro-brilho-interno);
+}
+.menu-aba,
+.sub-abas,
+.dias {
+  background: color-mix(in srgb, var(--superficie-2) var(--vidro-opacidade), transparent);
+}
+
+/* O cartão em foco (o passo de agora) ganha um leve brilho do acento além da borda. */
+.cartao.foco {
+  box-shadow: var(--vidro-sombra), var(--vidro-brilho-interno), 0 0 0 4px color-mix(in srgb, var(--acento-linha) 14%, transparent);
+}
+
+/* Barra de abas de baixo: translúcida, o conteúdo passa por trás desfocado. */
+.abas {
+  background: color-mix(in srgb, var(--superficie-2) 80%, transparent);
+  -webkit-backdrop-filter: var(--vidro-desfoque);
+  backdrop-filter: var(--vidro-desfoque);
+  border-top-color: var(--vidro-borda);
+}
+
+/* Ação principal: o acento com um brilho por baixo. */
+.mg-botao--acento:not(:disabled),
+.mg-acao-primaria:not(:disabled) {
+  box-shadow: var(--vidro-brilho-acento);
+}
+
+/* Sem suporte a desfoque: superfície chapada, para o texto continuar legível. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .cartao,
+  .menu-aba,
+  .sub-abas,
+  .dias,
+  .modal,
+  .mg-dialogo.modal-megui,
+  .abas {
+    background: var(--superficie);
+  }
+}
