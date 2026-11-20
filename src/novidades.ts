@@ -5,6 +5,14 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.7',
+    itens: [
+      'Fonte nova, mais limpa: Inter no texto e JetBrains Mono nos números.',
+      'No celular, a aba aberta da barra de baixo ganhou a cor de destaque e não parece mais cortada embaixo.',
+      'No computador, Próximo passo usa a tela toda: à esquerda o resto do dia, à direita o que vem a seguir e o que está em espera.',
+    ],
+  },
+  {
     versao: '0.9.6',
     itens: [
       'Visual renovado: cinzas neutros no lugar dos azulados, nos temas claro e escuro.',
