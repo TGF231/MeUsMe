@@ -10,20 +10,21 @@ import { AnelDoBloco, Palpite } from '../components/RelogioDeFoco'
 import { RevisaoSemana } from '../components/RevisaoSemana'
 import { PontosEditaveis, SeletorEnergia } from '../components/SeletorEnergia'
 import { TempoGasto } from '../components/TempoGasto'
-import { escolherPasso, type Escolha } from '../escolher'
+import { ADIAMENTOS_PARA_DIMINUIR, anotadosFora, escolherPasso, type Escolha } from '../escolher'
 import { useAgora } from '../hooks'
 import { useEnergiaEscolhida } from '../stores/energia'
+import { useContexto } from '../stores/contexto'
 import { FIM_DO_DIA_H } from '../atencoes'
 import { capacidadeDoDia, duracaoPrevista, horariosLivres, montarDia, refazerResto } from '../montarDia'
 import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
 import { chaveEvento, useAgenda } from '../stores/agenda'
 import { useAvisos, useConfig } from '../stores/config'
 import { diaDeVencimento, fixaPagaNoMes, useFinancas } from '../stores/financas'
-import type { Energia, Evento, Passo, Projeto } from '../types'
-import { duracao, hora, inicioDoDia, nomeDoDia, reais } from '../util'
+import type { Contexto, Energia, Evento, Passo, Projeto } from '../types'
+import { dataISO, duracao, hora, horaInput, inicioDoDia, nomeDoDia, reais } from '../util'
 import { RestoDoDia, SituacaoAgora } from './Agenda'
 import { Simbolo } from '../components/Icone'
-import { Botao } from '../tema/megui-react.mjs'
+import { Botao, BotaoInterruptor } from '../tema/megui-react.mjs'
 
 const relogio = (ms: number) => {
   const s = Math.floor(ms / 1000)
@@ -223,6 +224,117 @@ function CapacidadeDoDia({ agora }: Readonly<{ agora: number }>) {
  * Horários livres para o passo (V13 em docs/CONCORRENTES.md): três propostas no resto de hoje e amanhã, com a
  * duração prevista. Tocar numa delas reserva; o formulário abaixo continua para escolher outro horário.
  */
+/**
+ * "Agora não" com hora marcada: tudo bem deixar para depois, desde que o depois tenha dia e hora. Os horários livres
+ * reservam com um toque; o formulário aceita qualquer dia e hora no futuro. Sem escolher, o passo continua na tela.
+ */
+/** Atalhos de "daqui a": minutos e rótulo. */
+const DAQUI_A: [number, string][] = [
+  [30, '30 min'],
+  [60, '1 hora'],
+  [120, '2 horas'],
+  [240, '4 horas'],
+]
+
+function RetomarEm({ passo, agora, onPronto, onCancelar }: Readonly<{ passo: Passo; agora: number; onPronto: () => void; onCancelar: () => void }>) {
+  const s = useStore()
+  const agenda = useAgenda()
+  const avisar = useAvisos((a) => a.mostrar)
+  const [dia, setDia] = useState(() => dataISO(agora + 86_400_000))
+  const [horario, setHorario] = useState('09:00')
+  const inicio = new Date(`${dia}T${horario}`).getTime()
+  const valido = Number.isFinite(inicio) && inicio > agora
+  const minutos = duracaoPrevista(passo, Math.min(2, Math.max(0.5, calibracao(s.passos, s.sessoes)?.fator ?? 1)))
+  // "Daqui a X tempo" só preenche dia e hora: você vê quando vai ser antes de combinar.
+  const [quantos, setQuantos] = useState('')
+  const [unidade, setUnidade] = useState(60)
+  const daqui = (min: number) => {
+    // `agora` atualiza a cada 30 s: o horário pode sair até meio minuto antes, o que não muda o combinado.
+    const quando = agora + min * 60_000
+    setDia(dataISO(quando))
+    setHorario(horaInput(quando))
+  }
+
+  return (
+    <>
+      <p className="motivo">Tudo bem deixar para depois, com dia e hora marcados. Até lá o passo sai da fila; na hora, ele aparece aqui primeiro.</p>
+      <HorariosLivres passo={passo} agora={agora} onPronto={onPronto} />
+      <form
+        className="form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!valido) return
+          agenda.criarEvento({ titulo: passo.texto, inicio, fim: inicio + minutos * 60_000, passoId: passo.id, origem: 'local' })
+          avisar('Combinado', `“${passo.texto}” volta ${nomeDoDia(dia).toLowerCase()}, ${hora(inicio)}.`)
+          onPronto()
+        }}
+      >
+        <span className="rotulo">Ou daqui a</span>
+        <div className="chips" role="group" aria-label="Daqui a quanto tempo">
+          {DAQUI_A.map(([min, rotulo]) => (
+            <button key={min} type="button" onClick={() => daqui(min)}>
+              {rotulo}
+            </button>
+          ))}
+        </div>
+        <div className="linha">
+          <span>
+            <input
+              type="number"
+              min={1}
+              inputMode="numeric"
+              aria-label="Quanto tempo"
+              placeholder="Outro: quanto?"
+              value={quantos}
+              onChange={(e) => {
+                setQuantos(e.target.value)
+                if (Number(e.target.value) > 0) daqui(Number(e.target.value) * unidade)
+              }}
+            />
+          </span>
+          <span>
+            <select
+              aria-label="Unidade"
+              value={unidade}
+              onChange={(e) => {
+                setUnidade(Number(e.target.value))
+                if (Number(quantos) > 0) daqui(Number(quantos) * Number(e.target.value))
+              }}
+            >
+              <option value={1}>minutos</option>
+              <option value={60}>horas</option>
+              <option value={1440}>dias</option>
+            </select>
+          </span>
+        </div>
+        <div className="linha">
+          <span>
+            <label className="rotulo" htmlFor="retomar-dia">
+              Dia
+            </label>
+            <input id="retomar-dia" type="date" required value={dia} min={dataISO(agora)} onChange={(e) => setDia(e.target.value)} />
+          </span>
+          <span>
+            <label className="rotulo" htmlFor="retomar-hora">
+              Hora
+            </label>
+            <input id="retomar-hora" type="time" required value={horario} onChange={(e) => setHorario(e.target.value)} />
+          </span>
+        </div>
+        {!valido && dia && horario && <p className="dica">Esse horário já passou. Escolha um momento mais à frente.</p>}
+        <div className="linha">
+          <Botao variante="acento" type="submit" disabled={!valido}>
+            Combinar
+          </Botao>
+          <button type="button" onClick={onCancelar}>
+            Ficar com o passo
+          </button>
+        </div>
+      </form>
+    </>
+  )
+}
+
 function HorariosLivres({ passo, agora, onPronto }: Readonly<{ passo: Passo; agora: number; onPronto: () => void }>) {
   const s = useStore()
   const agenda = useAgenda()
@@ -307,6 +419,51 @@ function RefazerResto({ agora }: Readonly<{ agora: number }>) {
   )
 }
 
+const LUGARES: [Contexto, string][] = [
+  ['trabalho', 'No trabalho'],
+  ['casa', 'Em casa'],
+]
+
+/** Trabalho ou casa. Só aparece quando algum passo pendente tem lugar: quem não usa não ganha mais um controle. */
+function SeletorLugar() {
+  const { atual, ir } = useContexto()
+  const temLugar = useStore((s) => s.passos.some((p) => p.contexto && !p.feitoEm))
+  if (!atual && !temLugar) return null
+  return (
+    <div className="chips" role="group" aria-label="Onde você está">
+      {LUGARES.map(([c, rotulo]) => (
+        <BotaoInterruptor key={c} ligado={atual === c} onClick={() => ir(atual === c ? null : c)}>
+          {rotulo}
+        </BotaoInterruptor>
+      ))}
+    </div>
+  )
+}
+
+/** Ao chegar a um lugar, o que foi anotado para ele enquanto você estava no outro: não depende de lembrar na troca. */
+function Chegada() {
+  const { atual, saiuEm, chegouEm, chegadaVista, verChegada } = useContexto()
+  const passos = useStore((s) => s.passos)
+  if (!atual || chegadaVista) return null
+  const lista = anotadosFora(passos, atual, saiuEm[atual], chegouEm)
+  if (lista.length === 0) return null
+  return (
+    <div className="cartao compacto">
+      <p>
+        <b>Anotado para {atual === 'trabalho' ? 'o trabalho' : 'casa'} enquanto você estava fora:</b>
+      </p>
+      <ul className="lista-simples">
+        {lista.map((p) => (
+          <li key={p.id}>{p.texto}</li>
+        ))}
+      </ul>
+      <button className="discreto" onClick={verChegada}>
+        Ok, visto
+      </button>
+    </div>
+  )
+}
+
 export function Agora() {
   const s = useStore()
   const eventos = useAgenda((a) => a.eventos)
@@ -314,8 +471,8 @@ export function Agora() {
   // A mesma energia vale em Planejar (montar o dia): por isso fica fora da tela.
   const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 2
   const setEnergia = useEnergiaEscolhida((e) => e.escolher)
-  const [pulados, setPulados] = useState<Set<string>>(new Set())
-  const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando'>('normal')
+  const lugar = useContexto()
+  const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando' | 'diminuindo' | 'adiando'>('normal')
   const [celebrar, setCelebrar] = useState<{ passoId: string; projeto: Projeto | null; restantes: number } | null>(null)
   const encerrados = useAgenda((a) => a.encerrados)
   const encerrarEvento = useAgenda((a) => a.encerrarEvento)
@@ -346,8 +503,8 @@ export function Agora() {
   const sugerida = useMemo(() => {
     // Passos com reserva futura ficam fora da sugestão até o horário (o resto do projeto continua).
     const reservados = new Set(eventos.filter((e) => e.passoId && e.inicio > agora).map((e) => e.passoId!))
-    return escolherPasso(s.projetos, s.passos, s.focoId, energia, pulados, reservados)
-  }, [s.projetos, s.passos, s.focoId, energia, pulados, eventos, agora])
+    return escolherPasso(s.projetos, s.passos, s.focoId, energia, new Set(), reservados, undefined, lugar.atual)
+  }, [s.projetos, s.passos, s.focoId, energia, eventos, agora, lugar.atual])
 
   const proximaReserva = eventos
     .filter((e) => e.passoId && e.inicio > agora && s.passos.some((p) => p.id === e.passoId && !p.feitoEm))
@@ -355,7 +512,7 @@ export function Agora() {
 
   // Horário reservado para um passo tem prioridade sobre a sugestão.
   const reserva = eventos.find((e) => e.passoId && !e.diaInteiro && e.inicio <= agora && e.fim > agora)
-  const passoReservado = reserva && s.passos.find((p) => p.id === reserva.passoId && !p.feitoEm && !pulados.has(p.id))
+  const passoReservado = reserva && s.passos.find((p) => p.id === reserva.passoId && !p.feitoEm)
   const escolha: Escolha | null = passoReservado
     ? {
         passo: passoReservado,
@@ -389,6 +546,14 @@ export function Agora() {
     const projeto = s.projetos.find((p) => p.id === passo?.projetoId) ?? null
     const restantes = projeto ? pendentes(useStore.getState().passos, projeto.id).length : 0
     setCelebrar({ passoId, projeto, restantes })
+    setModo('normal')
+  }
+
+  // "Agora não" é um compromisso: o passo só sai da vez com dia e hora para voltar (o formulário em RetomarEm cria a
+  // reserva). Aqui só se conta o adiamento e se encerra a reserva em andamento, senão ela seguraria o passo na tela.
+  const adiado = (passo: Passo) => {
+    s.atualizarPasso(passo.id, { adiamentos: (passo.adiamentos ?? 0) + 1 })
+    if (reserva?.passoId === passo.id) useAgenda.getState().removerEvento(reserva.id)
     setModo('normal')
   }
 
@@ -561,6 +726,8 @@ export function Agora() {
       )}
 
       <SeletorEnergia valor={energia} onChange={setEnergia} />
+      <SeletorLugar />
+      <Chegada />
 
       {/* O passo fica no meio da altura que sobra, e não colado no topo com a tela vazia embaixo. */}
       <div className="agora-meio">
@@ -593,12 +760,7 @@ export function Agora() {
           </div>
         ) : !escolha ? (
           <div className="cartao vazio">
-            {pulados.size > 0 ? (
-              <>
-                <p>Você pulou tudo por agora. Tudo bem.</p>
-                <button onClick={() => setPulados(new Set())}>Ver de novo desde o início</button>
-              </>
-            ) : proximaReserva ? (
+            {proximaReserva ? (
               <p>
                 O que está na fila já tem horário: <b>{hora(proximaReserva.inicio)}</b>. Até lá, o tempo é seu.
               </p>
@@ -625,6 +787,14 @@ export function Agora() {
                 {verNota && <NotaDoPasso nota={escolha.passo.nota} />}
               </>
             )}
+            {(escolha.passo.adiamentos ?? 0) >= ADIAMENTOS_PARA_DIMINUIR && (
+              <p className="dica">
+                Este passo já ficou para depois {escolha.passo.adiamentos} vezes. Tudo bem: uma versão menor também conta.{' '}
+                <button className="discreto" onClick={() => setModo('diminuindo')}>
+                  Diminuir
+                </button>
+              </p>
+            )}
             {escolha.acimaDaEnergia && <p className="dica">Tudo na fila pede mais energia do que você tem agora. Que tal quebrar este em algo menor?</p>}
             <Botao variante="acento" className="grande-botao" onClick={() => s.iniciarSessao(escolha.passo.id)}>
               Começar
@@ -640,7 +810,7 @@ export function Agora() {
               <button className="discreto" onClick={() => setModo('agendando')}>
                 Agendar
               </button>
-              <button className="discreto" onClick={() => setPulados(new Set(pulados).add(escolha.passo.id))}>
+              <button className="discreto" onClick={() => setModo('adiando')}>
                 Agora não
               </button>
             </div>
@@ -652,6 +822,30 @@ export function Agora() {
       {escolha && modo === 'quebrando' && (
         <Modal titulo="Grande demais" onFechar={() => setModo('normal')}>
           <Quebrar passo={escolha.passo} onPronto={() => setModo('normal')} />
+        </Modal>
+      )}
+      {escolha && modo === 'adiando' && (
+        <Modal titulo="Agora não" onFechar={() => setModo('normal')}>
+          <RetomarEm passo={escolha.passo} agora={agora} onPronto={() => adiado(escolha.passo)} onCancelar={() => setModo('normal')} />
+        </Modal>
+      )}
+      {escolha && modo === 'diminuindo' && (
+        <Modal titulo="Versão menor" onFechar={() => setModo('normal')}>
+          <p className="motivo">O que, menor do que “{escolha.passo.texto}”, já contaria como feito? Se forem vários pedaços, use Grande demais.</p>
+          <PassoForm
+            inicial={escolha.passo.texto}
+            pergunta="A versão menor"
+            rotuloBotao="Trocar por esta"
+            sugerir={false}
+            comDatas={false}
+            energiaInicial={1}
+            onSalvar={(texto, energia) => {
+              const p = escolha.passo
+              s.atualizarPasso(p.id, { texto, energia, adiamentos: 0, reduzidoDe: p.reduzidoDe ?? p.texto })
+              setModo('normal')
+            }}
+            onCancelar={() => setModo('normal')}
+          />
         </Modal>
       )}
       {escolha && modo === 'agendando' && (

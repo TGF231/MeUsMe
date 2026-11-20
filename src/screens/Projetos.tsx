@@ -63,7 +63,7 @@ export function PassoEditavel({ passo, destaque = false }: { passo: Passo; desta
   const [editando, setEditando] = useState(false)
   const [quebrando, setQuebrando] = useState(false)
   const [texto, setTexto] = useState(passo.texto)
-  const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir })
+  const [datas, setDatas] = useState<Datas>({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir, contexto: passo.contexto })
   const [nota, setNota] = useState(passo.nota ?? '')
 
   if (quebrando) return <Quebrar passo={passo} onPronto={() => setQuebrando(false)} />
@@ -75,7 +75,7 @@ export function PassoEditavel({ passo, destaque = false }: { passo: Passo; desta
         onSubmit={(e) => {
           e.preventDefault()
           if (texto.trim())
-            s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe, repetir: datas.repetir, nota: nota.trim() || undefined })
+            s.atualizarPasso(passo.id, { texto: texto.trim(), prazo: datas.prazo, aPartirDe: datas.aPartirDe, repetir: datas.repetir, contexto: datas.contexto, nota: nota.trim() || undefined })
           setEditando(false)
         }}
       >
@@ -99,7 +99,7 @@ export function PassoEditavel({ passo, destaque = false }: { passo: Passo; desta
       </button>
       <button
         className="discreto"
-        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir }), setNota(passo.nota ?? ''), setEditando(true))}
+        onClick={() => (setTexto(passo.texto), setDatas({ prazo: passo.prazo, aPartirDe: passo.aPartirDe, repetir: passo.repetir, contexto: passo.contexto }), setNota(passo.nota ?? ''), setEditando(true))}
         aria-label={`Editar ${passo.texto}`}
       >
         Editar
@@ -216,6 +216,8 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
   const [verTodos, setVerTodos] = useState(false)
   const [editando, setEditando] = useState(false)
   const [salvoComoModelo, setSalvoComoModelo] = useState(false)
+  const [encerrando, setEncerrando] = useState(false)
+  const [aprendizado, setAprendizado] = useState('')
   const projeto = s.projetos.find((p) => p.id === id)
   if (!projeto) return null
 
@@ -244,6 +246,11 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                 </p>
                 <BarraProgresso passos={s.passos} projetoId={id} />
                 {tempoTotal >= 1 && <p className="motivo">Tempo investido até agora: {duracao(tempoTotal)}</p>}
+                {projeto.aprendizado && (
+                  <p className="chegada">
+                    Encerrado com: <i>{projeto.aprendizado}</i>
+                  </p>
+                )}
                 <div className="linha">
                   {projeto.concluidoEm ? (
                     <button onClick={() => s.reabrirProjeto(id)}>Reabrir projeto</button>
@@ -261,6 +268,9 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                       >
                         Concluir projeto
                       </button>
+                      <button className="discreto" onClick={() => setEncerrando(true)}>
+                        Encerrar com o que aprendi
+                      </button>
                     </>
                   )}
                   <button className="discreto" onClick={() => setEditando(true)}>
@@ -276,6 +286,36 @@ function Detalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
                     Salvar como modelo
                   </button>
                 </div>
+                {encerrando && !projeto.concluidoEm && (
+                  <form
+                    className="form"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      if (!aprendizado.trim()) return
+                      s.concluirProjeto(id, aprendizado.trim())
+                      setEncerrando(false)
+                    }}
+                  >
+                    <label className="rotulo" htmlFor="aprendizado-do-projeto">
+                      O que este projeto já te deu? Uma frase basta: ele fecha aqui, sem contar como abandonado.
+                    </label>
+                    <input
+                      id="aprendizado-do-projeto"
+                      autoFocus
+                      value={aprendizado}
+                      onChange={(e) => setAprendizado(e.target.value)}
+                      placeholder="Ex.: descobri que o jeito A não serve; aprendi a montar X"
+                    />
+                    <div className="linha">
+                      <Botao variante="acento" type="submit">
+                        Encerrar
+                      </Botao>
+                      <button type="button" onClick={() => setEncerrando(false)}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                )}
                 {salvoComoModelo && (
                   <p className="motivo" role="status">
                     <Simbolo c="✓" />
@@ -429,6 +469,7 @@ export function Projetos() {
               <button key={p.id} className="cartao clicavel feito" onClick={() => setAberto(p.id)}>
                 <Simbolo c="✓" diz="Concluído" />
                 {p.titulo}
+                {p.aprendizado && <span className="motivo"> · {p.aprendizado}</span>}
               </button>
             ))}
           </div>

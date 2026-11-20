@@ -33,6 +33,11 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
       .filter((f) => f.tipo === 'gasto' && diaDeVencimento(f, mesISO(d)) === d.getDate() && !fixaPagaNoMes(f, fin.transacoes, mesISO(d)))
       .map((f) => ({ f, dia: d.getDate() })),
   )
+  // O que ficou pronto nos últimos 7 dias, inclusive na versão menor: entregue conta, perfeito não é exigido.
+  const feitos = s.passos.filter((p) => p.feitoEm && p.feitoEm >= agora - 7 * DIA)
+  const menores = feitos.filter((p) => p.reduzidoDe).length
+  const fechados = s.projetos.filter((p) => p.concluidoEm && p.concluidoEm >= agora - 7 * DIA).length
+
   const terminar = () => {
     ajustar({ revisaoFeitaEm: Date.now() })
     onFechar()
@@ -42,6 +47,14 @@ export function RevisaoSemana({ agora, onFechar }: { agora: number; onFechar: ()
     <div className="cartao revisao">
       <h2 className="titulo">Revisão da semana</h2>
       <p className="motivo">Cinco minutos para a semana não começar no escuro. Pule o que não fizer sentido.</p>
+      {feitos.length > 0 && (
+        <p>
+          <Simbolo c="✓" />
+          Nos últimos 7 dias: {feitos.length} {feitos.length === 1 ? 'passo feito' : 'passos feitos'}
+          {menores > 0 && `, ${menores} na versão menor`}
+          {fechados > 0 && ` e ${fechados} ${fechados === 1 ? 'projeto encerrado' : 'projetos encerrados'}`}.
+        </p>
+      )}
 
       <div className="etapa">
         <h3 className="rotulo">1. Em espera</h3>

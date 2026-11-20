@@ -1,5 +1,5 @@
 import { diasAte, pendentes } from './calculos.ts'
-import type { Energia, Passo, Projeto } from './types'
+import type { Contexto, Energia, Passo, Projeto } from './types'
 import { dataISO } from './util.ts'
 
 export interface Escolha {
@@ -28,16 +28,23 @@ function pesoDoPrazo(passo: Passo, dia: string) {
   return d <= 0 ? 80 : d === 1 ? 60 : d <= 3 ? 40 : d <= 7 ? 15 : 0
 }
 
+/** Depois de tantos "Agora não", o passo volta mais cedo e o Agora oferece uma versão menor dele. */
+export const ADIAMENTOS_PARA_DIMINUIR = 3
+
+/** Passo adiado muitas vezes sobe um pouco (20, menos que um prazo para amanhã): ele volta pequeno, não some. */
+const pesoDoAdiamento = (passo: Passo) => ((passo.adiamentos ?? 0) >= ADIAMENTOS_PARA_DIMINUIR ? 20 : 0)
+
 /**
  * Escolhe o próximo passo. Critérios, em ordem:
  * 1. Só o primeiro passo pendente de cada projeto concorre.
  * 2. Projeto em foco tem prioridade.
- * 3. Prazo perto pesa; vencido pesa como "hoje", nunca mais que isso.
+ * 3. Prazo perto pesa; vencido pesa como "hoje", nunca mais que isso. Passo com 3 "Agora não" ou mais pesa um pouco.
  * 4. Projetos com menos passos restantes vêm antes.
  * 5. Passos acima da energia informada são descartados, salvo se não houver alternativa.
  *
- * `pulados` ("Agora não") tira o projeto da vez; `reservados` (horário marcado mais tarde) e passos com
- * "só a partir de" no futuro tiram só aquele passo, e o seguinte do mesmo projeto concorre no lugar.
+ * `pulados` tira o projeto da vez. `reservados` (horário marcado mais tarde, inclusive o do "Agora não") e passos com
+ * "só a partir de" no futuro tiram só aquele passo, e o seguinte do mesmo projeto concorre no lugar. Com `contexto`
+ * (trabalho ou casa), passos marcados para o outro lugar saem do mesmo jeito; passos sem lugar valem nos dois.
  */
 export function escolherPasso(
   projetos: Projeto[],
@@ -47,9 +54,11 @@ export function escolherPasso(
   pulados: Set<string>,
   reservados: Set<string> = new Set(),
   dia: string = dataISO(),
+  contexto: Contexto | null = null,
 ): Escolha | null {
   const candidatos: Omit<Escolha, 'acimaDaEnergia'>[] = []
-  const disponivel = (p: Passo) => !reservados.has(p.id) && (!p.aPartirDe || p.aPartirDe <= dia)
+  const noLugar = (p: Passo) => !contexto || !p.contexto || p.contexto === contexto
+  const disponivel = (p: Passo) => !reservados.has(p.id) && (!p.aPartirDe || p.aPartirDe <= dia) && noLugar(p)
 
   for (const projeto of projetos.filter((p) => !p.concluidoEm)) {
     const fila = pendentes(passos, projeto.id)
@@ -79,6 +88,7 @@ export function escolherPasso(
   const pontuar = (c: Omit<Escolha, 'acimaDaEnergia'>) =>
     (c.projeto?.id === focoId ? 1000 : 0) +
     pesoDoPrazo(c.passo, dia) +
+    pesoDoAdiamento(c.passo) +
     // 100/restantes: projeto com até 4 passos restantes supera tarefa solta (25).
     (c.projeto ? 100 / c.restantes : 25) +
     // Bônus por idade (até 30) para itens antigos não ficarem sem ser escolhidos.
@@ -90,4 +100,15 @@ export function escolherPasso(
 
   const maisLeve = [...ordenados].sort((a, b) => a.passo.energia - b.passo.energia)[0]
   return { ...maisLeve, acimaDaEnergia: true }
+}
+
+/**
+ * Passos anotados para `lugar` enquanto você estava fora dele (entre a saída e a chegada), na ordem em que foram
+ * anotados. Sem saída registrada (primeira vez no lugar), não há o que mostrar.
+ */
+export function anotadosFora(passos: Passo[], lugar: Contexto, saiuEm: number | undefined, chegouEm: number): Passo[] {
+  if (saiuEm === undefined) return []
+  return passos
+    .filter((p) => !p.feitoEm && p.contexto === lugar && p.criadoEm > saiuEm && p.criadoEm <= chegouEm)
+    .sort((a, b) => a.criadoEm - b.criadoEm)
 }
