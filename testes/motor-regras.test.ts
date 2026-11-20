@@ -139,6 +139,11 @@ const variacoes: [string, string | null, string?, number?, Record<string, unknow
   ['reunião 15h-17h', 'compromisso', 'Reunião', em(28, 15), { fim: em(28, 17) }],
   ['aula 15h às 17', 'compromisso', 'Aula', em(28, 15), { fim: em(28, 17) }],
   ['plantão 22h às 6h', 'compromisso', 'Plantão', em(28, 22), { fim: em(29, 6) }],
+  // Cada ponta do intervalo pode vir num formato de hora diferente.
+  ['plantão das 14h às 16:30', 'compromisso', 'Plantão', em(28, 14), { fim: em(28, 16, 30) }],
+  ['plantão hoje das 23h às 23:59', 'compromisso', 'Plantão', em(28, 23), { fim: em(28, 23, 59) }],
+  ['plantão das 14:00 às 16h30', 'compromisso', 'Plantão', em(28, 14), { fim: em(28, 16, 30) }],
+  ['plantão das 14:00 às 16:30', 'compromisso', 'Plantão', em(28, 14), { fim: em(28, 16, 30) }],
   ['churrasco fim de semana 13h', 'compromisso', 'Churrasco', em(31, 13)],
   ['consulta daqui a 3 dias 10h', 'compromisso', 'Consulta', em(31, 10)],
   ['dentista em 2 semanas 9h', 'compromisso', 'Dentista', em(11, 9, 0, 10)],

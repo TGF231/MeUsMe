@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { lerDinheiro, type Dinheiro } from '../src/motor/extratores.ts'
+import { lerDinheiro, lerIntervalo, type Dinheiro } from '../src/motor/extratores.ts'
 
 // [texto, esperado]; null quando o texto não deve virar dinheiro.
 const comMoeda: [string, Partial<Dinheiro> | null][] = [
@@ -102,3 +102,24 @@ test('gíria de dinheiro: "conto" e "pila" valem como reais, só com número ant
   assert.equal(lerDinheiro('vendi a bike 300 contos')?.direcao, 'entrada')
   assert.equal(lerDinheiro('escrever um conto sobre o bairro'), null)
 })
+
+// [texto, [hora, minuto] do início, [hora, minuto] do fim, trecho]; as duas pontas podem vir em formatos diferentes.
+const intervalos: [string, [number, number], [number, number], string][] = [
+  ['plantão das 14h às 16h', [14, 0], [16, 0], 'das 14h às 16h'],
+  ['plantão das 14:00 às 16:30', [14, 0], [16, 30], 'das 14:00 às 16:30'],
+  ['plantão das 14h às 16:30', [14, 0], [16, 30], 'das 14h às 16:30'],
+  ['plantão hoje das 23h às 23:59', [23, 0], [23, 59], 'das 23h às 23:59'],
+  ['plantão das 14:00 às 16h30', [14, 0], [16, 30], 'das 14:00 às 16h30'],
+  ['reunião 14h30-16:00', [14, 30], [16, 0], '14h30-16:00'],
+  ['aula 15h às 17', [15, 0], [17, 0], '15h às 17'],
+]
+
+for (const [texto, inicio, fim, trecho] of intervalos) {
+  test(`intervalo: ${texto}`, () => {
+    const lido = lerIntervalo(texto)
+    assert.ok(lido, 'deveria ter lido o intervalo')
+    assert.deepEqual([lido.inicio.h, lido.inicio.m], inicio, 'início')
+    assert.deepEqual([lido.fim.h, lido.fim.m], fim, 'fim')
+    assert.equal(lido.trecho.trecho, trecho, 'trecho')
+  })
+}
