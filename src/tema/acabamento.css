@@ -1,0 +1,82 @@
+/*
+ * Acabamento com base no Atlassian Design System (atlassian.design), sobre a estrutura do MegUI.
+ * O MegUI continua dando os componentes, os tipos e os espaços; esta camada troca só o acabamento:
+ * - neutros cinza do Atlassian no lugar dos neutros azulados (claro e escuro);
+ * - cantos de 6px nos controles e 8px nos cartões (escala do Atlassian: 4, 6, 8, 12);
+ * - elevação discreta: sombra "raised" nos cartões e "overlay" nas janelas; sem brilho, sem vidro.
+ * O acento (cor principal, #7D0E0E por padrão, configurável em Ajustes) e as cores de estado continuam os do MegUI.
+ * A fonte continua a Atkinson Hyperlegible, escolhida pela leitura e por funcionar sem internet.
+ * Carregada por último (src/main.tsx). Para voltar ao MegUI puro, basta não importar este arquivo.
+ */
+
+/* Neutros do Atlassian, tema claro (sobrescrevem os do megui.css nos mesmos seletores). */
+:root,
+[data-theme='claro'],
+[data-tema='claro'] {
+  --megui-bg: #f8f8f8;
+  --megui-surface: #ffffff;
+  --megui-surface-2: #f0f1f2;
+  --megui-sunken: #f8f8f8;
+  --megui-linha-alt: #fafafa;
+  --megui-somente-leitura: #f0f1f2;
+  --megui-ink: #292a2e;
+  --megui-ink-2: #505258;
+  --megui-ink-3: #6b6e76;
+  --megui-border: #dddee1;
+  --megui-border-2: #8c8f97;
+  --ads-sombra-elevada: 0 1px 1px #1e1f2140, 0 0 1px #1e1f214f;
+  --ads-sombra-janela: 0 8px 12px #1e1f2126, 0 0 1px #1e1f214f;
+}
+
+/* Tema escuro. */
+[data-theme='escuro'],
+[data-tema='escuro'] {
+  --megui-bg: #1f1f21;
+  --megui-surface: #242528;
+  --megui-surface-2: #2b2c2f;
+  --megui-sunken: #18191a;
+  --megui-linha-alt: #222326;
+  --megui-somente-leitura: #2b2c2f;
+  --megui-ink: #cecfd2;
+  --megui-ink-2: #a9abaf;
+  --megui-ink-3: #96999e;
+  --megui-border: #37383b;
+  --megui-border-2: #7e8188;
+  --ads-sombra-elevada: 0 0 0 1px #00000000, 0 1px 1px #01040480, 0 0 1px #01040480;
+  --ads-sombra-janela: 0 0 0 1px #bdbdbd1f, 0 8px 12px #0104045c, 0 0 1px 1px #01040480;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]):not([data-tema]) {
+    --megui-bg: #1f1f21;
+    --megui-surface: #242528;
+    --megui-surface-2: #2b2c2f;
+    --megui-sunken: #18191a;
+    --megui-linha-alt: #222326;
+    --megui-somente-leitura: #2b2c2f;
+    --megui-ink: #cecfd2;
+    --megui-ink-2: #a9abaf;
+    --megui-ink-3: #96999e;
+    --megui-border: #37383b;
+    --megui-border-2: #7e8188;
+    --ads-sombra-elevada: 0 0 0 1px #00000000, 0 1px 1px #01040480, 0 0 1px #01040480;
+    --ads-sombra-janela: 0 0 0 1px #bdbdbd1f, 0 8px 12px #0104045c, 0 0 1px 1px #01040480;
+  }
+}
+
+/* Cantos: 8px em cartões, menus e janelas; 6px em botões, campos e nos componentes MegUI. */
+:root {
+  --ads-raio-cartao: 8px;
+  --ads-raio-controle: 6px;
+  --raio: var(--ads-raio-cartao);
+  --raio-controle: var(--ads-raio-controle);
+  --megui-raio: var(--ads-raio-controle);
+}
+
+/* Elevação: cartões levemente acima do fundo; janelas por cima de tudo. */
+.cartao {
+  box-shadow: var(--ads-sombra-elevada);
+}
+.modal,
+.mg-dialogo.modal-megui {
+  box-shadow: var(--ads-sombra-janela);
+}
