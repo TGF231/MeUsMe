@@ -4,10 +4,40 @@
  * - neutros cinza do Atlassian no lugar dos neutros azulados (claro e escuro);
  * - cantos de 6px nos controles e 8px nos cartões (escala do Atlassian: 4, 6, 8, 12);
  * - elevação discreta: sombra "raised" nos cartões e "overlay" nas janelas; sem brilho, sem vidro.
+ * - fonte: Inter no texto e JetBrains Mono nos números (as duas OFL, em src/tema/fonts, funcionam sem internet). A
+ *   Atlassian Sans é a fonte própria da Atlassian; a Inter é a aberta mais próxima dela. A Atkinson fica de reserva
+ *   para os símbolos que a Inter latina não tem (como os pontos de energia ●○).
  * O acento (cor principal, #7D0E0E por padrão, configurável em Ajustes) e as cores de estado continuam os do MegUI.
- * A fonte continua a Atkinson Hyperlegible, escolhida pela leitura e por funcionar sem internet.
  * Carregada por último (src/main.tsx). Para voltar ao MegUI puro, basta não importar este arquivo.
  */
+
+/* Fontes variáveis (um arquivo cobre de 400 a 700), só o recorte latino, que tem todo o português. */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/Inter-Variable-latin.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('fonts/JetBrainsMono-Variable-latin.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+:root {
+  --font-ui: 'Inter Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'Atkinson Hyperlegible Mono', ui-monospace, monospace;
+  --megui-fonte-ui: var(--font-ui);
+  --megui-fonte-mono: var(--font-mono);
+}
+body {
+  font-family: var(--font-ui);
+  font-feature-settings: 'cv11';  /* "a" de um andar, mais limpo em tamanho pequeno */
+}
 
 /* Neutros do Atlassian, tema claro (sobrescrevem os do megui.css nos mesmos seletores). */
 :root,
