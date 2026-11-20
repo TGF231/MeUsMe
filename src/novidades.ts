@@ -5,6 +5,16 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.5',
+    itens: [
+      '"Agora não" pede quando voltar: um horário livre, daqui a 30 min, 1, 2 ou 4 horas, ou qualquer dia e hora. Na hora marcada, o passo aparece primeiro.',
+      'Passo adiado 3 vezes ganha "Diminuir": troque por uma versão menor, que já conta como feita. A revisão da semana mostra o que foi feito assim.',
+      'Passos podem ter lugar, trabalho ou casa. Em Próximo passo, diga onde está: o que é do outro lugar sai da vez, e ao chegar aparece o que foi anotado para ali.',
+      'Projeto pode ser encerrado com o que ele já deu, em uma frase, sem contar como abandonado.',
+      'Captura entende intervalos com horas escritas de jeitos diferentes, como "das 14h às 16:30".',
+    ],
+  },
+  {
     versao: '0.9.4',
     itens: [
       'Visual mais limpo: campos preenchidos sem contorno, botões secundários só com contorno e a tela aberta marcada por um fundo, sem linha vermelha.',
