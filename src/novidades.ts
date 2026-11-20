@@ -5,6 +5,14 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.6',
+    itens: [
+      'Visual renovado: cinzas neutros no lugar dos azulados, nos temas claro e escuro.',
+      'Cantos mais arredondados em botões, campos e cartões.',
+      'Cartões com uma sombra leve, e janelas mais destacadas do fundo.',
+    ],
+  },
+  {
     versao: '0.9.5',
     itens: [
       '"Agora não" pede quando voltar: um horário livre, daqui a 30 min, 1, 2 ou 4 horas, ou qualquer dia e hora. Na hora marcada, o passo aparece primeiro.',
