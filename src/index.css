@@ -525,15 +525,18 @@ textarea.nota-passo {
 }
 
 /*
- * Aba aberta como marcador de livro: sobe para fora da barra, emendada nela por baixo. A barra não engrossa; só a
- * aba aberta passa da linha de cima. A cor é a da marca de fundo da aba ativa do MegUI (a mesma da linha de cima da
- * barra) com peso forte: o acento fica só na ação primária.
+ * Aba aberta como marcador de livro: sobe para fora da barra e desce até a borda de baixo da tela, para não
+ * parecer cortada (a barra tem 8px de respiro embaixo, mais a área segura do aparelho). A cor é o par de seleção:
+ * fundo --acento-leve, contorno --acento-linha e peso forte; o preenchimento cheio fica só na ação primária.
  */
 .abas button.ativo {
   color: var(--texto);
-  background: var(--borda);
+  background: var(--acento-leve);
+  box-shadow: inset 0 1px 0 var(--acento-linha), inset 1px 0 0 var(--acento-linha), inset -1px 0 0 var(--acento-linha);
   font-weight: var(--peso-forte);
   margin-top: -18px;
+  margin-bottom: calc(-8px - env(safe-area-inset-bottom));
+  padding-bottom: calc(6px + 8px + env(safe-area-inset-bottom));
   border-radius: var(--raio) var(--raio) 0 0;
 }
 
@@ -1136,7 +1139,10 @@ kbd {
   /* Ao lado não há linha de cima para a aba aberta passar: ela volta a ser só o item aceso. */
   .abas button.ativo {
     margin-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 3px;
     border: 0;
+    box-shadow: inset 0 0 0 1px var(--acento-linha);
     border-radius: var(--raio);
   }
 
@@ -1212,6 +1218,10 @@ kbd {
     font-size: 0.95rem;
   }
 
+  .abas button.ativo {
+    padding-bottom: 10px;
+  }
+
   .abas .contador {
     position: static;
     margin-left: auto;
@@ -1272,6 +1282,51 @@ kbd {
   .fundo {
     padding-top: 20vh;
   }
+}
+
+/*
+ * Próximo passo no computador (Agora.tsx monta o painel só a partir de 1100px): três colunas, o passo no meio com a
+ * mesma largura de sempre e, dos lados, o que pede decisão hoje, o resto do dia, a fila e o que espera.
+ */
+.agora-painel {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 720px) minmax(240px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.agora-painel > .agora {
+  align-self: stretch;
+  max-width: none;
+}
+.agora-lado {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.lista-lado {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.lista-lado li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--borda);
+}
+.lista-lado li:first-child {
+  padding-top: 0;
+}
+.lista-lado li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
 /* Duas colunas */

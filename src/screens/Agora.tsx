@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { calibracao, diasDesde, marcoDePassos, revisaoPendente, somarDias, sugerirNovasDatas, ultimaAtividade, vencidos } from '../calculos'
 import { EventoForm } from '../components/EventoForm'
 import { Modal } from '../components/Modal'
@@ -14,6 +14,7 @@ import { ADIAMENTOS_PARA_DIMINUIR, anotadosFora, escolherPasso, type Escolha } f
 import { useAgora } from '../hooks'
 import { useEnergiaEscolhida } from '../stores/energia'
 import { useContexto } from '../stores/contexto'
+import { useNavegacao } from '../navegacao'
 import { FIM_DO_DIA_H } from '../atencoes'
 import { capacidadeDoDia, duracaoPrevista, horariosLivres, montarDia, refazerResto } from '../montarDia'
 import { hoje, minutosDoPasso, pendentes, useStore } from '../store'
@@ -464,8 +465,78 @@ function Chegada() {
   )
 }
 
+/** Tela larga (computador): Próximo passo vira um painel de três colunas. No celular, nada muda. */
+const LARGO = '(min-width: 1100px)'
+function useLargo() {
+  return useSyncExternalStore(
+    (avisar) => {
+      const m = window.matchMedia(LARGO)
+      m.addEventListener('change', avisar)
+      return () => m.removeEventListener('change', avisar)
+    },
+    () => window.matchMedia(LARGO).matches,
+  )
+}
+
+/**
+ * Coluna da direita no computador: os próximos da fila, na mesma ordem em que o Próximo passo os escolheria (fora o
+ * atual), e as últimas coisas que esperam para ser organizadas.
+ */
+function ASeguir({ atual, energia, contexto }: Readonly<{ atual: string | undefined; energia: Energia; contexto: Contexto | null }>) {
+  const s = useStore()
+  const ir = useNavegacao((n) => n.ir)
+  const fila: Escolha[] = []
+  const pulados = new Set<string>(atual ? [atual] : [])
+  for (let i = 0; i < 5; i++) {
+    const e = escolherPasso(s.projetos, s.passos, s.focoId, energia, pulados, new Set(), undefined, contexto)
+    if (!e) break
+    fila.push(e)
+    pulados.add(e.passo.id)
+  }
+  const recentes = s.capturas.slice(0, 3)  // a captura nova entra no começo da lista
+  return (
+    <>
+      <div className="cartao compacto">
+        <h2 className="rotulo">A seguir</h2>
+        {fila.length === 0 ? (
+          <p className="motivo">Depois deste, a fila fica vazia.</p>
+        ) : (
+          <ol className="lista-lado">
+            {fila.map((e) => (
+              <li key={e.passo.id}>
+                <span>{e.passo.texto}</span>
+                <span className="motivo">{e.projeto ? e.projeto.titulo : 'Tarefa'}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+      <div className="cartao compacto">
+        <h2 className="rotulo">Em espera</h2>
+        {s.capturas.length === 0 ? (
+          <p className="motivo">Nada esperando para organizar.</p>
+        ) : (
+          <>
+            <ul className="lista-lado">
+              {recentes.map((c) => (
+                <li key={c.id}>
+                  <span>{c.texto}</span>
+                </li>
+              ))}
+            </ul>
+            <button className="discreto" onClick={() => ir('caixa')}>
+              Organizar {s.capturas.length} {s.capturas.length === 1 ? 'coisa' : 'coisas'}
+            </button>
+          </>
+        )}
+      </div>
+    </>
+  )
+}
+
 export function Agora() {
   const s = useStore()
+  const largo = useLargo()
   const eventos = useAgenda((a) => a.eventos)
   const checkIn = s.checkins.find((c) => c.dia === hoje())
   // A mesma energia vale em Planejar (montar o dia): por isso fica fora da tela.
@@ -701,7 +772,7 @@ export function Agora() {
 
   const verNota = !!escolha && notaAberta === escolha.passo.id
 
-  return (
+  const tela = (
     <section className="tela centro agora">
       {diasLonge >= 3 && (
         <div className="cartao compacto de-volta">
@@ -861,6 +932,20 @@ export function Agora() {
         </Modal>
       )}
     </section>
+  )
+  if (!largo) return tela
+  // Computador: o passo no meio; à esquerda o que pede decisão e o resto do dia, à direita a fila e o que espera.
+  return (
+    <div className="agora-painel">
+      <aside className="agora-lado" aria-label="Hoje">
+        <PendenciasDeHoje agora={agora} />
+        <RestoDoDia />
+      </aside>
+      {tela}
+      <aside className="agora-lado" aria-label="A seguir">
+        <ASeguir atual={escolha?.passo.id} energia={energia} contexto={lugar.atual} />
+      </aside>
+    </div>
   )
 }
 
