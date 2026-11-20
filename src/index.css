@@ -2,8 +2,8 @@
  * Tokens do app. Todos apontam para o MegUI (src/tema/megui.css, gerado pelo gerar_tema.py; não editar à mão).
  * Nenhuma cor, fonte ou raio literal aqui nem fora daqui: o que faltar vai para o megui.tokens.json.
  * Só o acento é configurável: src/tema/aplicar.ts sobrescreve as variáveis --megui-accent-*.
- * Exceção: src/tema/vidro.css, carregado depois deste, é a camada de acabamento em vidro (raios, translucidez,
- * desfoque, brilho do acento), com os valores próprios dela em variáveis no topo do arquivo.
+ * Exceção: src/tema/acabamento.css, carregado depois deste, é a camada de acabamento com base no Atlassian Design
+ * System (neutros, cantos e elevação), com os valores próprios dela em variáveis.
  */
 :root {
   --fundo: var(--megui-bg);
