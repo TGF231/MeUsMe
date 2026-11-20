@@ -951,7 +951,7 @@ export function Agora() {
 
 /**
  * Planejar o dia, ao lado do Próximo passo no menu de Em ação: o que pede decisão hoje, o que reagendar, montar e
- * refazer o dia, e a revisão da semana quando for o dia dela. Cada bloco é uma seção, separada por uma linha.
+ * refazer o dia, e a revisão da semana quando for o dia dela. Cada bloco é um cartão, como nas outras telas.
  */
 export function Planejar() {
   const agora = useAgora(30_000)
@@ -970,7 +970,11 @@ export function Planejar() {
 
   return (
     <section className="tela centro planejar">
-      {comAgenda && <SituacaoAgora />}
+      {comAgenda && (
+        <div className="cartao compacto">
+          <SituacaoAgora />
+        </div>
+      )}
       {revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) && (
         <div className="cartao compacto">
           <div className="linha entre">

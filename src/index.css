@@ -268,7 +268,7 @@ h2.titulo {
 }
 
 .cartao.compacto {
-  padding: 12px 16px;
+  padding: 16px;
 }
 
 /* Densidade compacta (D17): menos respiro para ver mais de uma vez. Botões maiores vencem, para não apertar os alvos. */
@@ -735,7 +735,6 @@ input.mini {
   background: var(--superficie-2);
   border: 1px solid var(--borda);
   border-radius: var(--raio);
-  margin-bottom: 12px;
 }
 
 /* Cada item é um rótulo solto, sem caixa. */
@@ -787,7 +786,7 @@ input.mini {
 }
 
 .situacao {
-  margin: 0 0 6px;
+  margin: 0;
   font-size: 0.95rem;
 }
 
@@ -1038,6 +1037,9 @@ code {
   align-items: start;
 }
 
+.topo-agenda {
+  gap: 12px;
+}
 .topo-agenda > * {
   flex: 1 1 280px;
 }
@@ -1074,17 +1076,6 @@ code {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-.planejar > .cartao {
-  border: 0;
-  border-top: 1px solid var(--borda);
-  border-radius: 0;
-  background: none;
-  padding: 12px 0 0;
-}
-.planejar > :first-child {
-  border-top: 0;
-  padding-top: 0;
 }
 
 .resto-do-dia {
@@ -1854,22 +1845,6 @@ button.perigo:hover {
 
 :root[data-layout='janela'] .cartao.foco > h2:first-child {
   margin-top: calc(-1 * var(--megui-esp-6) - var(--megui-tipo-corpo-altura) * 0.5em - 1px);
-}
-
-/* Em "Planejar o dia" os blocos são seções da janela, separadas por linha: sem o título na borda. */
-:root[data-layout='janela'] .planejar > .cartao {
-  margin-top: 0;
-  padding: var(--megui-esp-3) 0 0;
-}
-
-:root[data-layout='janela'] .planejar > :first-child {
-  padding-top: 0;
-}
-
-:root[data-layout='janela'] .planejar > .cartao > h2:first-child {
-  margin: 0;
-  padding: 0;
-  background: none;
 }
 
 /* Ação solta na tela tem a largura do rótulo, como na BarraAcoes; a barra de ponta a ponta é do toque. */
