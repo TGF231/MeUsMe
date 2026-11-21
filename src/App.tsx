@@ -6,6 +6,7 @@ import { useAgendador } from './agendador'
 import { useAgora, useJanelaModal } from './hooks'
 import { Icone } from './components/Icone'
 import { Introducao } from './components/Introducao'
+import { LimiteDeErro } from './components/LimiteDeErro'
 import { usoDoArmazenamento } from './erros'
 import { organizar } from './motor/executar'
 import { EXEMPLOS_DE_CAMPO } from './motor/tutorial'
@@ -459,19 +460,25 @@ export default function App() {
       ) : (
         <>
           <MenuDaAba aba={aba} desligados={desligados} contagem={naCaixa} />
-          {aba === 'agora' && <Agora />}
-          {aba === 'planejar' && <Planejar />}
-          {/* Enquanto o pedaço chega (só na primeira vez, e raro com a pré-carga), a área fica vazia, sem piscar texto. */}
-          <Suspense fallback={<section className="tela" aria-busy="true" />}>
-            {aba === 'agenda' && <Agenda />}
-            {aba === 'caixa' && <Caixa />}
-            {aba === 'financas' && <Financas />}
-            {aba === 'tarefas' && <Tarefas />}
-            {aba === 'rotinas' && <Rotinas />}
-            {aba === 'projetos' && <Projetos />}
-            {aba === 'historico' && <Historico />}
-            {aba === 'ajustes' && <Ajustes />}
-          </Suspense>
+          {/*
+            Um limite de erro por tela: um defeito numa tela troca só ela pelo aviso, e o resto do app (abas, captura,
+            menu) continua funcionando. A chave é a aba, então trocar de aba limpa o erro.
+          */}
+          <LimiteDeErro key={aba}>
+            {aba === 'agora' && <Agora />}
+            {aba === 'planejar' && <Planejar />}
+            {/* Enquanto o pedaço chega (só na primeira vez, e raro com a pré-carga), a área fica vazia, sem piscar texto. */}
+            <Suspense fallback={<section className="tela" aria-busy="true" />}>
+              {aba === 'agenda' && <Agenda />}
+              {aba === 'caixa' && <Caixa />}
+              {aba === 'financas' && <Financas />}
+              {aba === 'tarefas' && <Tarefas />}
+              {aba === 'rotinas' && <Rotinas />}
+              {aba === 'projetos' && <Projetos />}
+              {aba === 'historico' && <Historico />}
+              {aba === 'ajustes' && <Ajustes />}
+            </Suspense>
+          </LimiteDeErro>
         </>
       )}
     </>
