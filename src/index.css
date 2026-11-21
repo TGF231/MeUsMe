@@ -1085,11 +1085,18 @@ code {
   gap: 12px;
 }
 
+/*
+ * Ajustes em colunas de jornal, não em grade: na grade cada linha tinha a altura do cartão mais alto e sobrava um
+ * vão embaixo dos mais baixos. Aqui cada cartão encosta no de cima, e a ordem segue a do código (desce a coluna).
+ */
 .grade-ajustes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
-  gap: 16px;
-  align-items: start;
+  display: block;
+  columns: 380px;
+  column-gap: 16px;
+}
+.grade-ajustes > * {
+  break-inside: avoid;
+  margin-bottom: 16px;
 }
 
 .topo-agenda {
@@ -2240,4 +2247,14 @@ button.perigo:hover {
   .fab {
     bottom: calc(84px + env(safe-area-inset-bottom));
   }
+}
+
+/* Ajustes na janela de computador: o título na borda sobe acima do cartão. Em colunas, a margem de cima some no
+   topo da segunda coluna; o respiro fica no contêiner e entre os cartões, igual nas duas. */
+:root[data-layout='janela'] .grade-ajustes {
+  padding-top: var(--megui-esp-2);
+}
+:root[data-layout='janela'] .grade-ajustes > .cartao.cartao {
+  margin-top: 0;
+  margin-bottom: calc(16px + var(--megui-esp-2));
 }
