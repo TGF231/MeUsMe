@@ -5,6 +5,10 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.10',
+    itens: ['No computador, os cartões ficam iguais aos do celular: com fundo, título dentro e o mesmo espaço em todas as telas.'],
+  },
+  {
     versao: '0.9.9',
     itens: ['Ajustes em colunas: cada cartão fica logo abaixo do anterior, sem vãos entre eles.'],
   },
