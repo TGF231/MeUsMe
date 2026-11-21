@@ -387,14 +387,16 @@ h2.titulo {
   opacity: 1;
 }
 
-/* Seletor de energia: cinco botões, com as bolinhas em cima e o nome embaixo, para caber no celular. */
+/* Seletor de energia: cinco minicartões, com as bolinhas centradas no topo e o nome no pé, para caber no celular. */
 .segmentado.energia button {
   display: flex;
   flex: 1 1 0;
   min-width: 0;
   white-space: normal;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
   gap: 4px;
   padding: 8px 4px;
   font-size: 0.8rem;
@@ -2160,4 +2162,67 @@ button.perigo:hover {
 .linha-do-tempo .motivo {
   margin: 4px 0 8px;
   font-size: 0.8rem;
+}
+
+/* Organizar (Em espera): as escolhas do item da vez, agrupadas, cada uma com o que quer dizer embaixo. */
+.escolhas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.escolhas > .rotulo {
+  margin: 4px 0 0;
+}
+.opcoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: 8px;
+}
+.opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: normal;
+}
+.opcao > b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--texto);
+}
+.opcao > span {
+  color: var(--suave);
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+.opcao.sugerida {
+  background: var(--acento-leve);
+  border-color: var(--acento-linha);
+}
+
+/* O resto da pilha: uma linha por item, sem botões; tocar escolhe o da vez. */
+.lista-fila {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.lista-fila li + li {
+  border-top: 1px solid var(--borda);
+}
+.lista-fila button {
+  width: 100%;
+  min-height: var(--alvo);
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  justify-content: flex-start;
+  white-space: normal;
 }
