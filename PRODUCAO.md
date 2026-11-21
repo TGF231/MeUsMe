@@ -73,8 +73,8 @@ Gera `android/app/build/outputs/bundle/release/app-release.aab`, o arquivo que v
 - Conta de desenvolvedor: US$ 25, pagamento único.
 - **Conta pessoal criada depois de nov/2023: teste fechado com 12 testadores por 14 dias seguidos** antes de liberar a produção.
 - Formulário **Segurança dos dados**: o app guarda tarefas, diário, finanças e agenda; com a sincronização ligada, envia para o servidor, criptografado em trânsito.
-- **Exclusão de conta**: o app já tem "Apagar minha conta". A Play também pede um **link na web** explicando como apagar: falta essa página.
-- **Política de privacidade**: falta escrever e publicar (ver seção 7).
+- **Exclusão de conta**: o app já tem "Apagar minha conta". O link na web que a Play pede é https://megstation.com/MeUsMe/privacidade.html#apagar-conta.
+- **Política de privacidade**: https://megstation.com/MeUsMe/privacidade.html (ver seção 7).
 - **Leitura de notificações**: declare o uso e explique na listagem. O app mostra a explicação antes de pedir o acesso; a revisão do Google pode pedir mais detalhes.
 - Declaração de **recursos financeiros**: o app mostra saldos e gastos.
 - **Compras dentro do app** (ver o [Modelo de preço](docs/ROADMAP.md#modelo-de-preço)): o app é publicado como gratuito (um app gratuito não pode virar pago depois; os pacotes e a assinatura vêm pela cobrança da Play, com taxa de 15%). Precisa de **perfil de pagamentos** no Play Console; como pessoa física, a renda entra no carnê-leão. Cadastre os pacotes como produtos de compra única e a sincronização como assinatura, com preços próprios em reais.
@@ -104,7 +104,11 @@ Precisa de um Mac com Xcode e da conta Apple Developer (US$ 99 por ano). O Capac
 
 1. **Open Finance (Pluggy)**: o Meu Pluggy é gratuito **só para uso pessoal** (um CPF). Para oferecer a outras pessoas é preciso o plano comercial da Pluggy (a partir de R$ 2.500/mês, segundo a própria Pluggy), e o segredo da API precisa morar num servidor (por exemplo, uma Edge Function do Supabase), nunca dentro do app. Por isso o Open Finance só aparece em builds com `VITE_OPEN_FINANCE=ligado`; sem a variável (o padrão), fica escondido.
 2. **Google Agenda**: o acesso à agenda é um escopo "sensível" do Google. Para o público, o Google exige **verificação do app** (política de privacidade, domínio próprio, vídeo de demonstração). Até lá, só funciona para até 100 usuários de teste cadastrados por você.
-3. **Política de privacidade e termos de uso** (LGPD e exigência das lojas): a política está escrita em `public/privacidade.html` (sai junto com o app web e tem a seção `#apagar-conta` que a Play pede) e tem link em Ajustes → Sobre. Os termos de uso estão em `public/termos.html`. Falta publicar os dois num endereço fixo e revisar o texto.
+3. **Política de privacidade e termos de uso** (LGPD e exigência das lojas): escritos em `public/privacidade.html` e `public/termos.html`, com link em Ajustes → Sobre, e publicados junto com o app web em endereço fixo:
+   - política: https://megstation.com/MeUsMe/privacidade.html (a seção https://megstation.com/MeUsMe/privacidade.html#apagar-conta é o link de exclusão de conta que a Play pede);
+   - termos: https://megstation.com/MeUsMe/termos.html.
+
+   O caminho tem maiúsculas (`/MeUsMe/`, o nome do repositório); `/meusme/privacidade.html` dá 404. Falta só revisar o texto antes da publicação aberta.
 
 ## Custos para começar
 
