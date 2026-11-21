@@ -1,139 +1,62 @@
 /*
- * Acabamento com base no Atlassian Design System (atlassian.design), sobre a estrutura do MegUI.
- * O MegUI continua dando os componentes, os tipos e os espaços; esta camada troca só o acabamento:
- * - neutros cinza do Atlassian no lugar dos neutros azulados (claro e escuro);
- * - cantos de 6px nos controles e 8px nos cartões (escala do Atlassian: 4, 6, 8, 12);
- * - elevação discreta: sombra "raised" nos cartões e "overlay" nas janelas; sem brilho, sem vidro.
- * - fonte: Inter no texto e JetBrains Mono nos números (as duas OFL, em src/tema/fonts, funcionam sem internet). A
- *   Atlassian Sans é a fonte própria da Atlassian; a Inter é a aberta mais próxima dela. A Atkinson fica de reserva
- *   para os símbolos que a Inter latina não tem (como os pontos de energia ●○).
- * O acento (cor principal, #7D0E0E por padrão, configurável em Ajustes) e as cores de estado continuam os do MegUI.
- * Carregada por último (src/main.tsx). Para voltar ao MegUI puro, basta não importar este arquivo.
+ * A linguagem do MegUI 2.0 nas peças próprias do MeUsMe.
+ *
+ * Desde a 2.0, o MegUI é a mesma família da página inicial (megstation.com) e do painel do NodeMCU: cinzas do
+ * Atlassian, Inter e JetBrains Mono, botão e aba em pílula, cartão de 12px com a sombra elevada, o brilho só na ação
+ * principal e uma curva de movimento. Tudo isso vem do megui.css e do megui-componentes.css (classes .mg-*), sem
+ * valor escrito aqui. Esta folha só leva a mesma linguagem ao que o MeUsMe desenha sem .mg-*: o .cartao, os botões
+ * soltos, o botão + e o brilho do Próximo passo.
+ * Carregada por último (src/main.tsx).
  */
 
-/* Fontes variáveis (um arquivo cobre de 400 a 700), só o recorte latino, que tem todo o português. */
-@font-face {
-  font-family: 'Inter Variable';
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url('fonts/Inter-Variable-latin.woff2') format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'JetBrains Mono Variable';
-  font-style: normal;
-  font-weight: 100 800;
-  font-display: swap;
-  src: url('fonts/JetBrainsMono-Variable-latin.woff2') format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-:root {
-  --font-ui: 'Inter Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', 'Atkinson Hyperlegible Mono', ui-monospace, monospace;
-  --megui-fonte-ui: var(--font-ui);
-  --megui-fonte-mono: var(--font-mono);
-}
 body {
-  font-family: var(--font-ui);
-  font-feature-settings: 'cv11';  /* "a" de um andar, mais limpo em tamanho pequeno */
+  font-feature-settings: 'cv11';
 }
 
-/* Neutros do Atlassian, tema claro (sobrescrevem os do megui.css nos mesmos seletores). */
+/* Cartões e janelas do app: a sombra elevada do MegUI; o que flutua, a sombra de janela. */
+.cartao {
+  box-shadow: var(--sombra-elevada);
+  transition:
+    transform var(--mov),
+    border-color var(--mov),
+    box-shadow var(--mov);
+}
+.modal,
+.mg-dialogo.modal-megui {
+  box-shadow: var(--sombra-janela);
+}
+
+/* Título do cartão como o do Grupo do MegUI: na tinta do texto, em peso forte, dentro e em cima. */
+.cartao > h2.rotulo:first-child {
+  color: var(--texto);
+  font-size: 0.95rem;
+}
+
+/*
+ * Próximo passo: o brilho da cor principal se apagando na diagonal, como o cartão de destaque da página inicial (o
+ * único gradiente que o MegUI admite). Mais forte no escuro; no claro, só um toque, para o texto manter o contraste.
+ */
 :root,
 [data-theme='claro'],
 [data-tema='claro'] {
-  --megui-bg: #f8f8f8;
-  --megui-surface: #ffffff;
-  --megui-surface-2: #f0f1f2;
-  --megui-sunken: #f8f8f8;
-  --megui-linha-alt: #fafafa;
-  --megui-somente-leitura: #f0f1f2;
-  --megui-ink: #292a2e;
-  --megui-ink-2: #505258;
-  --megui-ink-3: #6b6e76;
-  --megui-border: #dddee1;
-  --megui-border-2: #8c8f97;
-  --ads-sombra-elevada: 0 1px 1px #1e1f2140, 0 0 1px #1e1f214f;
-  --ads-sombra-janela: 0 8px 12px #1e1f2126, 0 0 1px #1e1f214f;
   --brilho-acento: 18%;
 }
-
-/* Tema escuro. */
 [data-theme='escuro'],
 [data-tema='escuro'] {
-  --megui-bg: #1f1f21;
-  --megui-surface: #242528;
-  --megui-surface-2: #2b2c2f;
-  --megui-sunken: #18191a;
-  --megui-linha-alt: #222326;
-  --megui-somente-leitura: #2b2c2f;
-  --megui-ink: #cecfd2;
-  --megui-ink-2: #a9abaf;
-  --megui-ink-3: #96999e;
-  --megui-border: #37383b;
-  --megui-border-2: #7e8188;
-  --ads-sombra-elevada: 0 0 0 1px #00000000, 0 1px 1px #01040480, 0 0 1px #01040480;
-  --ads-sombra-janela: 0 0 0 1px #bdbdbd1f, 0 8px 12px #0104045c, 0 0 1px 1px #01040480;
   --brilho-acento: 55%;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]):not([data-tema]) {
-    --megui-bg: #1f1f21;
-    --megui-surface: #242528;
-    --megui-surface-2: #2b2c2f;
-    --megui-sunken: #18191a;
-    --megui-linha-alt: #222326;
-    --megui-somente-leitura: #2b2c2f;
-    --megui-ink: #cecfd2;
-    --megui-ink-2: #a9abaf;
-    --megui-ink-3: #96999e;
-    --megui-border: #37383b;
-    --megui-border-2: #7e8188;
-    --ads-sombra-elevada: 0 0 0 1px #00000000, 0 1px 1px #01040480, 0 0 1px #01040480;
-    --ads-sombra-janela: 0 0 0 1px #bdbdbd1f, 0 8px 12px #0104045c, 0 0 1px 1px #01040480;
     --brilho-acento: 55%;
   }
 }
-
-/* Cantos: 12px em cartões, menus e janelas (como na página inicial); 6px em campos e nos componentes MegUI. */
-:root {
-  --ads-raio-cartao: 12px;
-  --ads-raio-controle: 6px;
-  --raio: var(--ads-raio-cartao);
-  --raio-controle: var(--ads-raio-controle);
-  --megui-raio: var(--ads-raio-controle);
-}
-
-/* Elevação: cartões levemente acima do fundo; janelas por cima de tudo. */
-.cartao {
-  box-shadow: var(--ads-sombra-elevada);
-}
-.modal,
-.mg-dialogo.modal-megui {
-  box-shadow: var(--ads-sombra-janela);
-}
-
-/* Próximo passo: o mesmo brilho do cartão do MeUsMe na página inicial, a cor principal se apagando na diagonal.
-   Mais forte no escuro; no claro, só um toque, para o texto continuar com o mesmo contraste. */
 .cartao.foco {
   background: linear-gradient(150deg, color-mix(in srgb, var(--acento) var(--brilho-acento), transparent), transparent 60%),
     var(--superficie);
 }
 
-/*
- * Linguagem da página inicial (megstation.com), a mesma família: botão em pílula com sombra leve que sobe ao passar
- * o ponteiro; a ação principal na cor, com brilho embaixo e um fio de luz em cima (o que ficou do vidro); cartão
- * clicável que sobe e ganha o anel da cor; um movimento só para tudo. Valores de assets/css/site.css do site.
- */
-:root {
-  --mov: 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  --raio-pilula: 999px;
-  --brilho-cor: color-mix(in srgb, var(--acento) 55%, transparent);
-}
-
-button,
-.mg-botao {
+/* Botões soltos do app (sem .mg-botao): o mesmo botão do MegUI, em pílula na superfície, com contorno e sombra. */
+button {
   border-radius: var(--raio-pilula);
   transition:
     transform var(--mov),
@@ -141,87 +64,54 @@ button,
     background var(--mov),
     box-shadow var(--mov);
 }
-
-/* Botão comum: fundo da superfície, contorno e a sombra leve, como o .botao do site. */
-button:not(.discreto, .ativo, .opcao, .cartao, .pontos, .mg-botao--acento, .fab, .nav-capturar, .mg-acao-primaria):not(.abas *, .menu-aba > *, .sub-abas > *, .dias > *, .lista-fila *, .mg-barra-titulo *),
-.mg-botao:not(.mg-botao--acento) {
+button:not(.discreto, .ativo, .opcao, .cartao, .pontos, .mg-botao, .mg-interruptor, .mg-acao-primaria, .fab):not(.abas *, .menu-aba > *, .sub-abas > *, .dias > *, .lista-fila *, .mg-barra-titulo *, .mg-faixa-abas *) {
   background: var(--superficie);
-  box-shadow: var(--ads-sombra-elevada);
+  box-shadow: var(--sombra-elevada);
 }
 
-/* Ação principal: cor cheia, brilho embaixo e o fio de luz em cima. */
-.mg-botao--acento,
-.fab,
-.nav-capturar,
-.mg-acao-primaria {
-  box-shadow:
-    0 14px 34px -10px var(--brilho-cor),
-    inset 0 1px 0 rgb(255 255 255 / 0.18);
-}
-
-/* O botão + e o Capturar do computador são redondos, como a ação do site. */
-.fab,
-.mg-acao-primaria {
+/* O botão +: a ação principal do celular, redonda, com o brilho do MegUI. */
+.fab {
   border-radius: var(--raio-pilula);
+  box-shadow: var(--megui-brilho-acao);
 }
 
-/* Interruptores (tema, perfil) e as amostras de cor também são pílulas, como as etiquetas do site. */
-.mg-interruptor,
-.amostra {
-  border-radius: var(--raio-pilula);
-}
-
-/* O que não é pílula: cartões, as escolhas de Organizar, os minicartões de energia e os itens das faixas. */
+/* O que não é pílula: as escolhas de Organizar e os minicartões de energia (cartões) e os dias da Agenda. */
 .opcao,
 .segmentado.energia button {
   border-radius: var(--raio);
 }
-.menu-aba > *,
-.sub-abas > *,
 .dias > * {
   border-radius: calc(var(--raio) - 2px);
 }
-
-.cartao {
-  transition:
-    transform var(--mov),
-    border-color var(--mov),
-    box-shadow var(--mov);
+.amostra {
+  border-radius: var(--raio-pilula);
 }
 
 @media (hover: hover) {
-  button:not(:disabled, .discreto, .opcao, .cartao, .pontos):not(.abas *, .menu-aba > *, .sub-abas > *, .dias > *, .lista-fila *, .mg-barra-titulo *):hover,
-  .mg-botao:not(:disabled):hover {
-    transform: translateY(-2px);
+  button:not(:disabled, .discreto, .opcao, .cartao, .pontos, .mg-botao, .mg-interruptor, .mg-acao-primaria):not(.abas *, .menu-aba > *, .sub-abas > *, .dias > *, .lista-fila *, .mg-barra-titulo *, .mg-faixa-abas *):hover {
+    transform: translateY(var(--megui-subida));
     border-color: var(--borda-2);
   }
-  .mg-botao--acento:not(:disabled):hover,
-  .fab:hover,
-  .nav-capturar:hover,
-  .mg-acao-primaria:hover {
-    box-shadow:
-      0 18px 40px -10px var(--brilho-cor),
-      inset 0 1px 0 rgb(255 255 255 / 0.22);
+  .fab:hover {
+    box-shadow: var(--megui-brilho-acao-hover);
   }
   /* Cartão que se toca inteiro (projeto, escolha de Organizar): sobe, sombra de janela e o anel da cor. */
   .cartao.clicavel:hover,
   .opcao:hover {
-    transform: translateY(-3px);
+    transform: translateY(var(--megui-subida-cartao));
     border-color: var(--borda-2);
     box-shadow:
-      var(--ads-sombra-janela),
-      0 0 0 1px var(--brilho-cor);
+      var(--sombra-janela),
+      0 0 0 1px var(--megui-brilho);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   button,
-  .mg-botao,
   .cartao {
     transition: none;
   }
   button:hover,
-  .mg-botao:hover,
   .cartao:hover,
   .opcao:hover {
     transform: none !important;

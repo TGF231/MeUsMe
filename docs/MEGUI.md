@@ -3,6 +3,24 @@
 Como o MeUsMe aplica o MegUI, o que ele adapta para o toque e o que ele propõe de volta para a definição do sistema.
 A fonte do MegUI é o artifact de design system; aqui ficam só as cópias geradas, em `src/tema/` (nunca editadas à mão).
 
+## MegUI 2.0 (novembro de 2026)
+
+O MegUI passou a ter a linguagem da página inicial megstation.com e do painel do NodeMCU, e o MeUsMe copia a 2.0:
+
+- `src/tema/megui.css` e `public/megui.css`: cinzas do Atlassian, Inter e JetBrains Mono (woff2 variável em
+  `src/tema/fonts` e `public/fonts`), raios `--megui-raio-campo` (8), `--megui-raio-cartao` (12) e
+  `--megui-raio-pilula`, sombras `--megui-sombra-elevada` e `--megui-sombra-janela`, o brilho da ação primária
+  (`--megui-brilho-acao`) e a curva de 220 ms.
+- `src/tema/megui-componentes.css`: botão, aba e interruptor em pílula; `Grupo` como cartão com o título dentro;
+  a `AcaoPrimaria` com brilho; a subida de 2px no hover.
+- `src/index.css` aponta `--raio`, `--raio-controle`, `--raio-pilula`, `--sombra-*` e `--mov` para esses tokens e
+  faz o brilho seguir o acento escolhido em Ajustes (`--megui-brilho`).
+- `src/tema/acabamento.css` só leva a linguagem às peças próprias do MeUsMe (`.cartao`, botões soltos, o botão +, o
+  brilho do Próximo passo). Os neutros, as fontes e as sombras próprias que ela tinha saíram: agora vêm do MegUI.
+- O menu de cima e as sub-abas são a `FaixaAbas` da 2.0: abas soltas em pílula, a aberta sobe na superfície.
+- `src/tema/cores.ts`: a paleta dos cálculos e o acento suave da assinatura seguem a 2.0; o suave derivado no claro
+  passou de 9% para 5% de acento, para a tinta `ink-3` manter 4,5:1.
+
 ## 1. O que veio do MegUI (forma dos controles, Figma UI3)
 
 A revisão de 11/11/2026 mudou só a folha de componentes (`megui-componentes.css`). Tokens, fontes e a camada React
