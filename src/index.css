@@ -2226,3 +2226,18 @@ button.perigo:hover {
   justify-content: flex-start;
   white-space: normal;
 }
+
+/* Janela baixa (tela dividida no celular, janela encaixada num quarto da tela no Windows): o botão + encolhe, para
+   não cobrir um pedaço grande do conteúdo. */
+@media (max-height: 600px) {
+  .fab {
+    width: 56px;
+    height: 56px;
+    font-size: 2rem;
+  }
+}
+@media (max-height: 600px) and (orientation: portrait) {
+  .fab {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+}
