@@ -650,13 +650,13 @@ export default function App() {
               <Icone nome="buscar" />
             </button>
             <button
-              className={`discreto icone-botao so-estreito ${aba === 'ajustes' ? 'ativo' : ''}`}
+              className={`discreto icone-botao com-rotulo so-estreito ${aba === 'ajustes' ? 'ativo' : ''}`}
               onClick={() => setAba(aba === 'ajustes' ? 'agora' : 'ajustes')}
-              aria-label="Ajustes"
               aria-current={aba === 'ajustes' ? 'page' : undefined}
               title="Ajustes"
             >
               <Icone nome="ajustes" />
+              <span>Ajustes</span>
             </button>
           </span>
         </header>

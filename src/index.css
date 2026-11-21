@@ -233,8 +233,20 @@ html {
   background: var(--borda);
 }
 
+/* Aberto: preenchimento e contorno, além da cor (a cor sozinha não basta para marcar onde a pessoa está). */
 .icone-botao.ativo {
   color: var(--acento-linha);
+  background: var(--acento-leve);
+  border-color: var(--acento-linha);
+}
+
+/* Ícone com nome ao lado: Ajustes no topo do celular. */
+.icone-botao.com-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
 }
 
 .topo h1 {
