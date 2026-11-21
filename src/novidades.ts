@@ -5,6 +5,10 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.9',
+    itens: ['Ajustes em colunas: cada cartão fica logo abaixo do anterior, sem vãos entre eles.'],
+  },
+  {
     versao: '0.9.8',
     itens: [
       'Energia com cinco níveis, como o humor: Baixa, Média-baixa, Média, Média-alta e Alta. O que você já tinha foi convertido.',
