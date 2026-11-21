@@ -96,9 +96,9 @@ body {
   }
 }
 
-/* Cantos: 8px em cartões, menus e janelas; 6px em botões, campos e nos componentes MegUI. */
+/* Cantos: 12px em cartões, menus e janelas (como na página inicial); 6px em campos e nos componentes MegUI. */
 :root {
-  --ads-raio-cartao: 8px;
+  --ads-raio-cartao: 12px;
   --ads-raio-controle: 6px;
   --raio: var(--ads-raio-cartao);
   --raio-controle: var(--ads-raio-controle);
@@ -119,4 +119,111 @@ body {
 .cartao.foco {
   background: linear-gradient(150deg, color-mix(in srgb, var(--acento) var(--brilho-acento), transparent), transparent 60%),
     var(--superficie);
+}
+
+/*
+ * Linguagem da página inicial (megstation.com), a mesma família: botão em pílula com sombra leve que sobe ao passar
+ * o ponteiro; a ação principal na cor, com brilho embaixo e um fio de luz em cima (o que ficou do vidro); cartão
+ * clicável que sobe e ganha o anel da cor; um movimento só para tudo. Valores de assets/css/site.css do site.
+ */
+:root {
+  --mov: 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  --raio-pilula: 999px;
+  --brilho-cor: color-mix(in srgb, var(--acento) 55%, transparent);
+}
+
+button,
+.mg-botao {
+  border-radius: var(--raio-pilula);
+  transition:
+    transform var(--mov),
+    border-color var(--mov),
+    background var(--mov),
+    box-shadow var(--mov);
+}
+
+/* Botão comum: fundo da superfície, contorno e a sombra leve, como o .botao do site. */
+button:not(.discreto, .ativo, .opcao, .cartao, .pontos, .mg-botao--acento, .fab, .nav-capturar, .mg-acao-primaria):not(.abas *, .menu-aba > *, .sub-abas > *, .dias > *, .lista-fila *, .mg-barra-titulo *),
+.mg-botao:not(.mg-botao--acento) {
+  background: var(--superficie);
+  box-shadow: var(--ads-sombra-elevada);
+}
+
+/* Ação principal: cor cheia, brilho embaixo e o fio de luz em cima. */
+.mg-botao--acento,
+.fab,
+.nav-capturar,
+.mg-acao-primaria {
+  box-shadow:
+    0 14px 34px -10px var(--brilho-cor),
+    inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
+
+/* O botão + e o Capturar do computador são redondos, como a ação do site. */
+.fab,
+.mg-acao-primaria {
+  border-radius: var(--raio-pilula);
+}
+
+/* Interruptores (tema, perfil) e as amostras de cor também são pílulas, como as etiquetas do site. */
+.mg-interruptor,
+.amostra {
+  border-radius: var(--raio-pilula);
+}
+
+/* O que não é pílula: cartões, as escolhas de Organizar, os minicartões de energia e os itens das faixas. */
+.opcao,
+.segmentado.energia button {
+  border-radius: var(--raio);
+}
+.menu-aba > *,
+.sub-abas > *,
+.dias > * {
+  border-radius: calc(var(--raio) - 2px);
+}
+
+.cartao {
+  transition:
+    transform var(--mov),
+    border-color var(--mov),
+    box-shadow var(--mov);
+}
+
+@media (hover: hover) {
+  button:not(:disabled, .discreto, .opcao, .cartao, .pontos):not(.abas *, .menu-aba > *, .sub-abas > *, .dias > *, .lista-fila *, .mg-barra-titulo *):hover,
+  .mg-botao:not(:disabled):hover {
+    transform: translateY(-2px);
+    border-color: var(--borda-2);
+  }
+  .mg-botao--acento:not(:disabled):hover,
+  .fab:hover,
+  .nav-capturar:hover,
+  .mg-acao-primaria:hover {
+    box-shadow:
+      0 18px 40px -10px var(--brilho-cor),
+      inset 0 1px 0 rgb(255 255 255 / 0.22);
+  }
+  /* Cartão que se toca inteiro (projeto, escolha de Organizar): sobe, sombra de janela e o anel da cor. */
+  .cartao.clicavel:hover,
+  .opcao:hover {
+    transform: translateY(-3px);
+    border-color: var(--borda-2);
+    box-shadow:
+      var(--ads-sombra-janela),
+      0 0 0 1px var(--brilho-cor);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .mg-botao,
+  .cartao {
+    transition: none;
+  }
+  button:hover,
+  .mg-botao:hover,
+  .cartao:hover,
+  .opcao:hover {
+    transform: none !important;
+  }
 }
