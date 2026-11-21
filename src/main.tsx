@@ -31,9 +31,8 @@ if (!ehNativo() && !ehDesktop()) {
         acao: { rotulo: 'Atualizar', fazer: () => void atualizar(true) },
       })
     },
-    onOfflineReady() {
-      useAvisos.getState().mostrar('Pronto para usar sem internet', 'O MeUsMe já abre e funciona neste aparelho mesmo offline.')
-    },
+    // Sem aviso de 'pronto para usar offline': não pede ação e, no topo, cobria a introdução no celular. O cartão
+    // Instalar o app, em Ajustes, já diz que o app funciona sem internet.
     onRegisteredSW(_url, registro) {
       if (registro) setInterval(() => void registro.update().catch(() => {}), 60 * 60 * 1000)
     },

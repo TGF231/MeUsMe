@@ -324,6 +324,12 @@ export default function App() {
   useSincronizacao()
   // Primeira tela desenhada: as outras vêm no tempo livre, para a troca de aba não esperar.
   useEffect(precarregarTelas, [])
+  // Telas pedem a captura rápida (o estado vazio de Próximo passo) com o evento meusme:capturar.
+  useEffect(() => {
+    const abrir = () => setCapturando(true)
+    window.addEventListener('meusme:capturar', abrir)
+    return () => window.removeEventListener('meusme:capturar', abrir)
+  }, [])
 
   // Ctrl+Espaço abre a captura rápida; Ctrl+Z desfaz o que o motor acabou de criar.
   useEffect(() => {

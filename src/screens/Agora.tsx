@@ -771,6 +771,7 @@ export function Agora() {
   }
 
   const verNota = !!escolha && notaAberta === escolha.passo.id
+  const filaVazia = !escolha && !s.passos.some((p) => !p.feitoEm)
 
   const tela = (
     <section className="tela centro agora">
@@ -796,7 +797,8 @@ export function Agora() {
         </div>
       )}
 
-      <SeletorEnergia valor={energia} onChange={setEnergia} />
+      {/* Fila vazia: não há passo para a energia escolher; a ação da tela é capturar. */}
+      {!filaVazia && <SeletorEnergia valor={energia} onChange={setEnergia} />}
       <SeletorLugar />
       <Chegada />
 
@@ -836,9 +838,14 @@ export function Agora() {
                 O que está na fila já tem horário: <b>{hora(proximaReserva.inicio)}</b>. Até lá, o tempo é seu.
               </p>
             ) : (
-              <p>
-                Nada na fila. Jogue o que estiver na cabeça no botão <b>+</b> e organize depois, em <b>Em espera</b>.
-              </p>
+              <>
+                <p>Nada na fila. Anote o que estiver na cabeça; organizar fica para depois, em <b>Em espera</b>.</p>
+                <div>
+                  <Botao variante="acento" onClick={() => window.dispatchEvent(new Event('meusme:capturar'))}>
+                    Capturar
+                  </Botao>
+                </div>
+              </>
             )}
           </div>
         ) : (
