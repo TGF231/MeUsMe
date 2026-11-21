@@ -5,6 +5,13 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.11',
+    itens: [
+      'Visual da mesma família da página inicial: botões arredondados, a ação principal com brilho e o botão + redondo.',
+      'Cartões com cantos mais suaves; no computador, o que se clica inteiro sobe um pouco ao passar o mouse.',
+    ],
+  },
+  {
     versao: '0.9.10',
     itens: ['No computador, os cartões ficam iguais aos do celular: com fundo, título dentro e o mesmo espaço em todas as telas.'],
   },

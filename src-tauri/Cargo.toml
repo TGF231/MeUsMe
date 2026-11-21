@@ -1,6 +1,6 @@
 [package]
 name = "meusme"
-version = "0.9.10"
+version = "0.9.11"
 description = "MeUsMe para Windows"
 authors = ["MeUsMe"]
 edition = "2024"
