@@ -268,7 +268,7 @@ h2.titulo {
 }
 
 .cartao.compacto {
-  padding: 12px 16px;
+  padding: 16px;
 }
 
 /* Densidade compacta (D17): menos respiro para ver mais de uma vez. Botões maiores vencem, para não apertar os alvos. */
@@ -364,7 +364,46 @@ h2.titulo {
 
 .pontos {
   color: var(--acento-linha);
-  letter-spacing: 1px;
+}
+
+/* Energia: cinco bolinhas, cheias até o nível; a cheia é maior que a vazia, para o nível saltar aos olhos. */
+.bolinhas {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  vertical-align: middle;
+}
+.bolinhas > i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0.7;
+}
+.bolinhas > i.cheia {
+  width: 9px;
+  height: 9px;
+  background: currentColor;
+  opacity: 1;
+}
+
+/* Seletor de energia: cinco minicartões, com as bolinhas centradas no topo e o nome no pé, para caber no celular. */
+.segmentado.energia button {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: normal;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 8px 4px;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+.segmentado.energia .bolinhas {
+  align-self: center;
 }
 
 .dica {
@@ -536,8 +575,19 @@ textarea.nota-passo {
   font-weight: var(--peso-forte);
   margin-top: -18px;
   margin-bottom: calc(-8px - env(safe-area-inset-bottom));
+  /* O botão sobe 18px; ícone e nome sobem só a metade. */
+  padding-top: calc(6px + 9px);
   padding-bottom: calc(6px + 8px + env(safe-area-inset-bottom));
   border-radius: var(--raio) var(--raio) 0 0;
+}
+
+/* Ícone e nome da aba aberta 25% maiores que os das outras (22px e 0.7rem). */
+.abas button.ativo > svg {
+  width: 27.5px;
+  height: 27.5px;
+}
+.abas button.ativo > span:not(.contador) {
+  font-size: 1.25em;
 }
 
 .contador {
@@ -735,10 +785,14 @@ input.mini {
   background: var(--superficie-2);
   border: 1px solid var(--borda);
   border-radius: var(--raio);
-  margin-bottom: 12px;
 }
 
 /* Cada item é um rótulo solto, sem caixa. */
+.menu-aba,
+.sub-abas {
+  margin-bottom: 12px;
+}
+
 .menu-aba > *,
 .sub-abas > *,
 .dias > * {
@@ -787,7 +841,7 @@ input.mini {
 }
 
 .situacao {
-  margin: 0 0 6px;
+  margin: 0;
   font-size: 0.95rem;
 }
 
@@ -1038,6 +1092,9 @@ code {
   align-items: start;
 }
 
+.topo-agenda {
+  gap: 12px;
+}
 .topo-agenda > * {
   flex: 1 1 280px;
 }
@@ -1074,17 +1131,6 @@ code {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-.planejar > .cartao {
-  border: 0;
-  border-top: 1px solid var(--borda);
-  border-radius: 0;
-  background: none;
-  padding: 12px 0 0;
-}
-.planejar > :first-child {
-  border-top: 0;
-  padding-top: 0;
 }
 
 .resto-do-dia {
@@ -1140,10 +1186,19 @@ kbd {
   .abas button.ativo {
     margin-top: 0;
     margin-bottom: 0;
+    padding-top: 3px;
     padding-bottom: 3px;
     border: 0;
     box-shadow: inset 0 0 0 1px var(--acento-linha);
     border-radius: var(--raio);
+  }
+
+  .abas button.ativo > svg {
+    width: 22px;
+    height: 22px;
+  }
+  .abas button.ativo > span:not(.contador) {
+    font-size: inherit;
   }
 
   .abas .nav-ajustes {
@@ -1219,6 +1274,7 @@ kbd {
   }
 
   .abas button.ativo {
+    padding-top: 10px;
     padding-bottom: 10px;
   }
 
@@ -1856,22 +1912,6 @@ button.perigo:hover {
   margin-top: calc(-1 * var(--megui-esp-6) - var(--megui-tipo-corpo-altura) * 0.5em - 1px);
 }
 
-/* Em "Planejar o dia" os blocos são seções da janela, separadas por linha: sem o título na borda. */
-:root[data-layout='janela'] .planejar > .cartao {
-  margin-top: 0;
-  padding: var(--megui-esp-3) 0 0;
-}
-
-:root[data-layout='janela'] .planejar > :first-child {
-  padding-top: 0;
-}
-
-:root[data-layout='janela'] .planejar > .cartao > h2:first-child {
-  margin: 0;
-  padding: 0;
-  background: none;
-}
-
 /* Ação solta na tela tem a largura do rótulo, como na BarraAcoes; a barra de ponta a ponta é do toque. */
 :root[data-layout='janela'] :is(.tela, .col) > :is(button, .mg-botao) {
   align-self: flex-start;
@@ -2122,4 +2162,82 @@ button.perigo:hover {
 .linha-do-tempo .motivo {
   margin: 4px 0 8px;
   font-size: 0.8rem;
+}
+
+/* Organizar (Em espera): as escolhas do item da vez, agrupadas, cada uma com o que quer dizer embaixo. */
+.escolhas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.escolhas > .rotulo {
+  margin: 4px 0 0;
+}
+.opcoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: 8px;
+}
+.opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: normal;
+}
+.opcao > b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--texto);
+}
+.opcao > span {
+  color: var(--suave);
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+.opcao.sugerida {
+  background: var(--acento-leve);
+  border-color: var(--acento-linha);
+}
+
+/* O resto da pilha: uma linha por item, sem botões; tocar escolhe o da vez. */
+.lista-fila {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.lista-fila li + li {
+  border-top: 1px solid var(--borda);
+}
+.lista-fila button {
+  width: 100%;
+  min-height: var(--alvo);
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  justify-content: flex-start;
+  white-space: normal;
+}
+
+/* Janela baixa (tela dividida no celular, janela encaixada num quarto da tela no Windows): o botão + encolhe, para
+   não cobrir um pedaço grande do conteúdo. */
+@media (max-height: 600px) {
+  .fab {
+    width: 56px;
+    height: 56px;
+    font-size: 2rem;
+  }
+}
+@media (max-height: 600px) and (orientation: portrait) {
+  .fab {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
 }

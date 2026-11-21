@@ -1,6 +1,7 @@
 import type { Classe } from './motor/regras'
 
-export type Energia = 1 | 2 | 3 // 1 = baixa, 2 = média, 3 = alta
+/** Cinco níveis, como o humor: 1 = baixa, 3 = média, 5 = alta (até a 0.9.7 eram três: 1, 2 e 3). */
+export type Energia = 1 | 2 | 3 | 4 | 5
 
 export interface Captura {
   id: string

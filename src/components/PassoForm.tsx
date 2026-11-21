@@ -37,7 +37,7 @@ export function PassoForm({
   inicial = '',
   pergunta = 'Qual é a próxima ação física e concreta?',
   rotuloBotao = 'Adicionar passo',
-  energiaInicial = 2,
+  energiaInicial = 3,
   projetoId = null,
   sugerir = true,
   comDatas = true,

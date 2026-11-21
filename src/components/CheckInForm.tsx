@@ -48,7 +48,7 @@ export function CheckInForm({ onPronto }: { onPronto?: () => void }) {
   const existente = useStore((s) => s.checkins.find((c) => c.dia === hoje()))
   const salvar = useStore((s) => s.salvarCheckIn)
   const [humor, setHumor] = useState<CheckIn['humor']>(existente?.humor ?? 3)
-  const [energia, setEnergia] = useState<Energia>(existente?.energia ?? 2)
+  const [energia, setEnergia] = useState<Energia>(existente?.energia ?? 3)
   const [frase, setFrase] = useState(existente?.frase ?? '')
 
   return (

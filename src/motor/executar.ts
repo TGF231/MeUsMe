@@ -11,7 +11,7 @@ import type { Interpretacao } from './regras'
 
 const DURACAO_COMPROMISSO = 60 * 60_000
 const DIA = 86_400_000
-const ENERGIA_MEDIA = 2
+const ENERGIA_MEDIA = 3
 
 /** "hoje às 13:00", "amanhã às 15:00", "sexta, 30/10 às 09:00". */
 export function quandoPorExtenso(t: number, agora = Date.now()) {

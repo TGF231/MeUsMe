@@ -128,16 +128,33 @@ function FormularioDaCaptura({ ctx, modo }: Readonly<{ ctx: Contexto; modo: NonN
   }
 }
 
-/** Os botões da captura: o tipo provável (regras ou rede, docs/MOTOR.md) vem primeiro, e o botão comum dele some. */
+/** Uma escolha: nome e, embaixo, o que ela quer dizer, para não haver dúvida entre duas parecidas. */
+function Opcao({ nome, diz, sugerida, onClick }: Readonly<{ nome: string; diz: string; sugerida?: boolean; onClick: () => void }>) {
+  return (
+    <button type="button" className={`opcao${sugerida ? ' sugerida' : ''}`} onClick={onClick}>
+      <b>
+        {nome}
+        {sugerida && <span className="selo">Sugerido</span>}
+      </b>
+      <span>{diz}</span>
+    </button>
+  )
+}
+
+/**
+ * As escolhas da captura, sempre nos mesmos lugares e agrupadas por pergunta (fazer, hora marcada, dinheiro, sem
+ * ação). Cada uma diz o que é. O tipo provável (regras ou rede, docs/MOTOR.md) ganha a marca "Sugerido" no lugar
+ * dele, sem mudar a ordem: a posição fixa evita procurar o botão a cada item.
+ */
 function AcoesDaCaptura({ ctx }: Readonly<{ ctx: Contexto }>) {
   const s = useStore()
   const { captura, dinheiro, setModo, aprender, resolver } = ctx
   const ativos = s.projetos.filter((p) => !p.concluidoEm)
   const adiarCompra = useFinancas((f) => f.adiarCompra)
   const horasDeEspera = useConfig((c) => c.horasDeEspera)
+  const [escolhendoProjeto, setEscolhendoProjeto] = useState(false)
   const sugestao = captura.sugestao
   const semDirecao = dinheiro && !dinheiro.direcao
-  const tarefa = () => setModo({ tipo: 'passo', projetoId: null })
   const comprar = () => {
     adiarCompra(dinheiro?.descricao || captura.texto, dinheiro?.valor, horasDeEspera)
     aprender('compra')
@@ -148,79 +165,86 @@ function AcoesDaCaptura({ ctx }: Readonly<{ ctx: Contexto }>) {
     aprender('ideia')
     resolver()
   }
+  const apagar = () =>
+    // O áudio sai do aparelho junto e não dá para devolver: confirma antes. Texto volta pelo Desfazer.
+    captura.audio
+      ? confirm('Apagar este recado de voz? O áudio não tem como voltar.') && s.descartarCaptura(captura.id)
+      : apagarComDesfazer(useStore, 'capturas', captura.id, captura.texto, () => s.descartarCaptura(captura.id))
 
-  const SUGESTOES: Partial<Record<Classe, [string, () => void]>> = {
-    lembrete: ['Parece um lembrete', () => setModo({ tipo: 'lembrete' })],
-    compromisso: ['Parece um compromisso', () => setModo({ tipo: 'evento' })],
-    passo: ['Parece uma tarefa', tarefa],
-    ...(!captura.audio && { ideia: ['Parece uma ideia', ideia], compra: ['Parece vontade de comprar', comprar] }),
-    ...(!dinheiro && {
-      despesa: ['Parece um gasto', () => setModo({ tipo: 'gasto', receita: false })],
-      receita: ['Parece uma entrada', () => setModo({ tipo: 'gasto', receita: true })],
-    }),
-  }
-  const sugerido = sugestao && SUGESTOES[sugestao]
-  const saidaEntrada: [string, boolean][] = [
-    ['Saída', false],
-    ['Entrada', true],
-  ]
-  if (sugestao === 'receita') saidaEntrada.reverse()
-  const mostraGasto = !dinheiro && sugestao !== 'despesa' && sugestao !== 'receita'
-
-  return (
-    <>
-      <div className="linha acoes">
-        {sugerido && (
-          <Botao variante="acento" onClick={sugerido[1]}>
-            {sugerido[0]}
-          </Botao>
-        )}
-        {semDirecao &&
-          saidaEntrada.map(([rotulo, receita]) => (
-            <Botao variante="acento" key={rotulo} onClick={() => setModo({ tipo: 'gasto', receita })}>
-              {rotulo} de {reais(dinheiro.valor)}
-            </Botao>
+  if (escolhendoProjeto)
+    return (
+      <div className="escolhas">
+        <p className="rotulo">Entra em qual projeto?</p>
+        <div className="opcoes">
+          {ativos.map((p) => (
+            <Opcao key={p.id} nome={p.titulo} diz={p.chegada} onClick={() => setModo({ tipo: 'passo', projetoId: p.id })} />
           ))}
-        {dinheiro && !semDirecao && (
-          <Botao variante="acento" onClick={() => setModo({ tipo: 'gasto' })}>
-            Registrar {dinheiro.direcao === 'entrada' ? 'entrada' : 'gasto'} de {reais(dinheiro.valor)}
-          </Botao>
-        )}
-        {sugestao !== 'passo' && <button onClick={tarefa}>Tarefa</button>}
-        {ativos.length > 0 && (
-          <select aria-label="Passo de projeto" value="" onChange={(e) => e.target.value && setModo({ tipo: 'passo', projetoId: e.target.value })}>
-            <option value="">Passo de projeto…</option>
-            {ativos.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.titulo}
-              </option>
-            ))}
-          </select>
-        )}
-        <button onClick={() => setModo({ tipo: 'projeto' })}>Virar projeto</button>
-        {mostraGasto && <button onClick={() => setModo({ tipo: 'gasto' })}>Gasto</button>}
-        {!captura.audio && sugestao !== 'compra' && (
-          <button onClick={comprar} title={`Vai para Finanças → Antes de comprar, e o app pergunta de novo em ${horasDeEspera}h`}>
-            Quero comprar: esperar {horasDeEspera}h
-          </button>
-        )}
-        {sugestao !== 'compromisso' && <button onClick={() => setModo({ tipo: 'evento' })}>Compromisso</button>}
-        {sugestao !== 'lembrete' && <button onClick={() => setModo({ tipo: 'lembrete' })}>Lembrete</button>}
-        {!captura.audio && sugestao !== 'ideia' && <button onClick={ideia}>É só uma ideia</button>}
-        <button
-          className="discreto"
-          onClick={() =>
-            // O áudio sai do aparelho junto e não dá para devolver: confirma antes. Texto volta pelo Desfazer.
-            captura.audio
-              ? confirm('Apagar este recado de voz? O áudio não tem como voltar.') && s.descartarCaptura(captura.id)
-              : apagarComDesfazer(useStore, 'capturas', captura.id, captura.texto, () => s.descartarCaptura(captura.id))
-          }
-        >
-          Apagar
+        </div>
+        <button type="button" className="discreto" onClick={() => setEscolhendoProjeto(false)}>
+          Voltar
         </button>
       </div>
+    )
+
+  return (
+    <div className="escolhas">
+      {/* Valor com sinal ou direção clara: o app já sabe que é dinheiro, e o lançamento vem primeiro. */}
+      {dinheiro && (
+        <div className="linha">
+          {semDirecao ? (
+            (
+              [
+                ['Saída', false],
+                ['Entrada', true],
+              ] as const
+            ).map(([rotulo, receita]) => (
+              <Botao variante="acento" key={rotulo} onClick={() => setModo({ tipo: 'gasto', receita })}>
+                {rotulo} de {reais(dinheiro.valor)}
+              </Botao>
+            ))
+          ) : (
+            <Botao variante="acento" onClick={() => setModo({ tipo: 'gasto' })}>
+              Registrar {dinheiro.direcao === 'entrada' ? 'entrada' : 'gasto'} de {reais(dinheiro.valor)}
+            </Botao>
+          )}
+        </div>
+      )}
       {semDirecao && <p className="motivo">Use + ou - na frente do valor para o app lançar sozinho.</p>}
-    </>
+
+      <p className="rotulo">Fazer</p>
+      <div className="opcoes">
+        <Opcao nome="Tarefa" diz="Uma ação só, sem dia marcado" sugerida={sugestao === 'passo'} onClick={() => setModo({ tipo: 'passo', projetoId: null })} />
+        {ativos.length > 0 && <Opcao nome="Passo de projeto" diz="Entra num projeto que já existe" onClick={() => setEscolhendoProjeto(true)} />}
+        <Opcao nome="Projeto novo" diz="Precisa de vários passos até acabar" onClick={() => setModo({ tipo: 'projeto' })} />
+      </div>
+
+      <p className="rotulo">Tem hora marcada</p>
+      <div className="opcoes">
+        <Opcao nome="Compromisso" diz="Você vai estar lá: reunião, consulta" sugerida={sugestao === 'compromisso'} onClick={() => setModo({ tipo: 'evento' })} />
+        <Opcao nome="Lembrete" diz="O app avisa na hora: ligar, pagar" sugerida={sugestao === 'lembrete'} onClick={() => setModo({ tipo: 'lembrete' })} />
+      </div>
+
+      <p className="rotulo">Dinheiro</p>
+      <div className="opcoes">
+        {!dinheiro && (
+          <Opcao
+            nome="Gasto ou entrada"
+            diz="Já aconteceu: registrar"
+            sugerida={sugestao === 'despesa' || sugestao === 'receita'}
+            onClick={() => setModo({ tipo: 'gasto', receita: sugestao === 'receita' })}
+          />
+        )}
+        {!captura.audio && (
+          <Opcao nome="Quero comprar" diz={`Esperar ${horasDeEspera}h antes de decidir`} sugerida={sugestao === 'compra'} onClick={comprar} />
+        )}
+      </div>
+
+      <p className="rotulo">Sem ação</p>
+      <div className="opcoes">
+        {!captura.audio && <Opcao nome="Ideia" diz="Guardar, sem obrigação de fazer" sugerida={sugestao === 'ideia'} onClick={ideia} />}
+        <Opcao nome="Apagar" diz="Não serve mais" onClick={apagar} />
+      </div>
+    </div>
   )
 }
 
@@ -297,6 +321,62 @@ function SepararColados({ itens, onFechar }: Readonly<{ itens: string[]; onFecha
   )
 }
 
+/**
+ * Organizar um item por vez: só o da vez mostra as escolhas; o resto da pilha fica numa lista curta embaixo, para
+ * escolher outro ou só ver quantos faltam. As paradas há 30 dias ou mais (D09) vêm primeiro, com a pergunta delas.
+ */
+function FilaParaOrganizar({ velhas, recentes }: Readonly<{ velhas: Captura[]; recentes: Captura[] }>) {
+  const s = useStore()
+  const fila = [...velhas, ...recentes]
+  const [escolhida, setEscolhida] = useState<string | null>(null)
+  const atual = fila.find((c) => c.id === escolhida) ?? fila[0]
+  const posicao = fila.indexOf(atual)
+  const resto = fila.filter((c) => c !== atual)
+  const velha = velhas.includes(atual)
+  const pular = () => setEscolhida(fila[(posicao + 1) % fila.length].id)
+
+  return (
+    <>
+      <div key={atual.id} className="cartao organizar">
+        <div className="linha entre">
+          <h2 className="rotulo">
+            Organizar · {posicao + 1} de {fila.length}
+          </h2>
+          {fila.length > 1 && (
+            <button type="button" className="discreto" onClick={pular}>
+              Pular
+            </button>
+          )}
+        </div>
+        <p className="passo">{atual.texto}</p>
+        {velha && <p className="motivo">Em espera há {diasDesde(atual.adiadaEm ?? atual.criadoEm)} dias. Ainda faz sentido?</p>}
+        {atual.audio && <OuvirRecado id={atual.id} segundos={atual.audio.segundos} />}
+        <Processar captura={atual} />
+        {velha && (
+          <button type="button" className="discreto" onClick={() => s.adiarCaptura(atual.id)}>
+            Ainda não: perguntar daqui a 30 dias
+          </button>
+        )}
+      </div>
+      {resto.length > 0 && (
+        <div className="cartao">
+          <h2 className="rotulo">Depois ({resto.length})</h2>
+          <ul className="lista-fila">
+            {resto.map((c) => (
+              <li key={c.id}>
+                <button type="button" onClick={() => setEscolhida(c.id)}>
+                  {c.texto}
+                  {velhas.includes(c) && <span className="motivo"> · parada há {diasDesde(c.adiadaEm ?? c.criadoEm)} dias</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  )
+}
+
 export function Caixa() {
   const s = useStore()
   const [texto, setTexto] = useState('')
@@ -361,33 +441,7 @@ export function Caixa() {
           {s.capturas.length === 0 ? (
             <p className="vazio-texto">Nada em espera. Sua cabeça agradece.</p>
           ) : (
-            <>
-              {velhas.length > 0 && (
-                <>
-                  <h2>Paradas há mais de 30 dias ({velhas.length})</h2>
-                  <p className="vazio-texto">Ainda fazem sentido? Vire passo, apague, ou deixe para daqui a 30 dias.</p>
-                  {velhas.map((c) => (
-                    <div key={c.id} className="cartao">
-                      <p className="passo pequeno">{c.texto}</p>
-                      <p className="motivo">Em espera há {diasDesde(c.adiadaEm ?? c.criadoEm)} dias.</p>
-                      {c.audio && <OuvirRecado id={c.id} segundos={c.audio.segundos} />}
-                      <Processar captura={c} />
-                      <button className="discreto" onClick={() => s.adiarCaptura(c.id)}>
-                        Ainda não: perguntar daqui a 30 dias
-                      </button>
-                    </div>
-                  ))}
-                </>
-              )}
-              {recentes.length > 0 && <h2>Para organizar ({recentes.length})</h2>}
-              {recentes.map((c) => (
-                <div key={c.id} className="cartao">
-                  <p className="passo pequeno">{c.texto}</p>
-                  {c.audio && <OuvirRecado id={c.id} segundos={c.audio.segundos} />}
-                  <Processar captura={c} />
-                </div>
-              ))}
-            </>
+            <FilaParaOrganizar velhas={velhas} recentes={recentes} />
           )}
         </div>
         <div className="col">

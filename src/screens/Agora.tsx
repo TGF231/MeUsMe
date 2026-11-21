@@ -540,7 +540,7 @@ export function Agora() {
   const eventos = useAgenda((a) => a.eventos)
   const checkIn = s.checkins.find((c) => c.dia === hoje())
   // A mesma energia vale em Planejar (montar o dia): por isso fica fora da tela.
-  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 2
+  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 3
   const setEnergia = useEnergiaEscolhida((e) => e.escolher)
   const lugar = useContexto()
   const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando' | 'diminuindo' | 'adiando'>('normal')
@@ -951,13 +951,13 @@ export function Agora() {
 
 /**
  * Planejar o dia, ao lado do Próximo passo no menu de Em ação: o que pede decisão hoje, o que reagendar, montar e
- * refazer o dia, e a revisão da semana quando for o dia dela. Cada bloco é uma seção, separada por uma linha.
+ * refazer o dia, e a revisão da semana quando for o dia dela. Cada bloco é um cartão, como nas outras telas.
  */
 export function Planejar() {
   const agora = useAgora(30_000)
   const cfg = useConfig()
   const checkIn = useStore((s) => s.checkins.find((c) => c.dia === hoje()))
-  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 2
+  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 3
   const [revisando, setRevisando] = useState(false)
   const comAgenda = !cfg.modulosDesligados.includes('agenda')
 
@@ -970,7 +970,11 @@ export function Planejar() {
 
   return (
     <section className="tela centro planejar">
-      {comAgenda && <SituacaoAgora />}
+      {comAgenda && (
+        <div className="cartao compacto">
+          <SituacaoAgora />
+        </div>
+      )}
       {revisaoPendente(agora, cfg.diaRevisao, cfg.revisaoFeitaEm) && (
         <div className="cartao compacto">
           <div className="linha entre">

@@ -129,23 +129,25 @@ function BarraGoogle() {
   if (!agenda.googleClientId) return null
 
   return (
-    <div className="linha entre google">
-      <span className="motivo">
-        {agenda.googleConectado
-          ? agenda.ultimaSync
-            ? `Google sincronizado às ${hora(agenda.ultimaSync)}`
-            : 'Google conectado'
-          : 'Google Agenda não conectado'}
-        {erro && (
-          <span className="atencao" role="alert">
-            {' · '}
-            {erro}
-          </span>
-        )}
-      </span>
-      <button onClick={() => sincronizar(true)} disabled={estado === 'sincronizando'}>
-        {estado === 'sincronizando' ? 'Sincronizando…' : agenda.googleConectado ? 'Sincronizar' : 'Conectar'}
-      </button>
+    <div className="cartao compacto google">
+      <div className="linha entre">
+        <span className="motivo">
+          {agenda.googleConectado
+            ? agenda.ultimaSync
+              ? `Google sincronizado às ${hora(agenda.ultimaSync)}`
+              : 'Google conectado'
+            : 'Google Agenda não conectado'}
+          {erro && (
+            <span className="atencao" role="alert">
+              {' · '}
+              {erro}
+            </span>
+          )}
+        </span>
+        <button onClick={() => sincronizar(true)} disabled={estado === 'sincronizando'}>
+          {estado === 'sincronizando' ? 'Sincronizando…' : agenda.googleConectado ? 'Sincronizar' : 'Conectar'}
+        </button>
+      </div>
     </div>
   )
 }
@@ -335,8 +337,8 @@ export function Agenda() {
         <div className="col">
           {lembretes.length > 0 && (
             <>
-              <h2>Lembretes</h2>
               <div className="cartao">
+                <h2 className="rotulo">Lembretes</h2>
                 {lembretes.map((l) => (
                   <ItemLembrete key={l.id} lembrete={l} agora={agora} />
                 ))}

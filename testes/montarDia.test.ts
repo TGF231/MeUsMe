@@ -22,7 +22,7 @@ const projeto: Projeto = { id: 'festa', titulo: 'Festa', chegada: 'Festa feita',
 
 test('duração: palpite corrigido pelo ritmo, ou padrão pela energia', () => {
   assert.equal(duracaoPrevista(passo('a', 1)), 15)
-  assert.equal(duracaoPrevista(passo('a', 1, { energia: 3 })), 45)
+  assert.equal(duracaoPrevista(passo('a', 1, { energia: 5 })), 45)
   assert.equal(duracaoPrevista(passo('a', 1, { estimativaMin: 20 }), 1.5), 30)
   assert.equal(duracaoPrevista(passo('a', 1, { estimativaMin: 200 })), 120)
 })
@@ -122,7 +122,7 @@ test('capacidadeDoDia soma os passos com prazo hoje sem reserva e compara com o 
   const dia = '2026-11-02'
   const passos = [
     passo('a', 1, { prazo: dia, estimativaMin: 60 }),
-    passo('b', 2, { prazo: dia, energia: 3 }),
+    passo('b', 2, { prazo: dia, energia: 5 }),
     passo('reservado', 3, { prazo: dia, estimativaMin: 90 }),
     passo('amanha', 4, { prazo: '2026-11-03' }),
     passo('feito', 5, { prazo: dia, feitoEm: as(8) }),
