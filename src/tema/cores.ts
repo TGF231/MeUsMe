@@ -25,8 +25,8 @@ export interface Acento {
 /** Valores do megui.css usados nos cálculos (testes/cores.test.ts confere que batem). */
 export const PALETA = {
   superficieClaro: '#FFFFFF',
-  superficieEscuro: '#18212C',
-  textoClaro: '#16202A',
+  superficieEscuro: '#242528',
+  textoClaro: '#292A2E',
 } as const
 
 type Rgb = [number, number, number]
@@ -107,7 +107,7 @@ export function derivarAcento(base: string, linhaEscura = linhaParaEscuro(base))
       acento,
       hover: ajustarLuz(base, -0.07),
       linha: linhaSobre(base, PALETA.superficieClaro, -0.02),
-      suave: misturar(base, PALETA.superficieClaro, 0.09),
+      suave: misturar(base, PALETA.superficieClaro, 0.05),
       texto,
     },
     escuro: {
@@ -122,8 +122,8 @@ export function derivarAcento(base: string, linhaEscura = linhaParaEscuro(base))
 
 /** Acento padrão: os valores do megui.css, que o app usa sem sobrescrever nada. */
 export const ASSINATURA: Acento = {
-  claro: { acento: '#7D0E0E', hover: '#5C0A0A', linha: '#7D0E0E', suave: '#F3E8E3', texto: '#FFFFFF' },
-  escuro: { acento: '#7D0E0E', hover: '#9B1616', linha: '#DC4A42', suave: '#2E1A16', texto: '#FFFFFF' },
+  claro: { acento: '#7D0E0E', hover: '#5C0A0A', linha: '#7D0E0E', suave: '#FAF0F0', texto: '#FFFFFF' },
+  escuro: { acento: '#7D0E0E', hover: '#9B1616', linha: '#DC4A42', suave: '#3A1A1A', texto: '#FFFFFF' },
 }
 
 /** Acentos predefinidos, distantes das cores de estado. */
