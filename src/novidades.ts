@@ -5,6 +5,15 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.8',
+    itens: [
+      'Energia com cinco níveis, como o humor: Baixa, Média-baixa, Média, Média-alta e Alta. O que você já tinha foi convertido.',
+      'Em espera organiza um item por vez, com as escolhas agrupadas e explicadas, sempre no mesmo lugar. A sugestão do app aparece marcada.',
+      'Planejar e Agenda com os mesmos cartões e espaçamentos das outras telas, e o Próximo passo com o brilho da cor principal.',
+      'Janela encaixada lado a lado ou tela dividida: o layout não fica trocando, e o botão + encolhe em janela baixa.',
+    ],
+  },
+  {
     versao: '0.9.7',
     itens: [
       'Fonte nova, mais limpa: Inter no texto e JetBrains Mono nos números.',
