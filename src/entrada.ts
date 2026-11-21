@@ -2,7 +2,8 @@
  * Entradas de fora do app (V03 e A1 em docs/CONCORRENTES.md):
  * - Android: "Compartilhar com o MeUsMe" e o atalho "Capturar por voz" chegam como meusme://captura?texto=…&voz=1
  *   (a MainActivity converte o compartilhamento nesse link).
- * - Web instalada (PWA): o compartilhar do sistema abre /?titulo=…&texto=…&link=… (share_target no vite.config.ts).
+ * - Web instalada (PWA): o compartilhar do sistema abre /?titulo=…&texto=…&link=… (share_target no vite.config.ts), e
+ *   os atalhos do ícone (toque longo) abrem /?abrir=1 e /?voz=1 (shortcuts no manifest).
  */
 
 export interface Entrada {
@@ -30,7 +31,8 @@ export function lerEntrada(url: string): Entrada | null {
   }
   const q = u.searchParams
   const doApp = u.protocol === 'meusme:' && (u.hostname === 'captura' || u.pathname.replace(/^\/+/, '') === 'captura')
-  const daWeb = u.protocol.startsWith('http') && ['titulo', 'texto', 'link'].some((p) => q.has(p))
+  // Web instalada: compartilhar (titulo, texto, link) e os atalhos do ícone (abrir, voz) no manifest.
+  const daWeb = u.protocol.startsWith('http') && ['titulo', 'texto', 'link', 'abrir', 'voz'].some((p) => q.has(p))
   if (!doApp && !daWeb) return null
   const texto = juntar([q.get('titulo'), q.get('texto'), q.get('link')])
   const entrada: Entrada = {}

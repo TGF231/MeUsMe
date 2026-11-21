@@ -25,3 +25,10 @@ test('links que não são de entrada, ou vazios, são ignorados', () => {
 test('bloco das Configurações rápidas abre a captura sem voz', () => {
   assert.deepEqual(lerEntrada('meusme://captura?abrir=1'), { abrir: true })
 })
+
+test('atalhos do ícone do PWA instalado: Capturar abre a captura, Capturar por voz já ouvindo', () => {
+  assert.deepEqual(lerEntrada('https://megstation.com/MeUsMe/?abrir=1'), { abrir: true })
+  assert.deepEqual(lerEntrada('https://megstation.com/MeUsMe/?voz=1'), { voz: true })
+  // Endereço normal do app não é entrada.
+  assert.equal(lerEntrada('https://megstation.com/MeUsMe/'), null)
+})
