@@ -5,6 +5,15 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.12',
+    itens: [
+      'Visual unificado com a página inicial: abas em pílula, cartões com o título dentro e as mesmas cores e fontes.',
+      'Histórico mostra Como está indo: passos feitos por semana e a situação dos projetos, para comparar as semanas.',
+      'Abre mais rápido, e se uma tela der erro, só ela mostra o aviso: o resto do app continua funcionando.',
+      'Se o espaço do aparelho acabar, o app avisa que não conseguiu salvar e leva aos Ajustes para exportar um backup.',
+    ],
+  },
+  {
     versao: '0.9.11',
     itens: [
       'Visual da mesma família da página inicial: botões arredondados, a ação principal com brilho e o botão + redondo.',
