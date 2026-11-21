@@ -364,7 +364,23 @@ h2.titulo {
 
 .pontos {
   color: var(--acento-linha);
-  letter-spacing: 1px;
+}
+
+/* Energia: três bolinhas iguais, cheias até o nível. */
+.bolinhas {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  vertical-align: middle;
+}
+.bolinhas > i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+}
+.bolinhas > i.cheia {
+  background: currentColor;
 }
 
 .dica {
@@ -534,8 +550,10 @@ textarea.nota-passo {
   background: var(--acento-leve);
   box-shadow: inset 0 1px 0 var(--acento-linha), inset 1px 0 0 var(--acento-linha), inset -1px 0 0 var(--acento-linha);
   font-weight: var(--peso-forte);
-  margin-top: -9px;
+  margin-top: -18px;
   margin-bottom: calc(-8px - env(safe-area-inset-bottom));
+  /* O botão sobe 18px; ícone e nome sobem só a metade. */
+  padding-top: calc(6px + 9px);
   padding-bottom: calc(6px + 8px + env(safe-area-inset-bottom));
   border-radius: var(--raio) var(--raio) 0 0;
 }
@@ -747,6 +765,11 @@ input.mini {
 }
 
 /* Cada item é um rótulo solto, sem caixa. */
+.menu-aba,
+.sub-abas {
+  margin-bottom: 12px;
+}
+
 .menu-aba > *,
 .sub-abas > *,
 .dias > * {
@@ -1140,6 +1163,7 @@ kbd {
   .abas button.ativo {
     margin-top: 0;
     margin-bottom: 0;
+    padding-top: 3px;
     padding-bottom: 3px;
     border: 0;
     box-shadow: inset 0 0 0 1px var(--acento-linha);
@@ -1227,6 +1251,7 @@ kbd {
   }
 
   .abas button.ativo {
+    padding-top: 10px;
     padding-bottom: 10px;
   }
 

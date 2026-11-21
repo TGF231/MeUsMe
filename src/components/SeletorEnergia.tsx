@@ -1,6 +1,17 @@
 import { NOMES_ENERGIA } from '../rotulos'
 import type { Energia } from '../types'
 
+/** Três bolinhas do mesmo tamanho, n cheias: desenhadas em CSS porque ● e ○ vêm de fontes diferentes e o vazio parecia maior. */
+function Bolinhas({ n }: { n: Energia }) {
+  return (
+    <span className="bolinhas" aria-hidden="true">
+      {[1, 2, 3].map((i) => (
+        <i key={i} className={i <= n ? 'cheia' : ''} />
+      ))}
+    </span>
+  )
+}
+
 export function SeletorEnergia({ valor, onChange }: { valor: Energia; onChange: (e: Energia) => void }) {
   return (
     <div className="segmentado" role="radiogroup" aria-label="Energia">
@@ -13,10 +24,7 @@ export function SeletorEnergia({ valor, onChange }: { valor: Energia; onChange: 
           className={valor === e ? 'ativo' : ''}
           onClick={() => onChange(e)}
         >
-          <span aria-hidden="true">
-            {'●'.repeat(e)}
-            {'○'.repeat(3 - e)}
-          </span>{' '}
+          <Bolinhas n={e} />{' '}
           {NOMES_ENERGIA[e]}
         </button>
       ))}
@@ -37,10 +45,7 @@ export function PontosEditaveis({ energia, onChange }: { energia: Energia; onCha
         onChange(((energia % 3) + 1) as Energia)
       }}
     >
-      <span aria-hidden="true">
-        {'●'.repeat(energia)}
-        {'○'.repeat(3 - energia)}
-      </span>
+      <Bolinhas n={energia} />
     </button>
   )
 }
@@ -48,10 +53,7 @@ export function PontosEditaveis({ energia, onChange }: { energia: Energia; onCha
 export function Pontos({ energia }: { energia: Energia }) {
   return (
     <span className="pontos" role="img" title={`Energia ${NOMES_ENERGIA[energia].toLowerCase()}`} aria-label={`Energia ${NOMES_ENERGIA[energia].toLowerCase()}`}>
-      <span aria-hidden="true">
-        {'●'.repeat(energia)}
-        {'○'.repeat(3 - energia)}
-      </span>
+      <Bolinhas n={energia} />
     </span>
   )
 }
