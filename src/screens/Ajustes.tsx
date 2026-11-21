@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { TAMANHOS_TEXTO } from '../acessibilidade'
 import { lerBackup } from '../backup'
 import { exportarBackup, quandoFoiOBackup } from '../exportarBackup'
@@ -677,20 +677,66 @@ function Backup() {
   )
 }
 
-export function Ajustes() {
+/**
+ * Índice no topo: um atalho para cada cartão de Ajustes, montado a partir do que está na tela (o título de cada cartão),
+ * então cartões que só existem em algumas plataformas (Windows, Instalar o app) aparecem só onde existem. Leva ao
+ * cartão e põe o foco no título, para o leitor de tela ler onde chegou.
+ */
+function IndiceAjustes({ raiz }: Readonly<{ raiz: React.RefObject<HTMLElement | null> }>) {
+  const [itens, setItens] = useState<{ titulo: string; el: HTMLElement }[]>([])
+  useEffect(() => {
+    const ler = () => {
+      const cartoes = [...(raiz.current?.querySelectorAll<HTMLElement>(':scope > .cartao') ?? [])]
+      const lista = cartoes.flatMap((el) => {
+        const h = el.querySelector('h2')
+        return h?.textContent ? [{ titulo: h.textContent.trim(), el }] : []
+      })
+      // Dois cartões com o mesmo título (a versão do navegador e a do app, no Google Agenda) viram um só atalho.
+      setItens(lista.filter((x, i) => lista.findIndex((y) => y.titulo === x.titulo) === i))
+    }
+    ler()
+    const t = setTimeout(ler, 600) // cartões que carregam depois (Sincronização)
+    return () => clearTimeout(t)
+  }, [raiz])
+  if (itens.length < 4) return null
   return (
-    <section className="tela grade-ajustes">
-      <InstalarApp />
-      <Aparencia />
-      <Secoes />
-      <Acessibilidade />
-      <Captura />
-      <Sincronizacao />
-      <Windows />
-      <Notificacoes />
-      <Google />
-      <Backup />
-      <Sobre />
-    </section>
+    <nav className="indice-ajustes" aria-label="Ir para uma seção de Ajustes">
+      {itens.map((x) => (
+        <button
+          key={x.titulo}
+          type="button"
+          onClick={() => {
+            const h = x.el.querySelector<HTMLElement>('h2')
+            x.el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+            h?.setAttribute('tabindex', '-1')
+            h?.focus({ preventScroll: true })
+          }}
+        >
+          {x.titulo}
+        </button>
+      ))}
+    </nav>
+  )
+}
+
+export function Ajustes() {
+  const raiz = useRef<HTMLElement>(null)
+  return (
+    <>
+      <IndiceAjustes raiz={raiz} />
+      <section ref={raiz} className="tela grade-ajustes">
+        <InstalarApp />
+        <Aparencia />
+        <Secoes />
+        <Acessibilidade />
+        <Captura />
+        <Sincronizacao />
+        <Windows />
+        <Notificacoes />
+        <Google />
+        <Backup />
+        <Sobre />
+      </section>
+    </>
   )
 }
