@@ -13,9 +13,32 @@ create table if not exists public.registros (
 
 create index if not exists registros_usuario_atualizado on public.registros (usuario, atualizado_em);
 
+-- Limites: protegem o banco de um aparelho com defeito (ou de alguém usando a chave pública fora do app) gravando
+-- coleção inventada, identificador enorme ou registro gigante. O app confere os mesmos limites antes de enviar
+-- (src/sync/planejar.ts, LIMITES_SERVIDOR) e deixa de fora o que o servidor recusaria.
+do $$
+begin
+  alter table public.registros add constraint registros_colecao_valida
+    check (colecao ~ '^(nucleo|financas|agenda|config)\.[A-Za-z0-9]{1,48}$');
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.registros add constraint registros_id_valido check (char_length(id) between 1 and 128);
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.registros add constraint registros_dados_ate_256kb
+    check (dados is null or octet_length(dados::text) <= 262144);
+exception when duplicate_object then null;
+end $$;
+
 -- Timestamp definido pelo servidor (independe do relógio do aparelho).
 create or replace function public.registros_carimbar() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = '' as $$
 begin
   new.atualizado_em := clock_timestamp();
   return new;

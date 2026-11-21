@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Remota } from './planejar'
+import { registrarErro } from '../erros'
+import { motivoRecusa, type Remota } from './planejar'
 
 /**
  * Cliente Supabase.
@@ -170,9 +171,20 @@ export async function baixar(desde: string | null): Promise<LinhaServidor[]> {
   }
 }
 
-/** Upsert em lotes; retorna o maior atualizado_em gravado. */
-export async function enviar(usuario: string, registros: Remota[]): Promise<string | null> {
+/** Registros recusados já avisados no registro de erros (um aviso por registro, não um a cada tentativa). */
+const recusados = new Set<string>()
+
+/** Upsert em lotes; retorna o maior atualizado_em gravado. Registro que o servidor recusaria fica de fora. */
+export async function enviar(usuario: string, todos: Remota[]): Promise<string | null> {
   const c = await exigirCliente()
+  const registros = todos.filter((r) => {
+    const motivo = motivoRecusa(r)
+    if (motivo && !recusados.has(r.colecao + '/' + r.id)) {
+      recusados.add(r.colecao + '/' + r.id)
+      registrarErro(new Error('Registro não sincronizado (' + motivo + '): ' + r.colecao + '/' + r.id), 'sincronizacao')
+    }
+    return !motivo
+  })
   let maior: string | null = null
   for (let i = 0; i < registros.length; i += 500) {
     const lote = registros.slice(i, i + 500).map((r) => ({ usuario, colecao: r.colecao, id: r.id, dados: r.apagado ? null : r.dados, apagado: r.apagado }))
