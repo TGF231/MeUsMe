@@ -104,6 +104,10 @@ function explicar(erro: { message?: string; code?: string } | null): Error {
   if (/Failed to fetch|NetworkError|Load failed/i.test(msg))
     return new Error('Sem conexão com o servidor agora. Confira a internet; nada do que está neste aparelho se perde.')
   if (/JWT|apikey|Invalid API key/i.test(msg)) return new Error('Endereço ou chave do servidor inválidos.')
+  if (/cota de \d+ registros/i.test(msg))
+    return new Error('A conta chegou ao limite de registros do servidor. Os dados continuam neste aparelho; apague itens antigos para voltar a sincronizar.')
+  if (/registros_(colecao|id|dados)_/i.test(msg))
+    return new Error('O servidor recusou um registro fora dos limites. Os dados continuam neste aparelho; o detalhe ficou em Ajustes → Sobre.')
   return new Error(msg)
 }
 
