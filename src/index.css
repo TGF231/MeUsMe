@@ -2232,3 +2232,32 @@ button.perigo:hover {
     bottom: calc(84px + env(safe-area-inset-bottom));
   }
 }
+
+/* Como está indo (Histórico): passos por semana em barras verticais, com o número em cima. */
+.semanas {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  align-items: end;
+}
+.semana {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.semana-barra {
+  width: 100%;
+  max-width: 36px;
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  background: var(--superficie-2);
+  border-radius: var(--raio-controle);
+  overflow: hidden;
+}
+.semana-barra .cheia {
+  width: 100%;
+  min-height: 2px;
+  background: var(--acento-linha);
+}
