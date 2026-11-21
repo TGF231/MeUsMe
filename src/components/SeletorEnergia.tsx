@@ -1,7 +1,7 @@
 import { NOMES_ENERGIA } from '../rotulos'
 import type { Energia } from '../types'
 
-/** Três bolinhas do mesmo tamanho, n cheias: desenhadas em CSS porque ● e ○ vêm de fontes diferentes e o vazio parecia maior. */
+/** Três bolinhas do mesmo tamanho, n cheias: desenhadas em CSS porque os caracteres de bolinha cheia e vazia vêm de fontes diferentes e a vazia parecia maior. */
 function Bolinhas({ n }: { n: Energia }) {
   return (
     <span className="bolinhas" aria-hidden="true">
