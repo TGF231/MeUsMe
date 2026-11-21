@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { armazenar } from '../armazenamento.ts'
 import type { Contexto } from '../types'
 
 interface Estado {
@@ -39,6 +40,6 @@ export const useContexto = create<Estado>()(
         }),
       verChegada: () => set({ chegadaVista: true }),
     }),
-    { name: 'meusme-contexto', version: 1 },
+    { name: 'meusme-contexto', storage: armazenar(), version: 1 },
   ),
 )

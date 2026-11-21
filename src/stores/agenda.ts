@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { armazenar } from '../armazenamento.ts'
 import { proximaOcorrencia } from '../calculos'
 import type { Evento, Lembrete } from '../types'
 import { novoId } from '../util'
@@ -97,7 +98,7 @@ export const useAgenda = create<Estado>()(
           return { encerrados }
         }),
     }),
-    { name: 'meusme-agenda', version: 1 },
+    { name: 'meusme-agenda', storage: armazenar(), version: 1 },
   ),
 )
 
