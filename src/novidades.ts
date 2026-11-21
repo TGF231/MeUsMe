@@ -5,6 +5,14 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.13',
+    itens: [
+      'No navegador, dá para instalar o MeUsMe como app: Ajustes → Instalar o app (no iPhone, pelo Compartilhar do Safari).',
+      'Instalado, o toque longo no ícone abre Capturar ou Capturar por voz.',
+      'Versão nova não recarrega mais sozinha: o app avisa e atualiza quando você tocar em Atualizar.',
+    ],
+  },
+  {
     versao: '0.9.12',
     itens: [
       'Visual unificado com a página inicial: abas em pílula, cartões com o título dentro e as mesmas cores e fontes.',
