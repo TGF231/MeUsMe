@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { armazenar } from '../armazenamento.ts'
 import type { Aba } from '../navegacao'
 import type { Soneca } from '../sonecas'
 
@@ -100,7 +101,7 @@ export const useConfig = create<Estado>()(
           return { disparados }
         }),
     }),
-    { name: 'meusme-config', version: 1 },
+    { name: 'meusme-config', storage: armazenar(), version: 1 },
   ),
 )
 

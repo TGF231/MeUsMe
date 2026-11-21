@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { armazenar } from '../armazenamento.ts'
 import type { Categoria, Conta, ContaFixa, Desejo, Meta, RegraCategoria, Transacao } from '../types'
 import { diasNoMes, hoje, mesISO, novoId } from '../util.ts'
 
@@ -192,6 +193,7 @@ export const useFinancas = create<Estado>()(
     }),
     {
       name: 'meusme-financas',
+      storage: armazenar(),
       version: 2,
       // v2: adiciona a categoria de transferência.
       migrate: (salvo, versao) => {

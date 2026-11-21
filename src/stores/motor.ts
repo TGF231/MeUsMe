@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { armazenar } from '../armazenamento.ts'
 import { carregarRede } from '../motor/carregar'
 import { acrescentar, RETREINAR_A_CADA, retreinarUltimaCamada, type CamadaPessoal, type ExemploPessoal } from '../motor/pessoal'
 import type { Classe } from '../motor/regras'
@@ -42,6 +43,6 @@ export const useMotor = create<Estado>()(
       },
       esquecer: () => set({ exemplos: [], pessoal: null }),
     }),
-    { name: 'meusme-motor', version: 1 },
+    { name: 'meusme-motor', storage: armazenar(), version: 1 },
   ),
 )
