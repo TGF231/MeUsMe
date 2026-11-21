@@ -1,11 +1,12 @@
 import { App as AppNativo } from '@capacitor/app'
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { proximoTamanho } from './acessibilidade'
 import { useAgendador } from './agendador'
 import { useAgora, useJanelaModal } from './hooks'
 import { Icone } from './components/Icone'
 import { Introducao } from './components/Introducao'
+import { LimiteDeErro } from './components/LimiteDeErro'
 import { useGravacao } from './armazenamento'
 import { usoDoArmazenamento } from './erros'
 import { organizar } from './motor/executar'
@@ -17,15 +18,8 @@ import { manterNotificacoesAgendadas } from './nativo/lembretesNativos'
 import { manterWidget } from './nativo/widget'
 import { manterBackupAutomatico } from './nativo/backupAutomatico'
 import { ehAndroid, ehDesktop, ehNativo } from './nativo/plataforma'
-import { Agenda } from './screens/Agenda'
 import { Agora, Planejar } from './screens/Agora'
 import { useAtencoes } from './atencoes'
-import { Ajustes } from './screens/Ajustes'
-import { Caixa } from './screens/Caixa'
-import { Financas } from './screens/Financas'
-import { Historico } from './screens/Historico'
-import { Projetos } from './screens/Projetos'
-import { Rotinas, Tarefas } from './screens/Tarefas'
 import { useStore } from './store'
 import { AVISO_MS, useAvisos, useConfig } from './stores/config'
 import { useSincronizacao } from './sync/motor'
@@ -35,6 +29,35 @@ import { OQueMudou } from './components/OQueMudou'
 import { novidadesPendentes } from './novidades'
 import { AcaoPrimaria, BarraTitulo, Botao, BotaoInterruptor, Dialogo, FaixaAbas, Janela, Rodape } from './tema/megui-react.mjs'
 import { useJanela } from './janela'
+
+/*
+ * Telas carregadas sob demanda: o app abre em Próximo passo (Agora) e Planejar, que vêm no pacote principal; as
+ * outras chegam em pedaços próprios, e o primeiro desenho fica mais rápido em celular simples. Depois que a
+ * primeira tela aparece, todas são pré-carregadas no tempo livre (precarregarTelas), então trocar de aba não espera.
+ * Sem internet nada muda: o service worker do PWA já guarda todos os pedaços.
+ */
+const carregarAgenda = () => import('./screens/Agenda')
+const carregarAjustes = () => import('./screens/Ajustes')
+const carregarCaixa = () => import('./screens/Caixa')
+const carregarFinancas = () => import('./screens/Financas')
+const carregarHistorico = () => import('./screens/Historico')
+const carregarProjetos = () => import('./screens/Projetos')
+const carregarTarefas = () => import('./screens/Tarefas')
+const Agenda = lazy(() => carregarAgenda().then((m) => ({ default: m.Agenda })))
+const Ajustes = lazy(() => carregarAjustes().then((m) => ({ default: m.Ajustes })))
+const Caixa = lazy(() => carregarCaixa().then((m) => ({ default: m.Caixa })))
+const Financas = lazy(() => carregarFinancas().then((m) => ({ default: m.Financas })))
+const Historico = lazy(() => carregarHistorico().then((m) => ({ default: m.Historico })))
+const Projetos = lazy(() => carregarProjetos().then((m) => ({ default: m.Projetos })))
+const Tarefas = lazy(() => carregarTarefas().then((m) => ({ default: m.Tarefas })))
+const Rotinas = lazy(() => carregarTarefas().then((m) => ({ default: m.Rotinas })))
+
+function precarregarTelas() {
+  const todas = [carregarAgenda, carregarAjustes, carregarCaixa, carregarFinancas, carregarHistorico, carregarProjetos, carregarTarefas]
+  const carregar = () => todas.forEach((c) => void c().catch(() => {}))
+  if ('requestIdleCallback' in window) window.requestIdleCallback(carregar, { timeout: 4000 })
+  else setTimeout(carregar, 1500)
+}
 import { useStatusSync, type StatusSync } from './sync/motor'
 
 /** Nome de cada tela, para o título da janela e o anúncio do leitor de tela. */
@@ -299,6 +322,8 @@ export default function App() {
   const naCaixa = useStore((s) => s.capturas.length)
   useAgendador()
   useSincronizacao()
+  // Primeira tela desenhada: as outras vêm no tempo livre, para a troca de aba não esperar.
+  useEffect(precarregarTelas, [])
 
   // Ctrl+Espaço abre a captura rápida; Ctrl+Z desfaz o que o motor acabou de criar.
   useEffect(() => {
@@ -449,16 +474,25 @@ export default function App() {
       ) : (
         <>
           <MenuDaAba aba={aba} desligados={desligados} contagem={naCaixa} />
-          {aba === 'agora' && <Agora />}
-          {aba === 'planejar' && <Planejar />}
-          {aba === 'agenda' && <Agenda />}
-          {aba === 'caixa' && <Caixa />}
-          {aba === 'financas' && <Financas />}
-          {aba === 'tarefas' && <Tarefas />}
-          {aba === 'rotinas' && <Rotinas />}
-          {aba === 'projetos' && <Projetos />}
-          {aba === 'historico' && <Historico />}
-          {aba === 'ajustes' && <Ajustes />}
+          {/*
+            Um limite de erro por tela: um defeito numa tela troca só ela pelo aviso, e o resto do app (abas, captura,
+            menu) continua funcionando. A chave é a aba, então trocar de aba limpa o erro.
+          */}
+          <LimiteDeErro key={aba}>
+            {aba === 'agora' && <Agora />}
+            {aba === 'planejar' && <Planejar />}
+            {/* Enquanto o pedaço chega (só na primeira vez, e raro com a pré-carga), a área fica vazia, sem piscar texto. */}
+            <Suspense fallback={<section className="tela" aria-busy="true" />}>
+              {aba === 'agenda' && <Agenda />}
+              {aba === 'caixa' && <Caixa />}
+              {aba === 'financas' && <Financas />}
+              {aba === 'tarefas' && <Tarefas />}
+              {aba === 'rotinas' && <Rotinas />}
+              {aba === 'projetos' && <Projetos />}
+              {aba === 'historico' && <Historico />}
+              {aba === 'ajustes' && <Ajustes />}
+            </Suspense>
+          </LimiteDeErro>
         </>
       )}
     </>
