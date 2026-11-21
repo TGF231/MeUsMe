@@ -112,3 +112,17 @@ export function confirmarEnvio(base: Base, enviados: Remota[]): Base {
   }
   return nova
 }
+
+/**
+ * Os mesmos limites que o servidor confere (supabase/esquema.sql). Registro fora deles não é enviado: o servidor
+ * recusaria o lote inteiro e a sincronização ficaria parada tentando de novo.
+ */
+export const LIMITES_SERVIDOR = { colecao: /^(nucleo|financas|agenda|config)\.[A-Za-z0-9]{1,48}$/, id: 128, bytes: 262144 } as const
+
+/** Por que o servidor recusaria este registro, ou null se ele cabe. */
+export function motivoRecusa(r: Remota): string | null {
+  if (!LIMITES_SERVIDOR.colecao.test(r.colecao)) return 'coleção desconhecida'
+  if (!r.id || r.id.length > LIMITES_SERVIDOR.id) return 'identificador vazio ou longo demais'
+  if (!r.apagado && new TextEncoder().encode(JSON.stringify(r.dados ?? null)).length > LIMITES_SERVIDOR.bytes) return 'maior que 256 KB'
+  return null
+}

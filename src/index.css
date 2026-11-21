@@ -2,8 +2,9 @@
  * Tokens do app. Todos apontam para o MegUI (src/tema/megui.css, gerado pelo gerar_tema.py; não editar à mão).
  * Nenhuma cor, fonte ou raio literal aqui nem fora daqui: o que faltar vai para o megui.tokens.json.
  * Só o acento é configurável: src/tema/aplicar.ts sobrescreve as variáveis --megui-accent-*.
- * Exceção: src/tema/acabamento.css, carregado depois deste, é a camada de acabamento com base no Atlassian Design
- * System (neutros, cantos e elevação), com os valores próprios dela em variáveis.
+ * Desde o MegUI 2.0 (a linguagem da página inicial megstation.com e do painel do NodeMCU), os cinzas, as fontes, os
+ * raios, as sombras, o brilho da ação primária e a curva de movimento vêm todos do megui.css. src/tema/acabamento.css,
+ * carregado depois deste, aplica essa linguagem às peças próprias do MeUsMe (que não são .mg-*).
  */
 :root {
   --fundo: var(--megui-bg);
@@ -29,11 +30,18 @@
   --acento-linha: var(--megui-accent-linha);
   --acento-leve: var(--megui-accent-soft);
   --aviso-fundo: color-mix(in srgb, var(--aviso) 12%, var(--superficie));
-  /* O MegUI é plano: sem sombra. O véu do modal escurece ou clareia o conteúdo em direção ao fundo. */
+  /* O véu do modal escurece ou clareia o conteúdo em direção ao fundo. */
   --veu: color-mix(in srgb, var(--fundo) 80%, transparent);
 
-  --raio: var(--megui-raio);
-  --raio-controle: var(--megui-raio);
+  /* Cantos do MegUI 2.0: cartão 12px, campo 8px, pílula no que se clica. */
+  --raio: var(--megui-raio-cartao);
+  --raio-controle: var(--megui-raio-campo);
+  --raio-pilula: var(--megui-raio-pilula);
+  /* Sombras e movimento do MegUI 2.0. O brilho segue o acento escolhido em Ajustes, não só o #7D0E0E. */
+  --sombra-elevada: var(--megui-sombra-elevada);
+  --sombra-janela: var(--megui-sombra-janela);
+  --megui-brilho: color-mix(in srgb, var(--megui-accent) 55%, transparent);
+  --mov: var(--megui-mov-feedback) var(--megui-mov-easing);
   --fonte-mono: var(--megui-fonte-mono);
   --peso-forte: var(--megui-peso-forte);
   --mov-feedback: var(--megui-mov-feedback);
@@ -772,8 +780,7 @@ input.mini {
 /*
  * Faixas de navegação no topo das telas (menu de Em ação e de Em espera, sub-abas de Finanças, dias da Agenda): uma
  * faixa só, de ponta a ponta, em vez de botões soltos. Quando não cabe numa linha, quebra em outra e cada linha
- * ocupa a largura toda: tudo fica à vista, sem rolagem escondida. A linha de 1px entre os botões é o fundo da faixa
- * aparecendo pelo vão.
+ * ocupa a largura toda: tudo fica à vista, sem rolagem escondida.
  */
 .menu-aba,
 .sub-abas,
@@ -831,13 +838,48 @@ input.mini {
   flex-basis: 76px;
 }
 
-/* A tela aberta é uma marca de fundo com peso forte, como a aba ativa do MegUI: sem caixa e sem linha de acento. */
+/* A tela aberta tem peso forte e sobe na superfície, sem linha de acento. */
 .menu-aba > [aria-current='page'],
 .sub-abas > [aria-selected='true'],
 .dias > [aria-pressed='true'] {
-  background: var(--borda);
+  background: var(--superficie);
   color: var(--texto);
   font-weight: var(--peso-forte);
+  box-shadow: var(--sombra-elevada);
+}
+
+/*
+ * MegUI 2.0: o menu de cima e as sub-abas são a FaixaAbas da página inicial e do painel do NodeMCU, abas soltas em
+ * pílula; a aberta sobe na superfície com contorno e sombra. Os dias da Agenda continuam uma faixa, porque escolhem
+ * um dia dentro dela.
+ */
+.menu-aba,
+.sub-abas {
+  gap: var(--megui-esp-1);
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.menu-aba > *,
+.sub-abas > * {
+  border-radius: var(--raio-pilula);
+  transition:
+    background var(--mov),
+    color var(--mov);
+}
+.menu-aba > [aria-current='page'],
+.sub-abas > [aria-selected='true'] {
+  background: var(--superficie-2);
+  border-color: var(--borda);
+}
+/* Nas faixas, só a aberta sobe: as outras são rótulo solto, sem sombra e sem subir no hover. */
+.menu-aba > :not([aria-current='page']),
+.sub-abas > :not([aria-selected='true']),
+.dias > :not([aria-pressed='true']) {
+  box-shadow: none;
+}
+:is(.menu-aba, .sub-abas, .dias) > :hover {
+  transform: none;
 }
 
 .situacao {
@@ -1903,6 +1945,12 @@ button.perigo:hover {
   margin-bottom: 16px;
 }
 
+/* No computador, as abas do menu ficam do tamanho do rótulo, como a FaixaAbas do MegUI e do painel do NodeMCU. */
+:root[data-layout='janela'] :is(.menu-aba, .sub-abas) > * {
+  flex: 0 0 auto;
+  padding: 0 var(--megui-esp-4);
+}
+
 /* Ação solta na tela tem a largura do rótulo, como na BarraAcoes; a barra de ponta a ponta é do toque. */
 :root[data-layout='janela'] :is(.tela, .col) > :is(button, .mg-botao) {
   align-self: flex-start;
@@ -2231,4 +2279,33 @@ button.perigo:hover {
   .fab {
     bottom: calc(84px + env(safe-area-inset-bottom));
   }
+}
+
+/* Como está indo (Histórico): passos por semana em barras verticais, com o número em cima. */
+.semanas {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  align-items: end;
+}
+.semana {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.semana-barra {
+  width: 100%;
+  max-width: 36px;
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  background: var(--superficie-2);
+  border-radius: var(--raio-controle);
+  overflow: hidden;
+}
+.semana-barra .cheia {
+  width: 100%;
+  min-height: 2px;
+  background: var(--acento-linha);
 }

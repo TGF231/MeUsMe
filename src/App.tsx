@@ -7,6 +7,7 @@ import { useAgora, useJanelaModal } from './hooks'
 import { Icone } from './components/Icone'
 import { Introducao } from './components/Introducao'
 import { LimiteDeErro } from './components/LimiteDeErro'
+import { useGravacao } from './armazenamento'
 import { usoDoArmazenamento } from './erros'
 import { organizar } from './motor/executar'
 import { EXEMPLOS_DE_CAMPO } from './motor/tutorial'
@@ -372,6 +373,19 @@ export default function App() {
     if (usoDoArmazenamento() > 0.8)
       useAvisos.getState().mostrar('Espaço quase cheio', 'Exporte um backup em Ajustes. Veja o uso em Ajustes → Sobre o MeUsMe.')
   }, [])
+  // Gravação que falhou (espaço cheio ou armazenamento bloqueado): o que mudou ainda não está salvo neste aparelho.
+  useEffect(
+    () =>
+      useGravacao.subscribe((g, antes) => {
+        if (g.falhou && !antes.falhou)
+          useAvisos
+            .getState()
+            .mostrar('Não foi possível salvar', 'O espaço deste aparelho acabou ou está bloqueado. Exporte um backup em Ajustes antes de fechar o app.', {
+              acao: { rotulo: 'Abrir Ajustes', fazer: () => useNavegacao.getState().ir('ajustes') },
+            })
+      }),
+    [],
+  )
 
   // Android: agenda notificações, processa capturas e trata o botão voltar.
   useEffect(() => manterNotificacoesAgendadas(), [])
