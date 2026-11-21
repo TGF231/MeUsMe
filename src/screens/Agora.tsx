@@ -540,7 +540,7 @@ export function Agora() {
   const eventos = useAgenda((a) => a.eventos)
   const checkIn = s.checkins.find((c) => c.dia === hoje())
   // A mesma energia vale em Planejar (montar o dia): por isso fica fora da tela.
-  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 2
+  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 3
   const setEnergia = useEnergiaEscolhida((e) => e.escolher)
   const lugar = useContexto()
   const [modo, setModo] = useState<'normal' | 'quebrando' | 'agendando' | 'diminuindo' | 'adiando'>('normal')
@@ -957,7 +957,7 @@ export function Planejar() {
   const agora = useAgora(30_000)
   const cfg = useConfig()
   const checkIn = useStore((s) => s.checkins.find((c) => c.dia === hoje()))
-  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 2
+  const energia = useEnergiaEscolhida((e) => e.energia) ?? checkIn?.energia ?? 3
   const [revisando, setRevisando] = useState(false)
   const comAgenda = !cfg.modulosDesligados.includes('agenda')
 

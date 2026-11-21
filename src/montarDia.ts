@@ -9,8 +9,8 @@ import { dataISO } from './util.ts'
  */
 
 const MIN = 60_000
-/** Duração quando o passo não tem palpite, pela energia que ele pede (leve, média, pesada). */
-const PADRAO_POR_ENERGIA = { 1: 15, 2: 25, 3: 45 } as const
+/** Duração quando o passo não tem palpite, pela energia que ele pede (da mais leve à mais pesada). */
+const PADRAO_POR_ENERGIA = { 1: 15, 2: 20, 3: 25, 4: 35, 5: 45 } as const
 /** Intervalo entre um bloco e o seguinte: trocar de atividade leva tempo. */
 export const FOLGA_MIN = 10
 

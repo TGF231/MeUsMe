@@ -366,21 +366,42 @@ h2.titulo {
   color: var(--acento-linha);
 }
 
-/* Energia: três bolinhas iguais, cheias até o nível. */
+/* Energia: cinco bolinhas, cheias até o nível; a cheia é maior que a vazia, para o nível saltar aos olhos. */
 .bolinhas {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   vertical-align: middle;
 }
 .bolinhas > i {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   border: 1.5px solid currentColor;
+  opacity: 0.7;
 }
 .bolinhas > i.cheia {
+  width: 9px;
+  height: 9px;
   background: currentColor;
+  opacity: 1;
+}
+
+/* Seletor de energia: cinco botões, com as bolinhas em cima e o nome embaixo, para caber no celular. */
+.segmentado.energia button {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: normal;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+.segmentado.energia .bolinhas {
+  align-self: center;
 }
 
 .dica {

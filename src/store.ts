@@ -224,7 +224,21 @@ export const useStore = create<Estado>()(
       salvarCheckIn: (c) =>
         set((s) => ({ checkins: [...s.checkins.filter((x) => x.dia !== c.dia), c] })),
     }),
-    { name: 'meusme', version: 1 },
+    {
+      name: 'meusme',
+      version: 2,
+      // v2: energia de 3 para 5 níveis. Baixa, média e alta (1, 2, 3) viram 1, 3 e 5.
+      migrate: (salvo, versao) => {
+        const s = salvo as Estado
+        if (versao < 2) {
+          const cinco = <T extends { energia: number }>(x: T): T => ({ ...x, energia: [1, 1, 3, 5][x.energia] ?? 3 })
+          s.passos = (s.passos ?? []).map(cinco)
+          s.checkins = (s.checkins ?? []).map(cinco)
+          s.modelos = (s.modelos ?? []).map((m) => ({ ...m, passos: m.passos.map(cinco) }))
+        }
+        return s
+      },
+    },
   ),
 )
 
