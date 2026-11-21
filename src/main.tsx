@@ -9,17 +9,36 @@ import App from './App.tsx'
 import { JanelaCaptura } from './components/JanelaCaptura'
 import { LimiteDeErro } from './components/LimiteDeErro'
 import { capturarErrosGlobais } from './erros'
+import { ouvirInstalacao } from './instalar'
 import { ehDesktop, ehNativo } from './nativo/plataforma'
 import { useStore } from './store'
 import { useAgenda } from './stores/agenda'
-import { useConfig } from './stores/config'
+import { useAvisos, useConfig } from './stores/config'
 import { useFinancas } from './stores/financas'
 import { manterTema } from './tema/aplicar'
 
 capturarErrosGlobais()
 
 // Service worker só na web: nos apps nativos poderia servir assets antigos após atualização.
-if (!ehNativo() && !ehDesktop()) registerSW({ immediate: true })
+// Web (PWA): versão nova fica esperando e o app avisa, com Atualizar; ignorado o aviso, ela entra na próxima vez que o
+// app abrir do zero. Com o app aberto por muito tempo, procura versão nova a cada hora.
+if (!ehNativo() && !ehDesktop()) {
+  ouvirInstalacao()
+  const atualizar = registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      useAvisos.getState().mostrar('Versão nova pronta', 'Atualize quando quiser: nada do que está neste aparelho se perde.', {
+        acao: { rotulo: 'Atualizar', fazer: () => void atualizar(true) },
+      })
+    },
+    onOfflineReady() {
+      useAvisos.getState().mostrar('Pronto para usar sem internet', 'O MeUsMe já abre e funciona neste aparelho mesmo offline.')
+    },
+    onRegisteredSW(_url, registro) {
+      if (registro) setInterval(() => void registro.update().catch(() => {}), 60 * 60 * 1000)
+    },
+  })
+}
 
 // WebView2 reduz timers de janelas ocultas (bandeja); um Web Lock pendente evita o throttling intenso.
 if (ehDesktop()) void navigator.locks?.request('meusme-manter-acordado', () => new Promise(() => {}))

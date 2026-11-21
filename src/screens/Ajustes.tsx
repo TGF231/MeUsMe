@@ -11,6 +11,7 @@ import { Sobre } from '../components/Sobre'
 import { OPCIONAIS, PERFIS, type Aba } from '../navegacao'
 import { Captura as PluginCaptura } from '../nativo/captura'
 import { ehAndroid, ehDesktop, ehNativo } from '../nativo/plataforma'
+import { ehIos, instalar, usePwa } from '../instalar'
 import {
   abrirAjusteDeHorarioExato,
   horarioExatoLiberado,
@@ -553,6 +554,30 @@ function Acessibilidade() {
   )
 }
 
+/** Instalar como app (PWA): só na web, quando o navegador permite ou no iPhone; some depois de instalado. */
+function InstalarApp() {
+  const { evento, instalado } = usePwa()
+  if (ehNativo() || ehDesktop() || instalado) return null
+  if (!evento && !ehIos()) return null
+  return (
+    <div className="cartao">
+      <h2 className="titulo">Instalar o app</h2>
+      <p className="motivo">Com o MeUsMe instalado, ele abre direto da tela de início, em janela própria, funciona sem internet e aparece no Compartilhar do aparelho.</p>
+      {evento ? (
+        <div>
+          <Botao variante="acento" onClick={() => void instalar()}>
+            Instalar
+          </Botao>
+        </div>
+      ) : (
+        <p>
+          No iPhone: toque em <b>Compartilhar</b> na barra do Safari e depois em <b>Adicionar à Tela de Início</b>.
+        </p>
+      )}
+    </div>
+  )
+}
+
 function Windows() {
   const [atalho, setAtalho] = useState('')
   const [autostart, setAutostart] = useState<boolean | null>(null)
@@ -655,6 +680,7 @@ function Backup() {
 export function Ajustes() {
   return (
     <section className="tela grade-ajustes">
+      <InstalarApp />
       <Aparencia />
       <Secoes />
       <Acessibilidade />
