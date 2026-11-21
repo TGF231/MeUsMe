@@ -2,31 +2,27 @@
    Tema: data-theme="claro|escuro" (ou data-tema) no <html>; sem atributo, segue o sistema.
    As fontes ficam em fonts/ ao lado deste arquivo (OFL) — funciona offline (Tauri, intranet). */
 
-@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("fonts/AtkinsonHyperlegibleNext-400.woff2") format("woff2"); }
-@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 700; font-display: swap;
-  src: url("fonts/AtkinsonHyperlegibleNext-700.woff2") format("woff2"); }
-@font-face { font-family: "Atkinson Hyperlegible Mono"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("fonts/AtkinsonHyperlegibleMono-400.woff2") format("woff2"); }
-@font-face { font-family: "Atkinson Hyperlegible Mono"; font-style: normal; font-weight: 700; font-display: swap;
-  src: url("fonts/AtkinsonHyperlegibleMono-700.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("fonts/Inter-Variable-latin.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 800; font-display: swap;
+  src: url("fonts/JetBrainsMono-Variable-latin.woff2") format("woff2"); }
 
 :root, [data-theme="claro"], [data-tema="claro"] {
-  --megui-bg: #F4F6F8;
+  --megui-bg: #F8F8F8;
   --megui-surface: #FFFFFF;
-  --megui-surface-2: #E9EDF1;
-  --megui-sunken: #FBFCFD;
-  --megui-linha-alt: #F7F9FB;
-  --megui-somente-leitura: #EFF2F5;
-  --megui-ink: #16202A;
-  --megui-ink-2: #4A5A6A;
-  --megui-ink-3: #5B6974;
-  --megui-border: #D2DAE2;
-  --megui-border-2: #BAC5D0;
+  --megui-surface-2: #F0F1F2;
+  --megui-sunken: #F8F8F8;
+  --megui-linha-alt: #FAFAFA;
+  --megui-somente-leitura: #F0F1F2;
+  --megui-ink: #292A2E;
+  --megui-ink-2: #505258;
+  --megui-ink-3: #6B6E76;
+  --megui-border: #DDDEE1;
+  --megui-border-2: #B7B9BE;
   --megui-accent: #7D0E0E;
   --megui-accent-hover: #5C0A0A;
   --megui-accent-linha: #7D0E0E;
-  --megui-accent-soft: #F3E8E3;
+  --megui-accent-soft: #FAF0F0;
   --megui-on-accent: #FFFFFF;
   --megui-ok: #15803D;
   --megui-warn: #A16207;
@@ -54,26 +50,28 @@
   --status-warn: var(--megui-warn);
   --status-bad: var(--megui-bad);
   --status-info: var(--megui-info);
-  --megui-elevacao-flutuante: 0 1px 0 0 #BAC5D0;
+  --megui-sombra-elevada: 0 1px 1px #1E1F2140, 0 0 1px #1E1F214F;
+  --megui-sombra-janela: 0 8px 12px #1E1F2126, 0 0 1px #1E1F214F;
+  --megui-elevacao-flutuante: var(--megui-sombra-elevada);
   color-scheme: light;
 }
 
 [data-theme="escuro"], [data-tema="escuro"] {
-  --megui-bg: #0F1620;
-  --megui-surface: #18212C;
-  --megui-surface-2: #212C39;
-  --megui-sunken: #131C25;
-  --megui-linha-alt: #1C2632;
-  --megui-somente-leitura: #222C38;
-  --megui-ink: #E3E9EF;
-  --megui-ink-2: #94A4B5;
-  --megui-ink-3: #8796A9;
-  --megui-border: #2B3745;
-  --megui-border-2: #3A4857;
+  --megui-bg: #1F1F21;
+  --megui-surface: #242528;
+  --megui-surface-2: #2B2C2F;
+  --megui-sunken: #18191A;
+  --megui-linha-alt: #222326;
+  --megui-somente-leitura: #2B2C2F;
+  --megui-ink: #CECFD2;
+  --megui-ink-2: #A9ABAF;
+  --megui-ink-3: #96999E;
+  --megui-border: #37383B;
+  --megui-border-2: #4B4D52;
   --megui-accent: #7D0E0E;
   --megui-accent-hover: #9B1616;
   --megui-accent-linha: #DC4A42;
-  --megui-accent-soft: #2E1A16;
+  --megui-accent-soft: #3A1A1A;
   --megui-on-accent: #FFFFFF;
   --megui-ok: #4ADE80;
   --megui-warn: #FBBF24;
@@ -101,27 +99,29 @@
   --status-warn: var(--megui-warn);
   --status-bad: var(--megui-bad);
   --status-info: var(--megui-info);
-  --megui-elevacao-flutuante: 0 1px 0 0 #3A4857;
+  --megui-sombra-elevada: 0 1px 1px #01040480, 0 0 1px #01040480;
+  --megui-sombra-janela: 0 0 0 1px #BDBDBD1F, 0 8px 12px #0104045C, 0 0 1px 1px #01040480;
+  --megui-elevacao-flutuante: var(--megui-sombra-elevada);
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]):not([data-tema]) {
-    --megui-bg: #0F1620;
-    --megui-surface: #18212C;
-    --megui-surface-2: #212C39;
-    --megui-sunken: #131C25;
-    --megui-linha-alt: #1C2632;
-    --megui-somente-leitura: #222C38;
-    --megui-ink: #E3E9EF;
-    --megui-ink-2: #94A4B5;
-    --megui-ink-3: #8796A9;
-    --megui-border: #2B3745;
-    --megui-border-2: #3A4857;
+    --megui-bg: #1F1F21;
+    --megui-surface: #242528;
+    --megui-surface-2: #2B2C2F;
+    --megui-sunken: #18191A;
+    --megui-linha-alt: #222326;
+    --megui-somente-leitura: #2B2C2F;
+    --megui-ink: #CECFD2;
+    --megui-ink-2: #A9ABAF;
+    --megui-ink-3: #96999E;
+    --megui-border: #37383B;
+    --megui-border-2: #4B4D52;
     --megui-accent: #7D0E0E;
     --megui-accent-hover: #9B1616;
     --megui-accent-linha: #DC4A42;
-    --megui-accent-soft: #2E1A16;
+    --megui-accent-soft: #3A1A1A;
     --megui-on-accent: #FFFFFF;
     --megui-ok: #4ADE80;
     --megui-warn: #FBBF24;
@@ -149,14 +149,16 @@
     --status-warn: var(--megui-warn);
     --status-bad: var(--megui-bad);
     --status-info: var(--megui-info);
-    --megui-elevacao-flutuante: 0 1px 0 0 #3A4857;
+    --megui-sombra-elevada: 0 1px 1px #01040480, 0 0 1px #01040480;
+    --megui-sombra-janela: 0 0 0 1px #BDBDBD1F, 0 8px 12px #0104045C, 0 0 1px 1px #01040480;
+    --megui-elevacao-flutuante: var(--megui-sombra-elevada);
     color-scheme: dark;
   }
 }
 
 :root {
-  --font-ui: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", sans-serif;
-  --font-mono: "Atkinson Hyperlegible Mono", ui-monospace, monospace;
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
   --megui-fonte-ui: var(--font-ui);
   --megui-fonte-mono: var(--font-mono);
   --megui-esp-meio: 2px;
@@ -169,45 +171,54 @@
   --megui-esp-12: 48px;
   --megui-linha: 1px;
   --megui-marca: 2px;
-  --megui-raio: 4px;
-  --megui-normal-linha: 24px;
-  --megui-normal-controle: 28px;
-  --megui-compacta-linha: 20px;
-  --megui-compacta-controle: 24px;
+  --megui-raio: 6px;
+  --megui-raio-campo: 8px;
+  --megui-raio-cartao: 12px;
+  --megui-raio-pilula: 999px;
+  --megui-brilho: rgba(125, 14, 14, 0.55);
+  --megui-brilho-acao: 0 14px 34px -10px var(--megui-brilho), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --megui-brilho-acao-hover: 0 18px 40px -10px var(--megui-brilho), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --megui-subida: -2px;
+  --megui-subida-cartao: -3px;
+  --megui-normal-linha: 32px;
+  --megui-normal-controle: 36px;
+  --megui-compacta-linha: 24px;
+  --megui-compacta-controle: 28px;
   --megui-peso-normal: 400;
   --megui-peso-forte: 700;
-  --megui-tipo-dica: 11px;
+  --megui-peso-medio: 600;
+  --megui-tipo-dica: 12px;
   --megui-tipo-dica-peso: 400;
-  --megui-tipo-dica-altura: 1.35;
-  --megui-tipo-corpo: 13px;
+  --megui-tipo-dica-altura: 1.4;
+  --megui-tipo-corpo: 14px;
   --megui-tipo-corpo-peso: 400;
-  --megui-tipo-corpo-altura: 1.45;
-  --megui-tipo-titulo: 17px;
+  --megui-tipo-corpo-altura: 1.5;
+  --megui-tipo-titulo: 18px;
   --megui-tipo-titulo-peso: 700;
-  --megui-tipo-titulo-altura: 1.25;
-  --megui-tipo-destaque: 22px;
+  --megui-tipo-titulo-altura: 1.3;
+  --megui-tipo-destaque: 24px;
   --megui-tipo-destaque-peso: 700;
   --megui-tipo-destaque-altura: 1.2;
-  --megui-barra-titulo: 32px;
-  --megui-faixa-abas: 32px;
-  --megui-rodape: 24px;
+  --megui-barra-titulo: 44px;
+  --megui-faixa-abas: 44px;
+  --megui-rodape: 28px;
   --megui-aba-min: 120px;
   --megui-aba-max: 220px;
   --megui-aba-fechar: 16px;
   --megui-painel-min: 280px;
   --megui-painel-max: 360px;
-  --megui-acao-tamanho: 40px;
-  --megui-acao-margem: 16px;
-  --megui-acao-reserva: 64px;
+  --megui-acao-tamanho: 48px;
+  --megui-acao-margem: 20px;
+  --megui-acao-reserva: 88px;
   --megui-faixa-nivel: 28px;
   --megui-abas-planilha: 26px;
   --megui-conteudo-max: 1440px;
   --megui-virada: 900px;
   --megui-toque-retrato: 44px;
   --megui-mov-instantaneo: 0ms;
-  --megui-mov-feedback: 120ms;
-  --megui-mov-painel: 180ms;
-  --megui-mov-easing: cubic-bezier(0.2, 0, 0, 1);
+  --megui-mov-feedback: 220ms;
+  --megui-mov-painel: 220ms;
+  --megui-mov-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
