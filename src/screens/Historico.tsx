@@ -11,6 +11,7 @@ import { useAgenda } from '../stores/agenda'
 import { dataISO, duracao, hora, hoje, nomeDoDia } from '../util'
 import { Simbolo } from '../components/Icone'
 import { contagemDasRotinas } from '../rotinas'
+import { DIAS_PARADO, passosPorSemana, situacaoDosProjetos } from '../indicadores'
 
 const DIA = 86_400_000
 
@@ -21,6 +22,9 @@ export function Historico() {
   const projetoDe = (id: string | null) => s.projetos.find((p) => p.id === id)
   const cal = calibracao(s.passos, s.sessoes)
   const rotinas = contagemDasRotinas(s.passos, agora)
+  const semanas = passosPorSemana(s.passos, agora)
+  const maiorSemana = Math.max(1, ...semanas)
+  const situacao = situacaoDosProjetos(s.projetos, s.passos, agora)
 
   // Resumo: últimos 7 dias
   const desde7 = new Date(agora).setHours(0, 0, 0, 0) - 6 * DIA
@@ -124,6 +128,31 @@ export function Historico() {
               </>
             )}
           </div>
+
+          {(semanas.some((n) => n > 0) || s.projetos.length > 0) && (
+            <div className="cartao">
+              <h2 className="rotulo">Como está indo</h2>
+              <p className="motivo">Para ver se o jeito de trabalhar está ajudando: compare as semanas entre si, sem meta a bater.</p>
+              <div className="semanas" role="img" aria-label={'Passos feitos por semana, da mais antiga para esta: ' + semanas.join(', ')}>
+                {semanas.map((n, i) => (
+                  <div key={i} className="semana">
+                    <span className="valor">{n}</span>
+                    <div className="semana-barra">
+                      <div className="cheia" style={{ height: `${(n / maiorSemana) * 100}%` }} />
+                    </div>
+                    <span className="motivo">{i === semanas.length - 1 ? 'Esta' : `${semanas.length - 1 - i} sem.`}</span>
+                  </div>
+                ))}
+              </div>
+              {s.projetos.length > 0 && (
+                <p className="motivo">
+                  Projetos: <b>{situacao.concluidos}</b> concluído{situacao.concluidos === 1 ? '' : 's'}, <b>{situacao.encerrados}</b> encerrado
+                  {situacao.encerrados === 1 ? '' : 's'} com o que deram, <b>{situacao.andando}</b> andando e <b>{situacao.parados}</b> parado
+                  {situacao.parados === 1 ? '' : 's'} há {DIAS_PARADO} dias ou mais.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="col">
