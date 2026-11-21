@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { armazenar } from './armazenamento.ts'
 import { apagarAudio } from './audios'
 import { ordemAntesDe, passosParaModelo, proximaRepeticao } from './calculos'
 import type { Classe } from './motor/regras'
@@ -226,6 +227,7 @@ export const useStore = create<Estado>()(
     }),
     {
       name: 'meusme',
+      storage: armazenar(),
       version: 2,
       // v2: energia de 3 para 5 níveis. Baixa, média e alta (1, 2, 3) viram 1, 3 e 5.
       migrate: (salvo, versao) => {
