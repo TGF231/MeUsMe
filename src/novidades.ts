@@ -5,6 +5,12 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.15',
+    itens: [
+      'Em espera: o campo de captura ocupa a linha inteira e cresce com o texto; ditado, ajuda e Guardar ficam na linha de baixo.',
+    ],
+  },
+  {
     versao: '0.9.14',
     itens: [
       'Próximo passo sem nada na fila: some a escolha de energia e aparece o botão Capturar, com a explicação de como seguir.',
