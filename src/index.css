@@ -478,6 +478,30 @@ h2.titulo {
   flex-wrap: nowrap;
 }
 
+/*
+ * Campo de captura do Em espera: uma linha quando vazio, cresce com o texto até um teto (field-sizing onde o
+ * navegador conhece; nos outros, rola dentro do campo). Fundo de campo de uma linha, não de bloco de notas.
+ */
+.campo-captura {
+  display: block;
+  resize: none;
+  field-sizing: content;
+  max-height: 40vh;
+  background: var(--superficie-2);
+  border-color: transparent;
+  line-height: 1.4;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.campo-captura:hover {
+  border-color: var(--borda-2);
+}
+
+.controles-captura {
+  margin-top: 8px;
+}
+
 .linha.acoes select {
   width: auto;
   flex: 1;

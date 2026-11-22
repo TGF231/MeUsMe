@@ -405,30 +405,43 @@ export function Caixa() {
             }}
           >
             <label className="rotulo">Tire da cabeça. Organizar fica para depois.</label>
-            <div className="linha">
-              <input
-                value={texto}
-                onChange={(e) => setTexto(e.target.value)}
-                onPaste={(e) => {
-                  // Várias linhas ou frases: pergunta antes de separar (o campo de uma linha juntaria tudo).
-                  const itens = dividirEmItens(e.clipboardData.getData('text'))
-                  if (itens.length < 2) return
-                  e.preventDefault()
-                  setColados(itens)
-                }}
-                placeholder={`Ex.: ${exemplo}`}
-                aria-label="Deixar em espera"
-              />
-              {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
-              <BotaoVoz
-                onTexto={(falado) => {
-                  void organizar([texto.trim(), falado].filter(Boolean).join(' '))
-                  setTexto('')
-                }}
-              />
-              <button type="button" className="icone-botao" onClick={() => setTutorial(true)} aria-label="Como escrever rápido">
-                ?
-              </button>
+            {/*
+              O campo ocupa a linha inteira e cresce com o texto (no celular, o teclado virtual deixa pouca largura);
+              ditado, ajuda e Guardar ficam na linha de baixo. Enter guarda, como no campo de uma linha.
+            */}
+            <textarea
+              className="campo-captura"
+              rows={1}
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing) return
+                e.preventDefault()
+                e.currentTarget.form?.requestSubmit()
+              }}
+              onPaste={(e) => {
+                // Várias linhas ou frases: pergunta antes de separar (num campo só, tudo viraria um item).
+                const itens = dividirEmItens(e.clipboardData.getData('text'))
+                if (itens.length < 2) return
+                e.preventDefault()
+                setColados(itens)
+              }}
+              placeholder={`Ex.: ${exemplo}`}
+              aria-label="Deixar em espera"
+            />
+            <div className="linha entre controles-captura">
+              <span className="linha">
+                {/* Falou, guardou: o ditado passa pelo motor na hora, junto do que já estava escrito. */}
+                <BotaoVoz
+                  onTexto={(falado) => {
+                    void organizar([texto.trim(), falado].filter(Boolean).join(' '))
+                    setTexto('')
+                  }}
+                />
+                <button type="button" className="icone-botao" onClick={() => setTutorial(true)} aria-label="Como escrever rápido">
+                  ?
+                </button>
+              </span>
               <Botao variante="acento" type="submit">
                 Guardar
               </Botao>
