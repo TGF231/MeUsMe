@@ -2309,3 +2309,16 @@ button.perigo:hover {
   min-height: 2px;
   background: var(--acento-linha);
 }
+
+/* Ajustes: índice de atalhos para os cartões, em linha que quebra, sem rolagem lateral escondida. */
+.indice-ajustes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.indice-ajustes button {
+  min-height: var(--alvo);
+  padding: 0 16px;
+  font-size: 0.9rem;
+}
