@@ -5,6 +5,15 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.14',
+    itens: [
+      'Próximo passo sem nada na fila: some a escolha de energia e aparece o botão Capturar, com a explicação de como seguir.',
+      'Ajustes tem um índice no topo, com um atalho para cada seção.',
+      'No celular, Ajustes aparece com o nome no canto de cima, e fica marcado enquanto está aberto.',
+      'O aviso de pronto para usar sem internet saiu: ele cobria a introdução no celular.',
+    ],
+  },
+  {
     versao: '0.9.13',
     itens: [
       'No navegador, dá para instalar o MeUsMe como app: Ajustes → Instalar o app (no iPhone, pelo Compartilhar do Safari).',
