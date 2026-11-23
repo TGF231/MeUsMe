@@ -66,7 +66,7 @@ button {
 }
 button:not(.discreto, .ativo, .opcao, .cartao, .pontos, .mg-botao, .mg-interruptor, .mg-acao-primaria, .fab):not(.abas *, .menu-aba > *, .sub-abas > *, .dias > *, .lista-fila *, .mg-barra-titulo *, .mg-faixa-abas *) {
   background: var(--superficie);
-  box-shadow: var(--sombra-elevada);
+  box-shadow: var(--sombra-botao);
 }
 
 /* O botão +: a ação principal do celular, redonda, com o brilho do MegUI. */
@@ -115,5 +115,22 @@ button:not(.discreto, .ativo, .opcao, .cartao, .pontos, .mg-botao, .mg-interrupt
   .cartao:hover,
   .opcao:hover {
     transform: none !important;
+  }
+}
+
+/*
+ * Sombra do botão solto. A elevada do MegUI é quase preta e some em superfície escura; aqui ela ganha um fio de luz
+ * no topo (borda superior mais clara) e uma queda mais larga, para o botão se destacar do cartão nos dois temas.
+ */
+:root {
+  --sombra-botao: 0 1px 2px #1e1f2140, 0 2px 6px #1e1f2126;
+}
+[data-theme='escuro'],
+[data-tema='escuro'] {
+  --sombra-botao: inset 0 1px 0 #ffffff14, 0 1px 2px #00000099, 0 3px 8px #00000066;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]):not([data-tema]) {
+    --sombra-botao: inset 0 1px 0 #ffffff14, 0 1px 2px #00000099, 0 3px 8px #00000066;
   }
 }
