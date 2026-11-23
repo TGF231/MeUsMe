@@ -5,6 +5,13 @@
  */
 export const NOVIDADES: { versao: string; itens: string[] }[] = [
   {
+    versao: '0.9.16',
+    itens: [
+      'O ✕ das janelas ganhou folga na faixa do título e fica alinhado ao botão de ditado.',
+      'Os botões soltos ganharam uma sombra que aparece no tema escuro.',
+    ],
+  },
+  {
     versao: '0.9.15',
     itens: [
       'Em espera: o campo de captura ocupa a linha inteira e cresce com o texto; ditado, ajuda e Guardar ficam na linha de baixo.',
